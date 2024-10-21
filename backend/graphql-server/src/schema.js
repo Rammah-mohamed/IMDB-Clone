@@ -167,7 +167,7 @@ const typeDefs = gql`
     popularity: Float
     known_for_department: String!
     profile_path: String!
-    known_for: [Movie]
+    known_for: [All]
   }
 
   type AuthorDetail {
@@ -214,12 +214,7 @@ const typeDefs = gql`
     movieVideos(id: Int!): [Videos!]
     movieGenres: [Genres!]!
     moviesRecommend(id: Int!): [Movie]!
-    searchMovies(
-      query: String!
-      lang: String
-      page: String
-      year: String
-    ): [Movie]
+    searchMovies(query: String!, lang: String, page: String, year: String): [Movie]
     trendingTV(time: String): [TV]!
     tvAiring(page: String): [TV!]!
     tvPopular(page: String): [TV!]!
