@@ -18,7 +18,7 @@ const listData = [
 
 const Home = () => {
   return (
-    <div>
+    <div className="bg-black">
       <Navbar />
       <Feature />
       <Lists title={'Featured today'} data={listData} />

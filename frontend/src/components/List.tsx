@@ -152,6 +152,18 @@ const List: React.FC<Listprops> = ({
     window.scrollTo({ top: 0 });
   };
 
+  const handleList = (): void => {
+    navigate('/listDetails', { state: { query: query, title: title } });
+  };
+
+  const handleClick = (): void => {
+    if (query) {
+      handleList();
+    } else {
+      handleTrailer();
+    }
+  };
+
   if (loading) return <p className="text-white">Loading...</p>;
   if (error) return <p className="text-white">Error: {error.message}</p>;
 
@@ -160,7 +172,7 @@ const List: React.FC<Listprops> = ({
       ref={containerRef}
       className="pl-4 cursor-pointer"
       style={{ flex: '0 0 33%' }}
-      onClick={handleTrailer}
+      onClick={handleClick}
     >
       <div className="group/icon relative mb-3 rounded-2xl overflow-hidden" ref={heightRef}>
         <span className="group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>

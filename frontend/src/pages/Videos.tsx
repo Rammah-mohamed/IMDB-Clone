@@ -1,6 +1,11 @@
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useQuery } from '@apollo/client';
 import { useEffect, useState } from 'react';
-import { GET_MOVIE_TRAILER, GET_TV_TRAILER } from '../graphql/queries';
+import {
+  GET_MOVIE_GENRES,
+  GET_MOVIE_TRAILER,
+  GET_TV_GENRES,
+  GET_TV_TRAILER,
+} from '../graphql/queries';
 import ReactPlayer from 'react-player';
 import { Link, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -25,6 +30,11 @@ type Video = {
   first_air_date?: string;
 };
 
+type Genre = {
+  id: number;
+  name: string;
+};
+
 type Trailer = {
   key: string;
   name: string;
@@ -33,12 +43,25 @@ type Trailer = {
 
 const Videos = () => {
   const [trailer, setTrailer] = useState<Trailer | null>(null);
+  const [genres, setGenres] = useState<string[]>([]);
+  const {
+    loading: tvGenresLoading,
+    error: tvGenresError,
+    data: tvGenresData,
+  } = useQuery(GET_TV_GENRES);
+  const {
+    loading: movieGenresLoading,
+    error: movieGenresError,
+    data: movieGenresData,
+  } = useQuery(GET_MOVIE_GENRES);
   const [
     getMovieTrailer,
     { loading: movieTrailerLoading, error: movieTrailerError, data: movieTrailerData },
   ] = useLazyQuery(GET_MOVIE_TRAILER);
   const [getTvTrailer, { loading: tvTrailerLoading, error: tvTrailerError, data: tvTrailerData }] =
     useLazyQuery(GET_TV_TRAILER);
+  const movieGenres: Genre[] = movieGenresData?.movieGenres;
+  const tvGenres: Genre[] = tvGenresData?.tvGenres;
   const movieTrailer: Trailer[] = movieTrailerData?.movieVideos;
   const tvTrailer: Trailer[] = tvTrailerData?.tvVideos;
   const YOUTUBE_URL = 'https://www.youtube.com/watch?v=';
@@ -51,6 +74,28 @@ const Videos = () => {
     const savedData = localStorage.getItem('video') ?? '';
     return savedData ? JSON.parse(savedData) : null;
   });
+
+  const getMovieGenras = (array: number[]): string[] => {
+    for (let i = 0; i < array.length; i++) {
+      movieGenres?.map((g) => (g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null));
+    }
+    return genres;
+  };
+
+  const getTVGenras = (array: number[]): string[] => {
+    for (let i = 0; i < array.length; i++) {
+      tvGenres?.map((g) => (g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null));
+    }
+    return genres;
+  };
+
+  useEffect(() => {
+    if (data?.media_type === 'movie' || videoData?.media_type === 'movie') {
+      genres.length === 0 && getMovieGenras(data?.genre_ids || videoData?.genre_ids);
+    } else {
+      genres.length === 0 && getTVGenras(data?.genre_ids || videoData?.genre_ids);
+    }
+  }, [movieGenres, tvGenres, data, videoData]);
 
   useEffect(() => {
     if (data) {
@@ -96,10 +141,14 @@ const Videos = () => {
   if (movieTrailerError) return <p className="text-white">Error: {movieTrailerError.message}</p>;
   if (tvTrailerLoading) return <p className="text-white">TV Trailer Loading...</p>;
   if (tvTrailerError) return <p className="text-white">Error: {tvTrailerError.message}</p>;
+  if (movieGenresLoading) return <p className="text-white">Movie Geres Loading...</p>;
+  if (movieGenresError) return <p className="text-white">Error: {movieGenresError.message}</p>;
+  if (tvGenresLoading) return <p className="text-white">TV Genres Loading...</p>;
+  if (tvGenresError) return <p className="text-white">Error: {tvGenresError.message}</p>;
   return (
-    <div>
+    <div className="bg-black">
       <Navbar />
-      <div className="container flex gap-2 mb-10 text-white" style={{ height: '85vh' }}>
+      <div className="container flex gap-2 pt-8 mb-10 text-white" style={{ height: '85vh' }}>
         <div className="group relative flex-2 mb-4 rounded-2xl overflow-hidden">
           <Link
             to={'/'}
@@ -117,7 +166,8 @@ const Videos = () => {
         </div>
         <div className="flex-1 flex flex-col gap-6 p-5 mb-4 bg-black-100 rounded-2xl">
           <div className="relative flex gap-2 pb-6 border-b-2 border-gray-300">
-            <div className="relative w-24 h-36 overflow-hidden rounded-xl">
+            <div className="group relative w-24 h-36 overflow-hidden rounded-xl cursor-pointer">
+              <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
               <AddIcon
                 className="absolute top-0 left-0 bg-black-transparent "
                 style={{ fontSize: '1.5rem' }}
@@ -132,15 +182,19 @@ const Videos = () => {
                 className="object-cover w-full h-full"
               />
             </div>
-            <div>
+            <div className="flex flex-col gap-2 font-semibold">
               <h2>
                 {data?.media_type === 'movie' || (videoData && videoData?.media_type === 'movie')
                   ? data?.title || videoData?.title
                   : data?.name || videoData?.name}
               </h2>
-              <p>Genre</p>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
+                {genres.map((g: string, index: number) => (
+                  <p key={index}>{g}</p>
+                ))}
+              </div>
             </div>
-            <KeyboardArrowRightIcon className="absolute right-3 top-3" />
+            <KeyboardArrowRightIcon className="absolute right-3 top-0" />
           </div>
           <div>
             <h1 className="text-2xl font-bold mb-2">{trailer?.name}</h1>

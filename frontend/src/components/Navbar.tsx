@@ -14,7 +14,7 @@ const Navbar = () => {
   const [searchText, setSearchText] = useState<String>('All');
   return (
     <div className="container bg-black-100">
-      <div className="relative flex items-center justify-between py-3 mb-8 font-bold">
+      <div className="relative flex items-center justify-between py-3 font-bold">
         <Link to={'/'}>
           <h1 className=" bg-primary py-0.5 px-1.5 text-xl font-black rounded">IMDB</h1>
         </Link>
@@ -41,6 +41,7 @@ const Navbar = () => {
               showSearch={showSearch}
               setShowSearch={setShowSearch}
               setSearchText={setSearchText}
+              menuFor="Navbar"
             />
           </div>
           <input

@@ -27,9 +27,9 @@ const resolvers = {
       try {
         const response = await fetch(
           BASE_URL +
-            `search/multi?query=${query}&include_adult=false&language=${
-              lang || 'en-US'
-            }&page=${page || '1'}`,
+            `search/multi?query=${query}&include_adult=false&language=${lang || 'en-US'}&page=${
+              page || '1'
+            }`,
           options
         );
         const data = await response.json();
@@ -88,10 +88,7 @@ const resolvers = {
     },
     movieDetail: async (_, { id }) => {
       try {
-        const response = await fetch(
-          BASE_URL + `movie/${id}?language=en-US`,
-          options
-        );
+        const response = await fetch(BASE_URL + `movie/${id}?language=en-US`, options);
         const data = await response.json();
         return data;
       } catch (error) {
@@ -133,10 +130,7 @@ const resolvers = {
     },
     movieVideos: async (_, { id }) => {
       try {
-        const response = await fetch(
-          BASE_URL + `movie/${id}/videos?language=en-US`,
-          options
-        );
+        const response = await fetch(BASE_URL + `movie/${id}/videos?language=en-US`, options);
         const data = await response.json();
         return data.results;
       } catch (error) {
@@ -145,10 +139,7 @@ const resolvers = {
     },
     movieGenres: async () => {
       try {
-        const response = await fetch(
-          BASE_URL + `genre/movie/list?language=en`,
-          options
-        );
+        const response = await fetch(BASE_URL + `genre/movie/list?language=en`, options);
         const data = await response.json();
         return data.genres;
       } catch (error) {
@@ -158,8 +149,7 @@ const resolvers = {
     moviesRecommend: async (_, { id, page }) => {
       try {
         const response = await fetch(
-          BASE_URL +
-            `movie/${id}/recommendations?language=en-US&page=${page || 1}`,
+          BASE_URL + `movie/${id}/recommendations?language=en-US&page=${page || 1}`,
           options
         );
         const data = await response.json();
@@ -168,13 +158,31 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
+    moviesCast: async (_, { id }) => {
+      try {
+        const response = await fetch(BASE_URL + `movie/${id}/credits?language=en-US`, options);
+        const data = await response.json();
+        return data.cast;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    moviesCrew: async (_, { id }) => {
+      try {
+        const response = await fetch(BASE_URL + `movie/${id}/credits?language=en-US`, options);
+        const data = await response.json();
+        return data.crew;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
     searchMovies: async (_, { query, lang, page, year }) => {
       try {
         const response = await fetch(
           BASE_URL +
-            `search/movie?query=${query}&include_adult=false&language=${
-              lang || 'en-US'
-            }&page=${page || '1'}${year ? '&year=' + year : ''}`,
+            `search/movie?query=${query}&include_adult=false&language=${lang || 'en-US'}&page=${
+              page || '1'
+            }${year ? '&year=' + year : ''}`,
           options
         );
         const data = await response.json();
@@ -233,10 +241,7 @@ const resolvers = {
     },
     tvDetail: async (_, { id }) => {
       try {
-        const response = await fetch(
-          BASE_URL + `tv/${id}?language=en-US`,
-          options
-        );
+        const response = await fetch(BASE_URL + `tv/${id}?language=en-US`, options);
         const data = await response.json();
         return data;
       } catch (error) {
@@ -278,10 +283,7 @@ const resolvers = {
     },
     tvVideos: async (_, { id }) => {
       try {
-        const response = await fetch(
-          BASE_URL + `tv/${id}/videos?language=en-US`,
-          options
-        );
+        const response = await fetch(BASE_URL + `tv/${id}/videos?language=en-US`, options);
         const data = await response.json();
         return data.results;
       } catch (error) {
@@ -291,8 +293,7 @@ const resolvers = {
     tvRecommend: async (_, { id, page }) => {
       try {
         const response = await fetch(
-          BASE_URL +
-            `tv/${id}/recommendations?language=en-US&page=${page || 1}`,
+          BASE_URL + `tv/${id}/recommendations?language=en-US&page=${page || 1}`,
           options
         );
         const data = await response.json();
@@ -303,12 +304,27 @@ const resolvers = {
     },
     tvGenres: async () => {
       try {
-        const response = await fetch(
-          BASE_URL + `genre/tv/list?language=en`,
-          options
-        );
+        const response = await fetch(BASE_URL + `genre/tv/list?language=en`, options);
         const data = await response.json();
         return data.genres;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    tvCast: async (_, { id }) => {
+      try {
+        const response = await fetch(BASE_URL + `tv/${id}/credits?language=en-US`, options);
+        const data = await response.json();
+        return data.cast;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    tvCrew: async (_, { id }) => {
+      try {
+        const response = await fetch(BASE_URL + `tv/${id}/credits?language=en-US`, options);
+        const data = await response.json();
+        return data.crew;
       } catch (error) {
         throw new Error(error.message);
       }
@@ -317,9 +333,9 @@ const resolvers = {
       try {
         const response = await fetch(
           BASE_URL +
-            `search/tv?query=${query}&include_adult=false&language=${
-              lang || 'en-US'
-            }&page=${page || '1'}${year ? '&year=' + year : ''}`,
+            `search/tv?query=${query}&include_adult=false&language=${lang || 'en-US'}&page=${
+              page || '1'
+            }${year ? '&year=' + year : ''}`,
           options
         );
         const data = await response.json();
@@ -342,10 +358,7 @@ const resolvers = {
     },
     seasonImages: async (_, { id, number }) => {
       try {
-        const response = await fetch(
-          BASE_URL + `tv/${id}/season/${number}/images`,
-          options
-        );
+        const response = await fetch(BASE_URL + `tv/${id}/season/${number}/images`, options);
         const data = await response.json();
         return data.posters;
       } catch (error) {
@@ -367,8 +380,7 @@ const resolvers = {
     episodeDetail: async (_, { id, season, number }) => {
       try {
         const response = await fetch(
-          BASE_URL +
-            `tv/${id}/season/${season}/episode/${number}?language=en-US`,
+          BASE_URL + `tv/${id}/season/${season}/episode/${number}?language=en-US`,
           options
         );
         const data = await response.json();
@@ -392,8 +404,7 @@ const resolvers = {
     episodeVideos: async (_, { id, season, number }) => {
       try {
         const response = await fetch(
-          BASE_URL +
-            `tv/${id}/season/${season}/episode/${number}/videos?language=en-US`,
+          BASE_URL + `tv/${id}/season/${season}/episode/${number}/videos?language=en-US`,
           options
         );
         const data = await response.json();
@@ -428,10 +439,7 @@ const resolvers = {
     },
     peopleDetail: async (_, { id }) => {
       try {
-        const response = await fetch(
-          BASE_URL + `person/${id}?language=en-US`,
-          options
-        );
+        const response = await fetch(BASE_URL + `person/${id}?language=en-US`, options);
         const data = await response.json();
         return data;
       } catch (error) {
@@ -451,9 +459,9 @@ const resolvers = {
       try {
         const response = await fetch(
           BASE_URL +
-            `search/person?query=${query}&include_adult=false&language=${
-              lang || 'en-US'
-            }&page=${page || '1'}`,
+            `search/person?query=${query}&include_adult=false&language=${lang || 'en-US'}&page=${
+              page || '1'
+            }`,
           options
         );
         const data = await response.json();

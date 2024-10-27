@@ -123,6 +123,17 @@ const typeDefs = gql`
     vote_average: Int
   }
 
+  type Cast {
+    id: Int!
+    name: String!
+    gender: Int
+    popularity: Float
+    known_for_department: String
+    profile_path: String
+    character: String
+    order: Int
+  }
+
   type Crew {
     id: Int!
     name: String!
@@ -214,6 +225,8 @@ const typeDefs = gql`
     movieVideos(id: Int!): [Videos!]
     movieGenres: [Genres!]!
     moviesRecommend(id: Int!): [Movie]!
+    moviesCast(id: Int!): [Cast!]
+    moviesCrew(id: Int!): [Crew!]
     searchMovies(query: String!, lang: String, page: String, year: String): [Movie]
     trendingTV(time: String): [TV]!
     tvAiring(page: String): [TV!]!
@@ -225,6 +238,8 @@ const typeDefs = gql`
     tvImages(id: Int!): [Images!]
     tvVideos(id: Int!): [Videos!]
     tvRecommend(id: Int!): [TV]!
+    tvCast(id: Int!): [Cast!]
+    tvCrew(id: Int!): [Crew!]
     tvGenres: [Genres!]!
     searchTV(query: String!, lang: String, page: String, year: String): [TV!]!
     seasonDetail(id: Int!, number: Int!): SeasonDetail!

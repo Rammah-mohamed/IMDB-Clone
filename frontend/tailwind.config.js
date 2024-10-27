@@ -8,7 +8,10 @@ export default {
     },
     colors: {
       primary: '#deb522',
-      secondary: '#128bb5',
+      secondary: {
+        DEFAULT: '#128bb5',
+        100: '#128bb521',
+      },
       white: '#fff',
       black: {
         DEFAULT: '#000',
@@ -19,6 +22,7 @@ export default {
         DEFAULT: '#4140409e',
         100: '#f6f6f6',
         200: '#eee',
+        250: '#dedede',
         300: '#777',
         400: '#1F1F1F',
       },
@@ -31,6 +35,7 @@ export default {
       flex: {
         2: '2 2 0%',
         3: '3 3 0%',
+        4: '4 4 0%',
       },
     },
   },

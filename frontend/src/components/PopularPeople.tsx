@@ -93,11 +93,12 @@ const PopularPeople = () => {
           <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <div
-          className="flex items-center gap-4 transition-transform duration-500"
+          className="flex items-center gap-4 transition-transform duration-500 cursor-pointer"
           style={{ transform: `translateX(${-(width * index + 16 * (index + 1))}px` }}
         >
           {popularPeople.map((p) => (
-            <div className="flex flex-col gap-2" key={p.id} ref={widthRef}>
+            <div className="group/icon relative flex flex-col gap-2" key={p.id} ref={widthRef}>
+              <span className="group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
               <div className="w-44 h-44">
                 <img
                   src={TMDB_URL + p.profile_path}

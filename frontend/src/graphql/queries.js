@@ -64,6 +64,43 @@ export const GET_MOVIE_TRAILER = gql`
   }
 `;
 
+export const GET_MOVIE_GENRES = gql`
+  query {
+    movieGenres {
+      id
+      name
+    }
+  }
+`;
+
+export const GET_MOVIE_CAST = gql`
+  query getMovieCast($id: Int!) {
+    moviesCast(id: $id) {
+      id
+      name
+      gender
+      popularity
+      known_for_department
+      profile_path
+      popularity
+      character
+      order
+    }
+  }
+`;
+
+export const GET_MOVIE_CREW = gql`
+  query getMovieCrew($id: Int!) {
+    moviesCrew(id: $id) {
+      id
+      name
+      job
+      gender
+      profile_path
+    }
+  }
+`;
+
 export const GET_TV_AIRING = gql`
   query {
     tvAiring {
@@ -104,6 +141,43 @@ export const GET_TV_TRAILER = gql`
       key
       name
       type
+    }
+  }
+`;
+
+export const GET_TV_GENRES = gql`
+  query {
+    tvGenres {
+      id
+      name
+    }
+  }
+`;
+
+export const GET_TV_CAST = gql`
+  query getTvCast($id: Int!) {
+    tvCast(id: $id) {
+      id
+      name
+      gender
+      popularity
+      known_for_department
+      profile_path
+      popularity
+      character
+      order
+    }
+  }
+`;
+
+export const GET_TV_CREW = gql`
+  query getTvCrew($id: Int!) {
+    moviesCrew(id: $id) {
+      id
+      name
+      job
+      gender
+      profile_path
     }
   }
 `;

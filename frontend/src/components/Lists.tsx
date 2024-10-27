@@ -51,6 +51,7 @@ const Lists: React.FC<ListsProps> = ({ title, data, relatedVideos, poster }) => 
   const handleLeft = (info: any[]): void => {
     setIndex((prev) => (prev !== 0 ? prev - 1 : info.length - 1));
   };
+
   return (
     <div className="container pb-6">
       <h1 className="text-3xl text-primary pl-5 mb-6">{title}</h1>

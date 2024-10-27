@@ -79,7 +79,7 @@ const Feature = () => {
 
   return (
     <div
-      className="container flex gap-2"
+      className="container flex gap-2 pt-8"
       style={{
         height: 'calc(98vh - 72px)',
       }}
@@ -137,7 +137,7 @@ const Feature = () => {
                 />
                 <div className="flex-1 flex flex-col justify-end gap-1 text-white">
                   <span className="text-3xl">{e.name || e.title}</span>
-                  <p className="text-lg text-gray-300">{e.overview.slice(0, 150) + '...'}</p>
+                  <p className="text-lg text-gray-300">{e.overview.slice(0, 180) + '...'}</p>
                 </div>
               </div>
             </div>
@@ -159,25 +159,25 @@ const Feature = () => {
           <div
             className="flex flex-col gap-3 p-3"
             style={{
-              transform: `translateY(${-(128 * index + 12 * (index + 1))}px)`,
+              transform: `translateY(${-(176 * index + 12 * (index + 1))}px)`,
             }}
           >
             {trending?.map((e: any, index: number) => (
-              <div key={index} className="group flex items-center justify-center gap-4 h-32">
+              <div key={index} className="group flex items-center justify-center gap-4 p-2 h-44">
                 <img
                   src={TMDB_URL + e.poster_path}
                   alt="poster"
                   loading={index <= 2 ? 'eager' : 'lazy'}
-                  className="object-cover w-24 h-28 rounded-lg"
+                  className="object-cover w-28 h-36 rounded-lg"
                 />
                 <div className="flex flex-col gap-1">
                   <PlayCircleOutlineIcon
                     className="text-white group-hover:text-primary"
                     style={{ fontSize: '2rem' }}
                   />
-                  <div className="flex-1 flex flex-col justify-end gap-1 text-white">
+                  <div className="flex-1 flex flex-col gap-1 text-white">
                     <span className="text-base">{e.name || e.title}</span>
-                    <p className="text-sm text-gray-300">{e.overview.slice(0, 50) + '...'}</p>
+                    <p className="text-sm text-gray-300">{e.overview.slice(0, 100) + '...'}</p>
                   </div>
                 </div>
               </div>
