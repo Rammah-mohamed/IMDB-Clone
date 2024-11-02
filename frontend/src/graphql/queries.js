@@ -182,22 +182,20 @@ export const GET_TV_CREW = gql`
   }
 `;
 
-export const GET_POPULAR_PEOPLE = gql`
+export const GET_POPULAR_CELEBRITY = gql`
   query {
-    popularPeople {
+    popularCelebrity {
       name
       id
       gender
-      biography
-      birthday
-      deathday
       profile_path
       popularity
-      place_of_birth
       known_for_department
       known_for {
         id
+        name
         overview
+        title
         poster_path
         backdrop_path
         popularity
@@ -205,11 +203,32 @@ export const GET_POPULAR_PEOPLE = gql`
         vote_count
         release_date
         genre_ids
-        title
-        name
         media_type
         first_air_date
       }
+    }
+  }
+`;
+
+export const GET_CELEBRITY_DETAILS = gql`
+  query ($id: Int!) {
+    celebrityDetail(id: $id) {
+      id
+      imdb_id
+      biography
+      birthday
+      deathday
+      place_of_birth
+    }
+  }
+`;
+
+export const GET_CELEBRITY_IMAGES = gql`
+  query ($id: Int!) {
+    celebrityImages(id: $id) {
+      width
+      height
+      file_path
     }
   }
 `;

@@ -10,21 +10,21 @@ type MenuProps = {
 };
 
 const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
-  const movies: String[] = [
+  const movies: string[] = [
     'Top 250 Movies',
     'Trending Movies',
     'Upcoming Movies',
     'Most Popular Movies',
     'Browse Movies By Genre',
   ];
-  const shows: String[] = [
+  const shows: string[] = [
     'Top 250 TV Shows',
     "What's on TV & Streaming",
     'Trending TV Shows',
     'Most Popular TV Shows',
     'Browse TV Shows By Genre',
   ];
-  const trailers: String[] = ['Watch Trailers', 'Latest Trailer', 'IMDB Originals', 'IMDB Picks'];
+  const trailers: string[] = ['Watch Trailers', 'Latest Trailer', 'IMDB Originals', 'IMDB Picks'];
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
@@ -53,7 +53,7 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
           <LocalMoviesIcon className="text-primary" style={{ fontSize: '1.5rem' }} />
           <div className="flex flex-col gap-4 text-gray-200 text-base">
             <h1 className="text-white text-2xl">Movies</h1>
-            {movies.map((m: String, index: number) => (
+            {movies.map((m: string, index: number) => (
               <Link key={index} to={''} className="hover:underline">
                 {m}
               </Link>
@@ -64,7 +64,7 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
           <TvIcon className="text-primary" style={{ fontSize: '1.5rem' }} />
           <div className="flex flex-col gap-4 text-gray-200 text-base">
             <h1 className="text-white text-2xl">TV Shows</h1>
-            {shows.map((s: String, index: number) => (
+            {shows.map((s: string, index: number) => (
               <Link key={index} to={''} className="hover:underline">
                 {s}
               </Link>
@@ -75,7 +75,7 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
           <VideoLibraryIcon className="text-primary" style={{ fontSize: '1.5rem' }} />
           <div className="flex flex-col gap-4 text-gray-200 text-base">
             <h1 className="text-white text-2xl">Watch</h1>
-            {trailers.map((t: String, index: number) => (
+            {trailers.map((t: string, index: number) => (
               <Link key={index} to={''} className="hover:underline">
                 {t}
               </Link>

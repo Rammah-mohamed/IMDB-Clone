@@ -12,7 +12,7 @@ export default {
         DEFAULT: '#128bb5',
         100: '#128bb521',
       },
-      white: '#fff',
+      white: { DEFAULT: '#fff' },
       black: {
         DEFAULT: '#000',
         100: '#121212',
@@ -24,9 +24,11 @@ export default {
         200: '#eee',
         250: '#dedede',
         300: '#777',
+        350: '#373737',
         400: '#1F1F1F',
       },
-      overlay: '#11111130',
+      overlay: { DEFAULT: '#11111130', 50: '#11111150', 60: '#11111160', 70: '#11111170' },
+      green: '#66AB58',
     },
     extend: {
       fontFamily: {
@@ -34,6 +36,7 @@ export default {
       },
       flex: {
         2: '2 2 0%',
+        2.5: '2.5 2.5 0%',
         3: '3 3 0%',
         4: '4 4 0%',
       },

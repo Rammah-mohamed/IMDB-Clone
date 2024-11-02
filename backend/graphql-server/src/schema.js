@@ -2,19 +2,19 @@ const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
   interface MotionPicture {
-    backdrop_path: String
-    genre_ids: [Int!]!
     id: Int!
-    overview: String!
-    popularity: Float!
+    overview: String
     poster_path: String
+    backdrop_path: String
+    genre_ids: [Int]!
+    popularity: Float!
     vote_average: String!
     vote_count: String!
   }
 
   interface Movies {
-    release_date: String
     title: String
+    release_date: String
   }
 
   interface TVs {
@@ -23,102 +23,102 @@ const typeDefs = gql`
   }
 
   type All implements MotionPicture & Movies & TVs {
-    backdrop_path: String
-    genre_ids: [Int!]!
     id: Int!
-    overview: String!
-    popularity: Float!
+    title: String
+    overview: String
+    name: String
     poster_path: String
+    backdrop_path: String
+    release_date: String
+    first_air_date: String
+    genre_ids: [Int]!
+    media_type: String!
+    popularity: Float!
     vote_average: String!
     vote_count: String!
-    media_type: String!
-    release_date: String
-    title: String
-    first_air_date: String
-    name: String
   }
 
   type Movie implements MotionPicture & Movies {
-    backdrop_path: String
-    genre_ids: [Int!]!
     id: Int!
+    title: String!
     overview: String!
-    popularity: Float!
     poster_path: String
+    backdrop_path: String
+    release_date: String
+    genre_ids: [Int!]!
+    popularity: Float!
     vote_average: String!
     vote_count: String!
-    release_date: String
-    title: String!
   }
 
   type MovieDetails {
-    backdrop_path: String!
-    budget: Int!
     id: Int!
     imdb_id: String!
     title: String!
     overview: String!
     poster_path: String!
+    backdrop_path: String!
     genres: [String!]!
     release_date: String!
-    revenue: Int!
-    runtime: Int!
+    budget: Int
+    revenue: Int
+    runtime: Int
     vote_average: String!
     vote_count: String!
   }
 
   type TV implements MotionPicture & TVs {
-    backdrop_path: String
-    genre_ids: [Int!]!
     id: Int!
+    name: String!
     overview: String!
-    popularity: Float!
     poster_path: String
+    backdrop_path: String
+    first_air_date: String
+    genre_ids: [Int!]!
+    popularity: Float!
     vote_average: String!
     vote_count: String!
-    first_air_date: String!
-    name: String!
   }
 
   type TVDetails {
-    backdrop_path: String!
-    episode_run_time: [Int]
+    id: Int!
+    name: String!
+    overview: String!
+    poster_path: String
+    backdrop_path: String
     first_air_date: String!
     genres: [Genres]
-    id: Int!
+    popularity: Int
+    seasons: [Season]!
     last_air_date: String!
     last_episode_to_air: Episode
-    name: String!
     next_episode_to_air: Episode
+    episode_run_time: [Int]
     number_of_episodes: Int!
     number_of_seasons: Int!
-    overview: String!
-    popularity: Int
-    poster_path: String!
-    seasons: [Season]!
     status: String!
     vote_average: Int
     vote_count: Int
   }
 
   type Season {
-    air_date: String
-    episode_count: Int
     id: Int!
     name: String!
     overview: String
     poster_path: String
+    air_date: String
+    episode_count: Int
     season_number: Int
     vote_average: Int
   }
 
   type SeasonDetail {
+    id: Int!
+    name: String!
+    poster_path: String
+    overview: String
     air_date: String!
     episodes: [Episode]
-    name: String!
-    id: Int!
-    overview: String
-    poster_path: String
     season_number: Int
     vote_average: Int
   }
@@ -127,11 +127,11 @@ const typeDefs = gql`
     id: Int!
     name: String!
     gender: Int
-    popularity: Float
-    known_for_department: String
     profile_path: String
+    known_for_department: String
     character: String
     order: Int
+    popularity: Float
   }
 
   type Crew {
@@ -152,33 +152,33 @@ const typeDefs = gql`
 
   type Episode {
     id: Int!
+    show_id: Int
     name: String!
     overview: String!
+    still_path: String
     crew: [Crew!]!
-    guest_stars: [Guest!]
+    guest_stars: [Guest]
+    air_date: String
+    season_number: Int!
+    episode_number: Int!
+    runtime: Int
     vote_average: Int
     vote_count: Int
-    air_date: String!
-    episode_number: Int
-    runtime: Int
-    season_number: Int
-    show_id: Int
-    still_path: String
   }
 
-  type People {
+  type Celebrity {
     id: Int!
-    imdb_id: String!
+    imdb_id: String
     name: String!
     gender: Int
+    profile_path: String!
+    known_for_department: String!
+    known_for: [All]
     biography: String
     birthday: String
     deathday: String
     place_of_birth: String
     popularity: Float
-    known_for_department: String!
-    profile_path: String!
-    known_for: [All]
   }
 
   type AuthorDetail {
@@ -201,6 +201,8 @@ const typeDefs = gql`
   }
 
   type Images {
+    width: Int
+    height: Int
     file_path: String!
   }
 
@@ -248,11 +250,11 @@ const typeDefs = gql`
     episodeDetail(id: Int!, season: Int!, number: Int!): Episode!
     episodeImages(id: Int!, season: Int!, number: Int!): [Images!]
     episodeVideos(id: Int!, season: Int!, number: Int!): [Videos!]
-    trendingPeople(time: String): [People]!
-    popularPeople: [People!]!
-    peopleDetail(id: Int!): People!
-    peopleImages(id: Int!): [Images!]!
-    searchPeople(query: String!, lang: String, page: String): [People]
+    trendingCelebrity(time: String): [Celebrity]!
+    popularCelebrity: [Celebrity!]!
+    celebrityDetail(id: Int!): Celebrity!
+    celebrityImages(id: Int!): [Images!]!
+    searchCelebrity(query: String!, lang: String, page: String): [Celebrity]
   }
 `;
 

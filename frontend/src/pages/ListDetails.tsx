@@ -1,4 +1,4 @@
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
@@ -13,60 +13,12 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import StarIcon from '@mui/icons-material/Star';
 import { GET_MOVIE_CAST, GET_MOVIE_CREW, GET_TV_CAST, GET_TV_CREW } from '../graphql/queries';
 import { useEffect, useMemo, useState } from 'react';
-import { Cast } from '@mui/icons-material';
 import SearchMenu from '../components/SearchMenu';
-
-type Media = {
-  name?: string;
-  title?: string;
-  id: number;
-  overview: string;
-  poster_path: string;
-  backdrop_path: string;
-  vote_average: number;
-  vote_count: number;
-  release_date?: string;
-  popularity: number;
-  genre_ids: number[];
-  first_air_date?: string;
-  __typename: string;
-};
-
-type Cast = {
-  id: number;
-  name: string;
-  gender: number;
-  popularity: number;
-  known_for_department: string;
-  profile_path: string;
-  character: string;
-  order: number;
-};
-
-type Crew = {
-  id: number;
-  name: string;
-  job: string;
-  gender: number;
-  profile_path: string;
-};
-
-type CastState = {
-  id: number;
-  type: 'Movie' | 'TV';
-  star: Cast[] | null;
-  crew: Crew[] | null;
-};
-
-type View = {
-  details: boolean;
-  grid: boolean;
-  compact: boolean;
-};
+import { Cast, CastState, Crew, Media, View } from '../types/media';
 
 const ListDetails = () => {
   const [showSearch, setShowSearch] = useState<boolean>(false);
-  const [orderText, setOrderText] = useState<String>('List Order');
+  const [orderText, setOrderText] = useState<string>('List Order');
   const [isReverse, setIsReverse] = useState<boolean>(false);
   const [cast, setCast] = useState<CastState[]>([]);
   const [view, setView] = useState<View>({
@@ -75,30 +27,26 @@ const ListDetails = () => {
     compact: false,
   });
   const location = useLocation();
-  const query = location.state.query;
+  const data = location.state.data;
   const title = location.state.title;
+  const listData: Media[] = data;
+  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+  let handleCount: number = 0;
   const [getMovieCast, { loading: movieCastLoading, error: movieCastError }] =
     useLazyQuery(GET_MOVIE_CAST);
   const [getMovieCrew, { loading: movieCrewLoading, error: movieCrewError }] =
     useLazyQuery(GET_MOVIE_CREW);
   const [getTvCast, { loading: tvCastLoading, error: tvCastError }] = useLazyQuery(GET_TV_CAST);
   const [getTvCrew, { loading: tvCrewLoading, error: tvCrewError }] = useLazyQuery(GET_TV_CREW);
-  const { loading, error, data } = useQuery(query);
-  const firstKey = data && Object.keys(data)[0];
-  const listData: Media[] = data?.[firstKey];
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
-  let handleCount: number = 0;
 
-  const handleDetails = (): void => {
-    setView({ details: true, grid: false, compact: false });
-  };
-
-  const handleGrid = (): void => {
-    setView({ details: false, grid: true, compact: false });
-  };
-
-  const handleComapct = (): void => {
-    setView({ details: false, grid: false, compact: true });
+  const handleView = (e: React.MouseEvent): void => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('detailsView')) {
+      setView({ details: true, grid: false, compact: false });
+    } else if (target.classList.contains('gridView')) {
+      setView({ details: false, grid: true, compact: false });
+    } else if (target.classList.contains('compactView'))
+      setView({ details: false, grid: false, compact: true });
   };
 
   const handleMovie = (id: number): void => {
@@ -136,9 +84,9 @@ const ListDetails = () => {
   useEffect(() => {
     if (listData && handleCount === 0) {
       listData.forEach((m) => {
-        if (m.__typename === 'Movie' && m.id) {
+        if (m.__typename === 'Movie') {
           handleMovie(m.id);
-        } else if (m.__typename === 'TV' && m.id) {
+        } else if (m.__typename === 'TV') {
           handleTv(m.id);
         }
       });
@@ -150,7 +98,7 @@ const ListDetails = () => {
   const orderMap = new Map(listData?.map((item, index) => [item.id, index]));
 
   // Sort cast based on the order in listData
-  const sortedCast = cast?.sort((a, b) => {
+  const sortedCast: CastState[] = cast?.sort((a, b) => {
     const orderA = orderMap?.get(a.id) ?? 0;
     const orderB = orderMap?.get(b.id) ?? 0;
     return orderA - orderB;
@@ -206,7 +154,7 @@ const ListDetails = () => {
         return a.vote_average.toString().localeCompare(b.vote_average.toString());
       });
 
-    const ratingNumberSort =
+    const ratingnumberSort =
       listData &&
       [...listData].sort((a, b) => {
         if (!a.vote_count && !b.vote_count) return 0;
@@ -229,8 +177,8 @@ const ListDetails = () => {
         return alphabeticSort;
       case 'IMDB Rating':
         return ratingSort;
-      case 'Number Of Ratings':
-        return ratingNumberSort;
+      case 'number Of Ratings':
+        return ratingnumberSort;
       case 'Popularity':
         return popularitySort;
       case 'Release Date':
@@ -246,90 +194,84 @@ const ListDetails = () => {
     }
   };
   // Check if there is a Director exist on the Crew array
-  const isDirector = (castState: CastState[], index: number): boolean => {
-    if (castState[index]?.crew) {
-      const result = castState[index].crew?.filter((c: Crew) => c.job === 'Director');
+  const isDirector = (crew: Crew[] | null): boolean => {
+    if (crew) {
+      const result = crew?.filter((c: Crew) => c.job === 'Director');
       if (result.length !== 0) {
         return true;
       } else return false;
     } else return false;
   };
 
-  if (loading) return <p className="text-white">Trending Loading...</p>;
-  if (error) return <p className="text-white">Error: {error.message}</p>;
-  if (movieCastLoading) return <p className="text-white">Trending Loading...</p>;
-  if (movieCastError) return <p className="text-white">Error: {movieCastError.message}</p>;
-  if (movieCrewLoading) return <p className="text-white">Trending Loading...</p>;
-  if (movieCrewError) return <p className="text-white">Error: {movieCrewError.message}</p>;
-  if (tvCastLoading) return <p className="text-white">Trending Loading...</p>;
-  if (tvCastError) return <p className="text-white">Error: {tvCastError.message}</p>;
-  if (tvCrewLoading) return <p className="text-white">Trending Loading...</p>;
-  if (tvCrewError) return <p className="text-white">Error: {tvCrewError.message}</p>;
+  if (movieCastLoading) return <p className='text-white'>Trending Loading...</p>;
+  if (movieCastError) return <p className='text-white'>Error: {movieCastError.message}</p>;
+  if (movieCrewLoading) return <p className='text-white'>Trending Loading...</p>;
+  if (movieCrewError) return <p className='text-white'>Error: {movieCrewError.message}</p>;
+  if (tvCastLoading) return <p className='text-white'>Trending Loading...</p>;
+  if (tvCastError) return <p className='text-white'>Error: {tvCastError.message}</p>;
+  if (tvCrewLoading) return <p className='text-white'>Trending Loading...</p>;
+  if (tvCrewError) return <p className='text-white'>Error: {tvCrewError.message}</p>;
   return (
     <div>
       <Navbar />
-      <div className="container bg-gray-400 pt-8 pb-8">
-        <h1 className="text-white text-3xl font-medium mb-4">{title}</h1>
+      <div className='container bg-gray-400 pt-8 pb-8'>
+        <h1 className='text-white text-3xl font-medium mb-4'>{title}</h1>
       </div>
-      <div className="container bg-white pt-6">
-        <div className="flex gap-20">
-          <div className="flex flex-3 flex-col gap-10">
-            <div className="flex items-center justify-between">
-              <span className="flex-1 text-black-100">{listData.length} titles</span>
-              <div className="flex flex-1 items-center justify-end gap-2">
-                <div className="flex items-center gap-2">
+      <div className='container bg-white pt-6'>
+        <div className='flex gap-20'>
+          <div className='flex flex-3 flex-col gap-10'>
+            <div className='flex items-center justify-between'>
+              <span className='flex-1 text-black-100'>{listData.length} titles</span>
+              <div className='flex flex-1 items-center justify-end gap-2'>
+                <div className='flex items-center gap-2'>
                   <span>Sort By</span>
                   <div
-                    className="searchMenu relative flex items-center w-fit text-secondary p-2 rounded-md cursor-pointer hover:bg-secondary-100"
+                    className='relative flex items-center w-fit text-secondary p-2 rounded-md cursor-pointer hover:bg-secondary-100'
                     onClick={(): void => setShowSearch((prev) => !prev)}
                   >
-                    <span className="searchMenu">{orderText}</span>
-                    {showSearch ? (
-                      <ArrowDropUpIcon className="searchMenu" />
-                    ) : (
-                      <ArrowDropDownIcon className="searchMenu" />
-                    )}
+                    <span>{orderText}</span>
+                    {showSearch ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
                     <SearchMenu
                       showSearch={showSearch}
                       setShowSearch={setShowSearch}
                       setOrderText={setOrderText}
-                      menuFor="List"
+                      menuFor='List'
                     />
                   </div>
                 </div>
                 {isReverse ? (
                   <ArrowDownwardIcon
                     style={{ fontSize: '2.5rem' }}
-                    className="text-secondary p-2 rounded-full cursor-pointer hover:bg-secondary-100"
+                    className='text-secondary p-2 rounded-full cursor-pointer hover:bg-secondary-100'
                     onClick={() => setIsReverse((prev) => !prev)}
                   />
                 ) : (
                   <ArrowUpwardIcon
                     style={{ fontSize: '2.5rem' }}
-                    className="text-secondary p-2 rounded-full cursor-pointer hover:bg-secondary-100"
+                    className='text-secondary p-2 rounded-full cursor-pointer hover:bg-secondary-100'
                     onClick={() => setIsReverse((prev) => !prev)}
                   />
                 )}
                 <ListIcon
                   style={{ fontSize: '2.5rem' }}
-                  className={`${
+                  className={`detailsView ${
                     view.details && 'text-secondary'
                   } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
-                  onClick={handleDetails}
+                  onClick={(e) => handleView(e)}
                 />
                 <AppsIcon
                   style={{ fontSize: '2.5rem' }}
-                  className={`${
+                  className={`gridView ${
                     view.grid && 'text-secondary'
                   } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
-                  onClick={handleGrid}
+                  onClick={(e) => handleView(e)}
                 />
                 <MenuIcon
                   style={{ fontSize: '2.5rem' }}
-                  className={`${
+                  className={`compactView ${
                     view.compact && 'text-secondary'
                   } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
-                  onClick={handleComapct}
+                  onClick={(e) => handleView(e)}
                 />
               </div>
             </div>
@@ -341,7 +283,7 @@ const ListDetails = () => {
               {cast.length === listData.length &&
                 (isReverse ? [...orderdList].reverse() : orderdList)?.map(
                   (e: Media, index: number) => (
-                    <div className="flex flex-1 flex-col gap-2" key={e.id}>
+                    <div className='flex flex-1 flex-col gap-2' key={e.id}>
                       <div
                         className={`flex items-center ${
                           !view.grid ? 'justify-between' : 'border-2 border-gray-100 shadow-md'
@@ -358,27 +300,27 @@ const ListDetails = () => {
                               view.grid ? 'w-48 h-72' : 'w-24 h-32'
                             } overflow-hidden rounded-xl cursor-pointer`}
                           >
-                            <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
+                            <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                             <AddIcon
-                              className="absolute top-0 left-0 bg-black-transparent text-white"
+                              className='absolute top-0 left-0 bg-black-transparent text-white'
                               style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
                             />
                             <img
                               src={TMDB_URL + e?.poster_path}
-                              alt="poster"
-                              className="object-cover w-full h-full"
+                              alt='poster'
+                              className='object-cover w-full h-full'
                             />
                           </div>
                           <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                            <h1 className="flex-2 font-bold">{e?.title}</h1>
-                            <div className="flex-1 text-black-100">
+                            <h1 className='flex-2 font-bold'>{e?.title}</h1>
+                            <div className='flex-1 text-black-100'>
                               <span>{e?.release_date}</span>
                             </div>
-                            <div className="flex text-black-100">
-                              <StarIcon className="text-primary" />
-                              <p className="flex-1">
+                            <div className='flex text-black-100'>
+                              <StarIcon className='text-primary' />
+                              <p className='flex-1'>
                                 {Number(e?.vote_average ?? 0).toFixed(2)}
-                                <span className="flex-1 pl-2 text-gray font-semibold">
+                                <span className='flex-1 pl-2 text-gray font-semibold'>
                                   {e?.vote_count.toString().length > 3
                                     ? '(' + e?.vote_count.toString().slice(0, 1) + 'K)'
                                     : '(' + e?.vote_count + ')'}
@@ -386,14 +328,14 @@ const ListDetails = () => {
                               </p>
                             </div>
                             {view.grid && (
-                              <button className="bg-secondary-100 text-secondary font-medium w-full p-2 rounded-xl cursor-pointer">
+                              <button className='bg-secondary-100 text-secondary font-medium w-full p-2 rounded-xl cursor-pointer'>
                                 Details
                               </button>
                             )}
                           </div>
                         </div>
                         <ErrorOutlineIcon
-                          className="text-secondary"
+                          className='text-secondary'
                           style={{ display: view.grid ? 'none' : 'block ' }}
                         />
                       </div>
@@ -406,20 +348,20 @@ const ListDetails = () => {
                           view.details ? 'flex' : 'hidden'
                         } items-center gap-5 text-base font-medium`}
                       >
-                        {isDirector(sortedCast, index) && (
-                          <div key={index} className="flex gap-3">
+                        {isDirector(sortedCast[index]?.crew) && (
+                          <div key={index} className='flex gap-3'>
                             <span>Director</span>
-                            <span className="text-secondary">
+                            <span className='text-secondary'>
                               {sortedCast[index]?.crew?.map((c: Crew) => handleDirector(c))}
                             </span>
                           </div>
                         )}
 
-                        <div className="flex gap-3">
+                        <div className='flex gap-3'>
                           {sortedCast[index]?.star?.length !== 0 && (
                             <>
                               <span>Stars</span>
-                              <div className="flex gap-2 text-secondary">
+                              <div className='flex gap-2 text-secondary'>
                                 {sortedCast[index]?.star?.map(
                                   (s: Cast, index: number) =>
                                     index < 3 && <span key={index}>{s.name}</span>
@@ -435,16 +377,16 @@ const ListDetails = () => {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col gap-4">
-            <h1 className="text-3xl font-semibold pl-3 border-l-4 border-primary">
+          <div className='flex flex-1 flex-col gap-4'>
+            <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
               More to explore
             </h1>
-            <div className="flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm">
-              <h2 className="text-2xl font-medium">Feedback</h2>
-              <p className="text-secondary hover:underline cursor-pointer">
+            <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
+              <h2 className='text-2xl font-medium'>Feedback</h2>
+              <p className='text-secondary hover:underline cursor-pointer'>
                 Tell us what you think about this feature.
               </p>
-              <p className="text-secondary hover:underline cursor-pointer">Report this list.</p>
+              <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
             </div>
           </div>
         </div>

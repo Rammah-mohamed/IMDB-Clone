@@ -5,14 +5,14 @@ import PeopleIcon from '@mui/icons-material/People';
 import BusinessIcon from '@mui/icons-material/Business';
 import LabelIcon from '@mui/icons-material/Label';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type SeachMenuProps = {
   showSearch: boolean;
   menuFor: string;
   setShowSearch: React.Dispatch<React.SetStateAction<boolean>>;
-  setSearchText?: React.Dispatch<React.SetStateAction<String>>;
-  setOrderText?: React.Dispatch<React.SetStateAction<String>>;
+  setSearchText?: React.Dispatch<React.SetStateAction<string>>;
+  setOrderText?: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const searchText: string[] = [
@@ -35,13 +35,13 @@ const orderText: string[] = [
 ];
 
 const icons: any[] = [
-  <SearchIcon className="text-gray-300 group-hover:text-white" />,
-  <LocalMoviesIcon className="text-gray-300 group-hover:text-white" />,
-  <TvIcon className="text-gray-300 group-hover:text-white" />,
-  <PeopleIcon className="text-gray-300 group-hover:text-white" />,
-  <BusinessIcon className="text-gray-300 group-hover:text-white" />,
-  <LabelIcon className="text-gray-300 group-hover:text-white" />,
-  <FindInPageIcon className="text-gray-300 group-hover:text-white" />,
+  <SearchIcon className='text-gray-300 group-hover:text-white' />,
+  <LocalMoviesIcon className='text-gray-300 group-hover:text-white' />,
+  <TvIcon className='text-gray-300 group-hover:text-white' />,
+  <PeopleIcon className='text-gray-300 group-hover:text-white' />,
+  <BusinessIcon className='text-gray-300 group-hover:text-white' />,
+  <LabelIcon className='text-gray-300 group-hover:text-white' />,
+  <FindInPageIcon className='text-gray-300 group-hover:text-white' />,
 ];
 
 const SearchMenu: React.FC<SeachMenuProps> = ({
@@ -52,22 +52,26 @@ const SearchMenu: React.FC<SeachMenuProps> = ({
   setOrderText,
 }) => {
   const [active, setActive] = useState<string>(menuFor === 'Navbar' ? 'All' : 'List order');
+  const dropDownRef = useRef<HTMLDivElement>(null);
 
   //Close the menu when you click outside it
   const handleMenu = (e: MouseEvent): void => {
-    if (e.target instanceof HTMLElement && !e.target.classList.contains('searchMenu')) {
+    if (dropDownRef.current && !dropDownRef.current.contains(e.target as Node)) {
       setShowSearch(false);
     }
   };
 
   useEffect(() => {
-    window.addEventListener('click', handleMenu);
-    return () => window.removeEventListener('click', handleMenu);
-  });
+    document.addEventListener('mousedown', handleMenu);
+    return () => {
+      document.removeEventListener('mousedown', handleMenu);
+    };
+  }, []);
 
+  //Set the Menu text for the list element and active it
   const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     const target = e.target as HTMLElement;
-    if (target && target.textContent) {
+    if (target?.textContent) {
       setSearchText && setSearchText(target.textContent);
       setOrderText && setOrderText(target.textContent);
       setActive(target.textContent);
@@ -75,7 +79,8 @@ const SearchMenu: React.FC<SeachMenuProps> = ({
   };
   return (
     <div
-      className={`SearchMenu absolute flex flex-col gap-2 left-0 bottom-0 ${
+      ref={dropDownRef}
+      className={`absolute flex flex-col gap-2 left-0 bottom-0 ${
         menuFor === 'Navbar' ? 'bg-gray-400' : 'bg-white border-2 border-gray-250 shadow-xl'
       } translate-y-full z-30 overflow-hidden transition-all duration-300 ease-in-out ${
         showSearch ? 'w-max h-max' : 'border-0 w-0 h-0'

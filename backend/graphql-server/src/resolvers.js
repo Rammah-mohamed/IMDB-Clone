@@ -413,7 +413,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    trendingPeople: async (_, { time }) => {
+    trendingCelebrity: async (_, { time }) => {
       try {
         const response = await fetch(
           BASE_URL + `trending/person/${time || 'week'}?language=en-US`,
@@ -425,7 +425,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    popularPeople: async (_, { page }) => {
+    popularCelebrity: async (_, { page }) => {
       try {
         const response = await fetch(
           BASE_URL + `person/popular?language=en-US&page=${page || 1}`,
@@ -437,7 +437,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    peopleDetail: async (_, { id }) => {
+    celebrityDetail: async (_, { id }) => {
       try {
         const response = await fetch(BASE_URL + `person/${id}?language=en-US`, options);
         const data = await response.json();
@@ -446,7 +446,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    peopleImages: async (_, { id }) => {
+    celebrityImages: async (_, { id }) => {
       try {
         const response = await fetch(BASE_URL + `person/${id}/images`, options);
         const data = await response.json();
@@ -455,7 +455,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    searchPeople: async (_, { query, lang, page }) => {
+    searchCelebrity: async (_, { query, lang, page }) => {
       try {
         const response = await fetch(
           BASE_URL +
@@ -503,9 +503,9 @@ const resolvers = {
       return episode.guest_stars;
     },
   },
-  People: {
-    known_for: (people) => {
-      return people.known_for;
+  Celebrity: {
+    known_for: (celebrity) => {
+      return celebrity.known_for;
     },
   },
 };

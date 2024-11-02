@@ -11,7 +11,7 @@ import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 const Navbar = () => {
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
-  const [searchText, setSearchText] = useState<String>('All');
+  const [searchText, setSearchText] = useState<string>('All');
   return (
     <div className="container bg-black-100">
       <div className="relative flex items-center justify-between py-3 font-bold">
@@ -28,15 +28,11 @@ const Navbar = () => {
         </div>
         <div className="relative flex items-center w-3/5">
           <div
-            className="searchMenu relative flex items-center justify-center h-full w-fit py-1.5 pl-2 pr-0.5 bg-white font-semibold text-sm cursor-pointer select-none rounded hover:bg-gray-200 border-r border-r-gray-300 border-br-none border-tr-none"
+            className="relative flex items-center justify-center h-full w-fit py-1.5 pl-2 pr-0.5 bg-white font-semibold text-sm cursor-pointer select-none rounded hover:bg-gray-200 border-r border-r-gray-300 border-br-none border-tr-none"
             onClick={(): void => setShowSearch((prev) => !prev)}
           >
-            <span className="searchMenu text-md">{searchText}</span>
-            {showSearch ? (
-              <ArrowDropUpIcon className="searchMenu" />
-            ) : (
-              <ArrowDropDownIcon className="searchMenu" />
-            )}
+            <span className="text-md">{searchText}</span>
+            {showSearch ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
             <SearchMenu
               showSearch={showSearch}
               setShowSearch={setShowSearch}
