@@ -193,6 +193,22 @@ const CelebrityDetails = () => {
     });
   };
 
+  const handelPhoto = (Photos: Photo[]): void => {
+    celebrityInfo && navigate('/media', { state: { photos: Photos, name: celebrityInfo?.name } });
+  };
+
+  const handelVideoMedia = (videos: Trailer[]): void => {
+    if (celebrityImages && celebrityInfo) {
+      navigate('/media', {
+        state: {
+          videos: videos,
+          name: celebrityInfo?.name,
+          celebrityImage: celebrityImages[0],
+        },
+      });
+    }
+  };
+
   const queries = [
     { loading: celebrityLoading, error: celebrityError },
     { loading: celebrityImagesLoading, error: celebrityImagesError },
@@ -257,15 +273,21 @@ const CelebrityDetails = () => {
             />
           </div>
           <div className='flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
-            <div className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'>
+            <div
+              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
+              onClick={() => handelPhoto(celebrityImages)}
+            >
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <Image style={{ fontSize: '2.5rem' }} />
-              <span>Images</span>
+              <span>{celebrityImages.length} Images</span>
             </div>
-            <div className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'>
+            <div
+              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
+              onClick={() => handelVideoMedia(video)}
+            >
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <VideoLibrary style={{ fontSize: '2.5rem' }} />
-              <span>Videos</span>
+              <span>{video.length} Videos</span>
             </div>
           </div>
         </div>
@@ -297,7 +319,10 @@ const CelebrityDetails = () => {
       </div>
       <div className='container flex gap-6 pt-20 bg-white'>
         <div className='flex flex-3 flex-col gap-4'>
-          <div className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'>
+          <div
+            className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
+            onClick={() => handelPhoto(celebrityImages)}
+          >
             <h1>Photos</h1>
             <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
             <span className='text-gray-350 text-lg'>{celebrityImages?.length}</span>
@@ -339,7 +364,10 @@ const CelebrityDetails = () => {
                         <CloseIcon style={{ fontSize: '1.5rem' }} />
                         <span className='text-lg'>Close</span>
                       </div>
-                      <div className='flex items-center gap-2'>
+                      <div
+                        className='flex items-center gap-2'
+                        onClick={() => handelPhoto(celebrityImages)}
+                      >
                         <p className='text-lg text-primary'>
                           {index + 1} Of {celebrityImages.length}
                         </p>
@@ -349,7 +377,9 @@ const CelebrityDetails = () => {
                     <div
                       style={{
                         width:
-                          currentImage?.width > 800 ? currentImage?.width / 4 : currentImage?.width,
+                          currentImage?.width >= 1000
+                            ? currentImage?.width / 2
+                            : currentImage?.width,
                         height: '85vh',
                       }}
                     >
@@ -470,7 +500,10 @@ const CelebrityDetails = () => {
       </div>
       <div className='container flex gap-6 pt-20 pb-10 bg-white'>
         <div className='flex flex-col gap-4 flex-3'>
-          <div className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'>
+          <div
+            className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
+            onClick={() => handelVideoMedia(video)}
+          >
             <h1>Videos</h1>
             <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
             <span className='text-gray-350 text-lg'>{video?.length}</span>

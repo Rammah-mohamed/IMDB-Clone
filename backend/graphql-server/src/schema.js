@@ -171,8 +171,8 @@ const typeDefs = gql`
     imdb_id: String
     name: String!
     gender: Int
-    profile_path: String!
-    known_for_department: String!
+    profile_path: String
+    known_for_department: String
     known_for: [All]
     biography: String
     birthday: String
