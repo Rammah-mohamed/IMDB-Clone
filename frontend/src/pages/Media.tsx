@@ -20,7 +20,6 @@ const Media = () => {
   const celebrityImage: Photo = location.state.celebrityImage;
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   const YOUTUBE_URL = 'https://www.youtube.com/watch?v=';
-  console.log(celebrityImage);
 
   const handleVideo = (videoData: Trailer): void => {
     navigate('/videos', {

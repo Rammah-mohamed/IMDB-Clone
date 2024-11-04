@@ -99,6 +99,10 @@ const List: React.FC<Listprops> = ({
   //Get the feature container width and height when the app is mount or window gets resized
   useEffect(() => {
     if ((upcomings && popularMovies && tvAirings && tvPopular) || info || poster) {
+      if (containerRef.current && heightRef.current) {
+        setWidth(containerRef.current.getBoundingClientRect().width);
+        setHeight(heightRef.current.getBoundingClientRect().height);
+      }
       window.addEventListener('resize', handleResize);
     }
     return (): void => window.removeEventListener('resize', handleResize);
