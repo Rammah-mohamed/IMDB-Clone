@@ -135,10 +135,10 @@ const CelebrityDetails = () => {
     }
   }, [celebrityInfo]);
 
-  // Create a mapping of the order index for listData
+  // Create a mapping of the order index for celebrityInfo
   const orderMap = new Map(celebrityInfo?.known_for?.map((item, index) => [item.id, index]));
 
-  // Sort cast based on the order in listData
+  // Sort cast based on the order in cast
   const sortedCast = cast?.sort((a, b) => {
     const orderA = orderMap?.get(a.id) ?? 0;
     const orderB = orderMap?.get(b.id) ?? 0;
@@ -202,7 +202,7 @@ const CelebrityDetails = () => {
       navigate('/media', {
         state: {
           videos: videos,
-          name: celebrityInfo?.name,
+          name: video,
           celebrityImage: celebrityImages[0],
         },
       });
@@ -512,7 +512,8 @@ const CelebrityDetails = () => {
             {video?.map((v) => (
               <div
                 key={v?.key}
-                className='group/trailer relative w-96 h-64 rounded-lg cursor-pointer overflow-hidden'
+                className='group/trailer relative h-64 rounded-lg cursor-pointer overflow-hidden'
+                style={{ width: '27rem' }}
                 onClick={(): void => handleVideo(v)}
               >
                 <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>

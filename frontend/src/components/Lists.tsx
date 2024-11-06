@@ -17,9 +17,7 @@ const titles: string[] = ['Upcomings Movies', 'Popular Movies', 'TV Airings', 'P
 const Lists: React.FC<ListsProps> = ({ title, data, relatedVideos, poster, listFor }) => {
   const [index, setIndex] = useState<number>(0);
   const [width, setWidth] = useState<number>(0);
-  const [height, setHeight] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const heightRef = useRef<HTMLDivElement>(null);
 
   const handleRight = (dataArray: Media[] | Trailer[] | string | undefined): void => {
     dataArray && setIndex((prev) => (prev !== dataArray.length - 1 ? prev + 1 : 0));
@@ -35,14 +33,14 @@ const Lists: React.FC<ListsProps> = ({ title, data, relatedVideos, poster, listF
       <div className='group relative overflow-hidden'>
         <button
           className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
-          style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
+          style={{ transform: 'translateY(-80%)' }}
           onClick={() => handleLeft(listFor || data || relatedVideos)}
         >
           <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <button
           className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
-          style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
+          style={{ transform: 'translateY(-80%)' }}
           onClick={() => handleRight(listFor || data || relatedVideos)}
         >
           <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
@@ -58,9 +56,7 @@ const Lists: React.FC<ListsProps> = ({ title, data, relatedVideos, poster, listF
               <List
                 key={index}
                 setWidth={setWidth}
-                setHeight={setHeight}
                 containerRef={containerRef}
-                heightRef={heightRef}
                 title={t}
                 listFor={listFor}
               />
@@ -70,9 +66,7 @@ const Lists: React.FC<ListsProps> = ({ title, data, relatedVideos, poster, listF
               <List
                 key={e.id}
                 setWidth={setWidth}
-                setHeight={setHeight}
                 containerRef={containerRef}
-                heightRef={heightRef}
                 title={e.title || e.name}
                 info={e}
                 trending={data}
@@ -83,9 +77,7 @@ const Lists: React.FC<ListsProps> = ({ title, data, relatedVideos, poster, listF
               <List
                 key={index}
                 setWidth={setWidth}
-                setHeight={setHeight}
                 containerRef={containerRef}
-                heightRef={heightRef}
                 title={e.name}
                 videoID={e.key}
                 trending={data}

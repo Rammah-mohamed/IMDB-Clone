@@ -18,6 +18,9 @@ const Media = () => {
   const videos: Trailer[] = location.state.videos;
   const celebrityName: string = location.state.name;
   const celebrityImage: Photo = location.state.celebrityImage;
+  const mediaName: string = location.state.mediaName;
+  const mediaImage: string = location.state.mediaImage;
+  const poster: string = location.state.poster;
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   const YOUTUBE_URL = 'https://www.youtube.com/watch?v=';
 
@@ -65,13 +68,22 @@ const Media = () => {
           <div className='flex gap-3'>
             <div className='w-28 h-44 rounded-lg overflow-hidden'>
               <img
-                src={TMDB_URL + (photos ? photos[0]?.file_path : celebrityImage?.file_path)}
+                src={
+                  TMDB_URL +
+                  (poster
+                    ? poster
+                    : photos
+                    ? photos[0]?.file_path
+                    : celebrityImage?.file_path || mediaImage)
+                }
                 alt='Celebrity Image'
                 className='object-cover w-full h-full'
               />
             </div>
             <div className='flex flex-col gap-2 self-end'>
-              <span className='text-xl text-gray-250 font-medium'>{celebrityName}</span>
+              <span className='text-xl text-gray-250 font-medium'>
+                {celebrityName || mediaName}
+              </span>
               <span className='text-6xl text-white font-semibold'>
                 {videos ? 'Videos' : 'Photos'}
               </span>
@@ -145,7 +157,8 @@ const Media = () => {
               videos?.map((v) => (
                 <div
                   key={v?.key}
-                  className='group/trailer relative w-96 h-64 rounded-lg cursor-pointer overflow-hidden'
+                  className='group/trailer relative h-64 rounded-lg cursor-pointer overflow-hidden'
+                  style={{ width: '27rem' }}
                   onClick={(): void => handleVideo(v)}
                 >
                   <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>

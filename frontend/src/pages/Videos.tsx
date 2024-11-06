@@ -48,6 +48,7 @@ const Videos = () => {
   const videoID: string = location.state.videoID;
   const videoName: string = location.state.name;
   const videos: Trailer[] = location.state.related;
+
   const navigate = useNavigate();
   const [videoData, _setVideoData] = useState<Media | null>((): Media | null => {
     const savedData: Media | string = localStorage.getItem('video') ?? '';
@@ -81,6 +82,8 @@ const Videos = () => {
       getGenras(videoData?.media_type, videoData?.genre_ids || videoData?.genre_ids);
     }
   }, [data, videoData]);
+
+  genres && console.log(genres);
 
   //Get Media videos for movie or tv show
   const handleTrailer = (mediaType: string, id: number): void => {
@@ -160,7 +163,7 @@ const Videos = () => {
                     ? data?.title || videoData?.title
                     : data?.name || videoData?.name}
                 </h2>
-                <div className='flex flex-wrap items-center gap-2 text-sm text-gray-300'>
+                <div className='flex flex-wrap items-center gap-2 text-sm text-gray-250'>
                   {genres.map((g: string, index: number) => (
                     <p key={index}>{g}</p>
                   ))}

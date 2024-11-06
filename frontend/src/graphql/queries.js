@@ -101,6 +101,32 @@ export const GET_MOVIE_CREW = gql`
   }
 `;
 
+export const GET_MOVIE_IMAGES = gql`
+  query ($id: Int!) {
+    movieImages(id: $id) {
+      file_path
+      width
+      height
+    }
+  }
+`;
+
+export const GET_MOVIE_REVIEW = gql`
+  query ($id: Int!) {
+    movieReview(id: $id) {
+      author
+      author_details {
+        avatar_path
+        rating
+      }
+      content
+      created_at
+      updated_at
+      url
+    }
+  }
+`;
+
 export const GET_TV_AIRING = gql`
   query {
     tvAiring {
@@ -178,6 +204,32 @@ export const GET_TV_CREW = gql`
       job
       gender
       profile_path
+    }
+  }
+`;
+
+export const GET_TV_IMAGES = gql`
+  query ($id: Int!) {
+    tvImages(id: $id) {
+      file_path
+      width
+      height
+    }
+  }
+`;
+
+export const GET_TV_REVIEW = gql`
+  query ($id: Int!) {
+    tvReview(id: $id) {
+      author
+      author_details {
+        avatar_path
+        rating
+      }
+      content
+      created_at
+      updated_at
+      url
     }
   }
 `;

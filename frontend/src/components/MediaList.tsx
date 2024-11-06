@@ -15,6 +15,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { useNavigate } from 'react-router-dom';
 
 type ListProps = {
   title: string;
@@ -52,7 +53,7 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
     error: tvPopularError,
     data: tvPopularData,
   } = useQuery(GET_TV_Popular);
-  const trending: Media[] = trendingData?.trendingAll;
+  const navigate = useNavigate();
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   let count = 0;
 
@@ -93,13 +94,13 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
 
   //Get the feature container width and height when the app is mount or window gets resized
   useEffect(() => {
-    if (trending && containerRef.current && heightRef.current) {
+    if (data && containerRef.current && heightRef.current) {
       setWidth(containerRef.current.getBoundingClientRect().width);
       setHeight(heightRef.current.getBoundingClientRect().height);
       window.addEventListener('resize', handleResize);
     }
     return (): void => window.removeEventListener('resize', handleResize);
-  }, [trending]);
+  }, [data]);
 
   const handleRight = (dataArray: Media[]): void => {
     setIndex((prev) => (prev !== dataArray.length - 6 ? prev + 1 : 0));
@@ -107,6 +108,10 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
 
   const handleLeft = (dataArray: Media[]): void => {
     setIndex((prev) => (prev !== 0 ? prev - 1 : dataArray.length - 6));
+  };
+
+  const handleDetails = (media: Media): void => {
+    navigate('/mediaDetail', { state: media });
   };
 
   const queries = [
@@ -127,20 +132,24 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
         {title}
       </h1>
       <div className='relative group overflow-hidden'>
-        <button
-          className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
-          style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
-          onClick={() => handleLeft(data)}
-        >
-          <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
-        </button>
-        <button
-          className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
-          style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
-          onClick={() => handleRight(data)}
-        >
-          <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
-        </button>
+        {height !== 0 && (
+          <>
+            <button
+              className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
+              style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
+              onClick={() => handleLeft(data)}
+            >
+              <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
+            </button>
+            <button
+              className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
+              style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
+              onClick={() => handleRight(data)}
+            >
+              <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
+            </button>
+          </>
+        )}
         <div
           className='flex items-center gap-4 transition-transform duration-500'
           style={{
@@ -148,7 +157,12 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
           }}
         >
           {data?.map((m: Media) => (
-            <div ref={containerRef} className='flex flex-col cursor-pointer'>
+            <div
+              key={m?.id}
+              ref={containerRef}
+              className='flex flex-col cursor-pointer'
+              onClick={(): void => handleDetails(m)}
+            >
               <div
                 ref={heightRef}
                 className='relative group/item h-72 rounded-xl rounded-b-none overflow-hidden'

@@ -108,3 +108,17 @@ export type View = {
   grid: boolean;
   compact: boolean;
 };
+
+export type AuthorDetails = {
+  avatar_path: string;
+  rating: number;
+};
+
+export type Review = {
+  author: string;
+  author_details: AuthorDetails;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  url: string;
+};

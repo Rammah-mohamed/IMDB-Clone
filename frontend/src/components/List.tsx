@@ -19,18 +19,14 @@ type Listprops = {
   info?: Media;
   trending?: Media[];
   containerRef: React.RefObject<HTMLDivElement>;
-  heightRef: React.RefObject<HTMLDivElement>;
   setWidth: React.Dispatch<React.SetStateAction<number>>;
-  setHeight: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const List: React.FC<Listprops> = ({
   title,
   listFor,
   containerRef,
-  heightRef,
   setWidth,
-  setHeight,
   info,
   trending,
   videoID,
@@ -90,18 +86,16 @@ const List: React.FC<Listprops> = ({
   }
 
   const handleResize = (): void => {
-    if (containerRef.current && heightRef.current) {
+    if (containerRef.current) {
       setWidth(containerRef.current.getBoundingClientRect().width);
-      setHeight(heightRef.current.getBoundingClientRect().height);
     }
   };
 
   //Get the feature container width and height when the app is mount or window gets resized
   useEffect(() => {
     if ((upcomings && popularMovies && tvAirings && tvPopular) || info || poster) {
-      if (containerRef.current && heightRef.current) {
+      if (containerRef.current) {
         setWidth(containerRef.current.getBoundingClientRect().width);
-        setHeight(heightRef.current.getBoundingClientRect().height);
       }
       window.addEventListener('resize', handleResize);
     }
@@ -141,7 +135,7 @@ const List: React.FC<Listprops> = ({
       style={{ flex: '0 0 33%' }}
       onClick={handleClick}
     >
-      <div className='group/icon relative mb-3 rounded-2xl overflow-hidden' ref={heightRef}>
+      <div className='group/icon relative mb-3 rounded-2xl overflow-hidden'>
         <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
         <img
           src={imageURL || TMDB_URL + info?.backdrop_path}
