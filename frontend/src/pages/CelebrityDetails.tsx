@@ -238,7 +238,7 @@ const CelebrityDetails = () => {
               <TrendingUpIcon className='text-green' style={{ fontSize: '1.4rem' }} />
             </div>
             <span className='text-lg font-semibold text-gray-200'>
-              {celebrityInfo?.popularity.toFixed(0)}
+              {celebrityInfo?.popularity?.toFixed(0)}
             </span>
           </div>
         </div>

@@ -53,6 +53,39 @@ export const GET_POPULAR_MOVIES = gql`
     }
   }
 `;
+export const GET_SIMILAR_MOVIES = gql`
+  query ($id: Int!) {
+    movieSimilar(id: $id) {
+      id
+      title
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      genre_ids
+    }
+  }
+`;
+
+export const GET_RECOMMEND_MOVIES = gql`
+  query ($id: Int!) {
+    moviesRecommend(id: $id) {
+      id
+      title
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      genre_ids
+    }
+  }
+`;
 
 export const GET_MOVIE_TRAILER = gql`
   query GetMovieTrailer($id: Int!) {
@@ -144,9 +177,42 @@ export const GET_TV_AIRING = gql`
   }
 `;
 
-export const GET_TV_Popular = gql`
+export const GET_TV_POPULAR = gql`
   query {
     tvPopular {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+  }
+`;
+
+export const GET_TV_SIMILAR = gql`
+  query ($id: Int!) {
+    tvSimilar(id: $is) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+  }
+`;
+export const GET_TV_RECOMMEND = gql`
+  query ($id: Int!) {
+    tvRecommed(id: $id) {
       id
       name
       overview
@@ -281,6 +347,39 @@ export const GET_CELEBRITY_IMAGES = gql`
       width
       height
       file_path
+    }
+  }
+`;
+
+export const SEARCH_CELEBRITY = gql`
+  query ($query: String!) {
+    searchCelebrity(query: $query) {
+      id
+      imdb_id
+      name
+      profile_path
+      biography
+      birthday
+      deathday
+      gender
+      known_for_department
+      known_for {
+        id
+        title
+        name
+        overview
+        poster_path
+        backdrop_path
+        release_date
+        first_air_date
+        genre_ids
+        media_type
+        popularity
+        vote_average
+        vote_count
+      }
+      place_of_birth
+      popularity
     }
   }
 `;

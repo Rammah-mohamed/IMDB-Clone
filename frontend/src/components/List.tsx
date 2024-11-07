@@ -7,8 +7,8 @@ import { Media, Movie, TV } from '../types/media';
 import {
   GET_UPCOMING_MOVIES,
   GET_TV_AIRING,
-  GET_TV_Popular,
   GET_POPULAR_MOVIES,
+  GET_TV_POPULAR,
 } from '../graphql/queries';
 
 type Listprops = {
@@ -51,7 +51,7 @@ const List: React.FC<Listprops> = ({
     loading: tvPopularLoading,
     error: tvPopularError,
     data: tvPopularData,
-  } = useQuery(GET_TV_Popular);
+  } = useQuery(GET_TV_POPULAR);
   const upcomings: Movie[] = upcomingsData?.upcomingMovies;
   const popularMovies: Movie[] = popularMoviesData?.popularMovies;
   const tvAirings: TV[] = tvAiringData?.tvAiring;

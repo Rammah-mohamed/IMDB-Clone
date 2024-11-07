@@ -10,7 +10,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import CloseIcon from '@mui/icons-material/Close';
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import { Image, VideoLibrary } from '@mui/icons-material';
-import { useQuery } from '@apollo/client';
+import { useLazyQuery, useQuery } from '@apollo/client';
 import {
   GET_MOVIE_CAST,
   GET_MOVIE_CREW,
@@ -22,9 +22,11 @@ import {
   GET_TV_IMAGES,
   GET_TV_REVIEW,
   GET_TV_TRAILER,
+  SEARCH_CELEBRITY,
 } from '../graphql/queries';
 import { useEffect, useState } from 'react';
 import ReactPlayer from 'react-player';
+import MediaList from './MediaList';
 
 const MediaDetail = () => {
   const [trailer, setTrailer] = useState<Trailer>();
@@ -84,6 +86,8 @@ const MediaDetail = () => {
     error: tvReviewError,
     data: tvReviewData,
   } = useQuery(GET_TV_REVIEW, { variables: { id: data?.id } });
+  const [SearchCelebrity, { loading: celebrityLoading, error: celebrityError }] =
+    useLazyQuery(SEARCH_CELEBRITY);
   const movieVideos: Trailer[] = movieTrailerData?.movieVideos;
   const movieCast: Cast[] = movieCastData?.moviesCast;
   const movieCrew: Crew[] = movieCrewData?.moviesCrew;
@@ -207,8 +211,12 @@ const MediaDetail = () => {
     } else return false;
   };
 
-  const handleCelebrity = (celebrity: Celebrity): void => {
-    navigate('/celebrityDetails', { state: celebrity });
+  const handleCelebrity = (name: string, id: number): void => {
+    SearchCelebrity({ variables: { query: name } }).then((response) => {
+      const data: Celebrity[] = response?.data?.searchCelebrity;
+      const celebrity: Celebrity | undefined = data?.find((c) => c?.id === id);
+      navigate('/celebrityDetails', { state: celebrity });
+    });
   };
 
   const handleShow = (e: React.MouseEvent) => {
@@ -257,6 +265,7 @@ const MediaDetail = () => {
     { loading: tvCrewLoading, error: tvCrewError },
     { loading: tvImagesLoading, error: tvImagesError },
     { loading: tvReviewLoading, error: tvReviewError },
+    { loading: celebrityLoading, error: celebrityError },
   ];
 
   for (const { loading, error } of queries) {
@@ -549,7 +558,7 @@ const MediaDetail = () => {
           </div>
         </div>
       </div>
-      <div className='container flex gap-6 py-10 bg-white'>
+      <div className='container flex gap-6 pt-10 bg-white'>
         <div className='flex flex-3 flex-col gap-4'>
           <div className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'>
             <h1>Top Cast</h1>
@@ -558,7 +567,11 @@ const MediaDetail = () => {
           </div>
           <div className='grid grid-cols-2 gap-4 items-center'>
             {(movieCast || tvCast).slice(0, 20)?.map((c: Cast) => (
-              <div key={c?.id} className='flex items-center gap-4 cursor-pointer'>
+              <div
+                key={c?.id}
+                className='flex items-center gap-4 cursor-pointer'
+                onClick={(): void => handleCelebrity(c?.name, c?.id)}
+              >
                 <div className='w-32 h-32 rounded-full overflow-hidden'>
                   <img
                     src={TMDB_URL + c?.profile_path}
@@ -585,6 +598,8 @@ const MediaDetail = () => {
           </div>
         </div>
       </div>
+      <MediaList title='Similar' mediaType={data?.media_type} id={data?.id} />
+      <MediaList title='Recommend' mediaType={data?.media_type} id={data?.id} />
     </div>
   );
 };

@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { useLazyQuery, useQuery } from '@apollo/client';
 import {
   GET_POPULAR_MOVIES,
+  GET_RECOMMEND_MOVIES,
+  GET_SIMILAR_MOVIES,
   GET_TRENDING,
   GET_TV_AIRING,
-  GET_TV_Popular,
+  GET_TV_POPULAR,
+  GET_TV_RECOMMEND,
+  GET_TV_SIMILAR,
   GET_UPCOMING_MOVIES,
 } from '../graphql/queries';
 import { Media } from '../types/media';
@@ -18,10 +22,12 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useNavigate } from 'react-router-dom';
 
 type ListProps = {
+  id?: number;
   title: string;
+  mediaType?: string;
 };
 
-const MediaList: React.FC<ListProps> = ({ title }) => {
+const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
   const [data, setData] = useState<Media[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [width, setWidth] = useState<number>(0);
@@ -43,6 +49,10 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
     error: popularMoviesError,
     data: popularMoviesData,
   } = useQuery(GET_POPULAR_MOVIES);
+  const [getSimilarMovies, { loading: similarMoviesLoading, error: similarMoviesError }] =
+    useLazyQuery(GET_SIMILAR_MOVIES);
+  const [getRecommendMovies, { loading: recommendMoviesLoading, error: recommendMoviesError }] =
+    useLazyQuery(GET_RECOMMEND_MOVIES);
   const {
     loading: tvAiringsLoading,
     error: tvAiringsError,
@@ -52,7 +62,11 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
     loading: tvPopularLoading,
     error: tvPopularError,
     data: tvPopularData,
-  } = useQuery(GET_TV_Popular);
+  } = useQuery(GET_TV_POPULAR);
+  const [getTvSimilar, { loading: tvSimilarLoading, error: tvSimilarError }] =
+    useLazyQuery(GET_TV_SIMILAR);
+  const [getTvRecommend, { loading: tvRecommendLoading, error: tvRecommendError }] =
+    useLazyQuery(GET_TV_RECOMMEND);
   const navigate = useNavigate();
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   let count = 0;
@@ -68,6 +82,28 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
       setData(tvAiringsData?.tvAiring);
     } else if (title === 'Popular TV Shows') {
       setData(tvPopularData?.tvPopular);
+    }
+    if (title === 'Similar') {
+      if (mediaType === 'movie') {
+        getSimilarMovies({ variables: { id: id } }).then((response) => {
+          setData(response?.data?.movieSimilar);
+        });
+      } else {
+        getTvSimilar({ variables: { id: id } }).then((response) => {
+          setData(response?.data?.tvSimilar);
+        });
+      }
+    }
+    if (title === 'Recommend') {
+      if (mediaType === 'movie') {
+        getRecommendMovies({ variables: { id: id } }).then((response) => {
+          setData(response?.data?.moviesRecommend);
+        });
+      } else {
+        getTvRecommend({ variables: { id: id } }).then((response) => {
+          setData(response?.data?.tvRecommend);
+        });
+      }
     }
   };
 
@@ -118,8 +154,12 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
     { loading: trendingLoading, error: trendingError },
     { loading: upcomingsLoading, error: upcomingsError },
     { loading: popularMoviesLoading, error: popularMoviesError },
+    { loading: similarMoviesLoading, error: similarMoviesError },
+    { loading: recommendMoviesLoading, error: recommendMoviesError },
     { loading: tvAiringsLoading, error: tvAiringsError },
     { loading: tvPopularLoading, error: tvPopularError },
+    { loading: tvSimilarLoading, error: tvSimilarError },
+    { loading: tvRecommendLoading, error: tvRecommendError },
   ];
 
   for (const { loading, error } of queries) {
@@ -127,22 +167,30 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
     if (error) return <p className='text-white'>Error: {error.message}</p>;
   }
   return (
-    <div className='container flex flex-col gap-6 py-5'>
-      <h1 className='text-2xl text-white font-semibold pl-3 mt-10 border-l-4 border-primary '>
+    <div className='container flex flex-col gap-3 py-3'>
+      <h1
+        className={`${
+          mediaType ? 'text-4xl text-black' : 'text-2xl text-white'
+        } font-semibold pl-3 mt-10 border-l-4 border-primary`}
+      >
         {title}
       </h1>
       <div className='relative group overflow-hidden'>
         {height !== 0 && (
           <>
             <button
-              className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
+              className={`absolute top-1/2 left-4 p-3 ${
+                mediaType ? 'text-gray-200' : 'text-white'
+              } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
               style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
               onClick={() => handleLeft(data)}
             >
               <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
             </button>
             <button
-              className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
+              className={`absolute top-1/2 right-4 p-3 ${
+                mediaType ? 'text-gray-200' : 'text-white'
+              } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
               style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
               onClick={() => handleRight(data)}
             >
@@ -180,7 +228,11 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
                   className='object-cover w-full h-full'
                 />
               </div>
-              <div className='flex flex-1 flex-col gap-3 p-4 text-white bg-black-100 rounded-xl rounded-t-none overflow-hidden'>
+              <div
+                className={`flex flex-1 flex-col gap-3 p-4 ${
+                  mediaType ? 'text-black bg-gray-200' : 'text-white bg-black-100'
+                } rounded-xl rounded-t-none overflow-hidden`}
+              >
                 <div className='flex items-center gap-2'>
                   <div className='flex items-center'>
                     <StarIcon className='text-primary' />
@@ -189,7 +241,11 @@ const MediaList: React.FC<ListProps> = ({ title }) => {
                   <StarOutlineIcon />
                 </div>
                 <h1 className='text-base min-h-12'>{m?.title || m?.name}</h1>
-                <button className='flex items-center justify-center gap-2 p-1 text-secondary bg-gray-400 rounded-2xl cursor-pointer'>
+                <button
+                  className={`flex items-center justify-center gap-2 p-1 text-secondary ${
+                    mediaType ? 'bg-gray-250' : 'bg-gray-400'
+                  } rounded-2xl cursor-pointer`}
+                >
                   <AddIcon />
                   <span>Watchlist</span>
                 </button>
