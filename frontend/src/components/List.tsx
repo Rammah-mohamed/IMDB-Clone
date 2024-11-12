@@ -76,7 +76,7 @@ const List: React.FC<Listprops> = ({
   if (title === 'Upcomings Movies' && upcomings) {
     imageURL = TMDB_URL + upcomings[0]?.backdrop_path;
   } else if (title === 'TV Airings' && tvAirings) {
-    imageURL = TMDB_URL + tvAirings[2]?.backdrop_path;
+    imageURL = TMDB_URL + tvAirings[1]?.backdrop_path;
   } else if (title === 'Popular TV' && tvPopular) {
     imageURL = TMDB_URL + tvPopular[1]?.backdrop_path;
   } else if (title === 'Popular Movies' && popularMovies) {
@@ -119,15 +119,17 @@ const List: React.FC<Listprops> = ({
     }
   };
 
-  if (upcomingsLoading) return <p className='text-white'>Loading...</p>;
-  if (upcomingsError) return <p className='text-white'>upcomingsError: {upcomingsError.message}</p>;
-  if (popularMoviesLoading) return <p className='text-white'>Loading...</p>;
-  if (popularMoviesError)
-    return <p className='text-white'>popularMoviesError: {popularMoviesError.message}</p>;
-  if (tvAiringLoading) return <p className='text-white'>Loading...</p>;
-  if (tvAiringError) return <p className='text-white'>tvAiringError: {tvAiringError.message}</p>;
-  if (tvPopularLoading) return <p className='text-white'>Loading...</p>;
-  if (tvPopularError) return <p className='text-white'>tvPopularError: {tvPopularError.message}</p>;
+  const queries = [
+    { loading: upcomingsLoading, error: upcomingsError },
+    { loading: popularMoviesLoading, error: popularMoviesError },
+    { loading: tvAiringLoading, error: tvAiringError },
+    { loading: tvPopularLoading, error: tvPopularError },
+  ];
+
+  for (const { loading, error } of queries) {
+    if (loading) return <p className='text-white'>Trending Loading...</p>;
+    if (error) return <p className='text-white'>Error: {error.message}</p>;
+  }
   return (
     <div
       ref={containerRef}

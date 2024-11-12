@@ -15,15 +15,7 @@ type SeachMenuProps = {
   setOrderText?: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const searchText: string[] = [
-  'All',
-  'Titles',
-  'TV Episodes',
-  'Celebs',
-  'Companies',
-  'Keyword',
-  'Advanced Search',
-];
+const searchText: string[] = ['All', 'Movies', 'TV Shows', 'Celebs', 'Advanced Search'];
 
 const orderText: string[] = [
   'List order',

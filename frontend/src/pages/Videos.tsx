@@ -64,11 +64,11 @@ const Videos = () => {
   //Get media genre from genre IDs
   const getGenras = (mediaType: string, array: number[]): string[] => {
     for (let i = 0; i < array.length; i++) {
-      if (mediaType === 'Movie') {
+      if (mediaType === 'movie') {
         movieGenres?.map((g) =>
           g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null
         );
-      } else if (mediaType === 'TV') {
+      } else if (mediaType === 'tv') {
         tvGenres?.map((g) => (g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null));
       }
     }
@@ -82,8 +82,6 @@ const Videos = () => {
       getGenras(videoData?.media_type, videoData?.genre_ids || videoData?.genre_ids);
     }
   }, [data, videoData]);
-
-  genres && console.log(genres);
 
   //Get Media videos for movie or tv show
   const handleTrailer = (mediaType: string, id: number): void => {

@@ -38,6 +38,26 @@ const typeDefs = gql`
     vote_count: String!
   }
 
+  type SeachAll {
+    id: Int!
+    title: String
+    overview: String
+    name: String
+    poster_path: String
+    backdrop_path: String
+    release_date: String
+    first_air_date: String
+    genre_ids: [Int]
+    media_type: String!
+    popularity: Float
+    vote_average: String
+    vote_count: String
+    gender: Int
+    profile_path: String
+    known_for_department: String
+    known_for: [All]
+  }
+
   type Movie implements MotionPicture & Movies {
     id: Int!
     title: String!
@@ -215,31 +235,31 @@ const typeDefs = gql`
 
   type Query {
     trendingAll(time: String): [All]!
-    searchMulti(query: String!, lang: String, page: String): [All]!
+    searchMulti(query: String!, lang: String, page: String): [SeachAll]!
     trendingMovies(time: String): [Movie]!
-    popularMovies: [Movie]!
-    upcomingMovies: [Movie]!
-    topMovies: [Movie]!
+    popularMovies(page: Int): [Movie]!
+    upcomingMovies(page: Int): [Movie]!
+    topMovies(page: Int): [Movie]!
     movieDetail(id: Int!): MovieDetails
     movieSimilar(id: Int!, page: Int): [Movie]!
     movieReview(id: Int!, page: Int): [Review]
     movieImages(id: Int!): [Images!]
     movieVideos(id: Int!): [Videos!]
     movieGenres: [Genres!]!
-    moviesRecommend(id: Int!): [Movie]!
+    moviesRecommend(id: Int!, page: Int): [Movie]!
     moviesCast(id: Int!): [Cast!]
     moviesCrew(id: Int!): [Crew!]
     searchMovies(query: String!, lang: String, page: String, year: String): [Movie]
     trendingTV(time: String): [TV]!
-    tvAiring(page: String): [TV!]!
-    tvPopular(page: String): [TV!]!
-    topTv(page: String): [TV!]!
+    tvAiring(page: Int): [TV!]!
+    tvPopular(page: Int): [TV!]!
+    topTv(page: Int): [TV!]!
     tvDetail(id: Int!): TVDetails
     tvSimilar(id: Int!, page: Int): [TV]!
     tvReview(id: Int!, page: Int): [Review]
     tvImages(id: Int!): [Images!]
     tvVideos(id: Int!): [Videos!]
-    tvRecommend(id: Int!): [TV]!
+    tvRecommend(id: Int!, page: Int): [TV]!
     tvCast(id: Int!): [Cast!]
     tvCrew(id: Int!): [Crew!]
     tvGenres: [Genres!]!

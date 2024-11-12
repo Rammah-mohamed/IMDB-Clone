@@ -1,3 +1,24 @@
+export type Multi = {
+  id: number;
+  name?: string;
+  title?: string;
+  overview?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+  genre_ids?: number[];
+  release_date?: string;
+  first_air_date?: string;
+  media_type: string;
+  vote_average?: string;
+  vote_count?: string;
+  gender?: number;
+  profile_path?: string;
+  popularity?: number;
+  known_for_department?: string;
+  known_for?: [Media];
+  __typename: string;
+};
+
 export type Media = {
   id: number;
   name?: string;
@@ -10,8 +31,8 @@ export type Media = {
   first_air_date?: string;
   media_type: string;
   popularity: number;
-  vote_average: number;
-  vote_count: number;
+  vote_average: string;
+  vote_count: string;
   __typename: string;
 };
 
@@ -41,8 +62,8 @@ export type TV = {
   first_air_date: string;
   genre_ids: number[];
   popularity: number;
-  vote_average: number;
-  vote_count: number;
+  vote_average: string;
+  vote_count: string;
   __typename: string;
 };
 

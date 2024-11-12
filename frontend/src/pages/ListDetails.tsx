@@ -1,5 +1,5 @@
 import { useLazyQuery } from '@apollo/client';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -26,12 +26,14 @@ const ListDetails = () => {
     grid: false,
     compact: false,
   });
+  const navigate = useNavigate();
   const location = useLocation();
-  const data = location.state.data;
-  const title = location.state.title;
+  const data = location?.state?.data;
+  const title = location?.state?.title;
   const listData: Media[] = data;
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
-  let handleCount: number = 0;
+  let mediaCount: number = 0;
+  // let orderCount: number = 0;
   const [getMovieCast, { loading: movieCastLoading, error: movieCastError }] =
     useLazyQuery(GET_MOVIE_CAST);
   const [getMovieCrew, { loading: movieCrewLoading, error: movieCrewError }] =
@@ -49,48 +51,49 @@ const ListDetails = () => {
       setView({ details: false, grid: false, compact: true });
   };
 
-  const handleMovie = (id: number): void => {
-    getMovieCast({ variables: { id } }).then((castData) => {
-      getMovieCrew({ variables: { id } }).then((crewData) => {
-        setCast((prev) => [
-          ...prev,
-          {
-            id: id,
-            type: 'Movie',
-            star: castData?.data?.moviesCast,
-            crew: crewData?.data?.moviesCrew?.slice(0, 20),
-          },
-        ]);
-      });
-    });
-  };
-
-  const handleTv = (id: number): void => {
-    getTvCast({ variables: { id } }).then((castData) => {
-      getTvCrew({ variables: { id } }).then((crewData) => {
-        setCast((prev) => [
-          ...prev,
-          {
+  const handleMedia = (ids: number[], mediaType: string): void => {
+    let fetchMedia: Promise<CastState>[] = [];
+    if (mediaType === 'Movie') {
+      fetchMedia = ids.map((id) =>
+        Promise.all([
+          getMovieCast({ variables: { id } }),
+          getMovieCrew({ variables: { id } }),
+        ]).then(([castData, crewData]) => ({
+          id: id,
+          type: 'Movie',
+          star: castData?.data?.moviesCast,
+          crew: crewData?.data?.moviesCrew?.slice(0, 20),
+        }))
+      );
+    } else if (mediaType === 'TV') {
+      fetchMedia = ids.map((id) =>
+        Promise.all([getTvCast({ variables: { id } }), getTvCrew({ variables: { id } })]).then(
+          ([castData, crewData]) => ({
             id: id,
             type: 'TV',
             star: castData?.data?.tvCast,
             crew: crewData?.data?.tvCrew?.slice(0, 20),
-          },
-        ]);
-      });
-    });
+          })
+        )
+      );
+    }
+
+    fetchMedia.length !== 0 &&
+      Promise.all(fetchMedia)
+        .then((media) => {
+          setCast((prev) => [...prev, ...media]);
+        })
+        .catch((error) => {
+          console.error('Error fetching movie data:', error);
+        });
   };
 
   useEffect(() => {
-    if (listData && handleCount === 0) {
-      listData.forEach((m) => {
-        if (m.__typename === 'Movie') {
-          handleMovie(m.id);
-        } else if (m.__typename === 'TV') {
-          handleTv(m.id);
-        }
-      });
-      handleCount++;
+    if (listData && mediaCount === 0) {
+      const IDs = listData?.map((item) => item.id);
+      const mediaType = listData[0]?.__typename;
+      handleMedia(IDs, mediaType);
+      mediaCount++;
     }
   }, [listData]);
 
@@ -186,7 +189,7 @@ const ListDetails = () => {
       default:
         return listData || [];
     }
-  }, [listData, orderText]);
+  }, [orderText]);
 
   const handleDirector = (crew: Crew): string | undefined => {
     if (crew?.job === 'Director') {
@@ -202,15 +205,21 @@ const ListDetails = () => {
       } else return false;
     } else return false;
   };
+  const handleDetails = (media: Media): void => {
+    navigate('/mediaDetail', { state: media });
+  };
 
-  if (movieCastLoading) return <p className='text-white'>Trending Loading...</p>;
-  if (movieCastError) return <p className='text-white'>Error: {movieCastError.message}</p>;
-  if (movieCrewLoading) return <p className='text-white'>Trending Loading...</p>;
-  if (movieCrewError) return <p className='text-white'>Error: {movieCrewError.message}</p>;
-  if (tvCastLoading) return <p className='text-white'>Trending Loading...</p>;
-  if (tvCastError) return <p className='text-white'>Error: {tvCastError.message}</p>;
-  if (tvCrewLoading) return <p className='text-white'>Trending Loading...</p>;
-  if (tvCrewError) return <p className='text-white'>Error: {tvCrewError.message}</p>;
+  const queries = [
+    { loading: movieCastLoading, error: movieCastError },
+    { loading: movieCrewLoading, error: movieCrewError },
+    { loading: tvCastLoading, error: tvCastError },
+    { loading: tvCrewLoading, error: tvCrewError },
+  ];
+
+  for (const { loading, error } of queries) {
+    if (loading) return <p className='text-white'>Trending Loading...</p>;
+    if (error) return <p className='text-white'>Error: {error.message}</p>;
+  }
   return (
     <div>
       <Navbar />
@@ -221,7 +230,10 @@ const ListDetails = () => {
         <div className='flex gap-20'>
           <div className='flex flex-3 flex-col gap-10'>
             <div className='flex items-center justify-between'>
-              <span className='flex-1 text-black-100'>{listData.length} titles</span>
+              <span className='flex-1 text-black-100'>
+                {listData?.length >= 100 ? listData?.length.toString().slice() : listData?.length}{' '}
+                titles
+              </span>
               <div className='flex flex-1 items-center justify-end gap-2'>
                 <div className='flex items-center gap-2'>
                   <span>Sort By</span>
@@ -280,10 +292,10 @@ const ListDetails = () => {
                 view.grid ? 'flex-row flex-wrap items-center justify-center' : 'flex-col'
               } gap-4 p-2 border-2 border-gray-250 rounded-sm`}
             >
-              {cast.length === listData.length &&
-                (isReverse ? [...orderdList].reverse() : orderdList)?.map(
+              {cast?.length === listData?.length &&
+                (isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                   (e: Media, index: number) => (
-                    <div className='flex flex-1 flex-col gap-2' key={e.id}>
+                    <div className='flex flex-1 flex-col gap-2' key={index}>
                       <div
                         className={`flex items-center ${
                           !view.grid ? 'justify-between' : 'border-2 border-gray-100 shadow-md'
@@ -299,6 +311,7 @@ const ListDetails = () => {
                             className={`group relative ${
                               view.grid ? 'w-48 h-72' : 'w-24 h-32'
                             } overflow-hidden rounded-xl cursor-pointer`}
+                            onClick={(): void => handleDetails(e)}
                           >
                             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                             <AddIcon
@@ -312,7 +325,12 @@ const ListDetails = () => {
                             />
                           </div>
                           <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                            <h1 className='flex-2 font-bold'>{e?.title}</h1>
+                            <h1
+                              className='flex-2 font-bold cursor-pointer hover:underline'
+                              onClick={(): void => handleDetails(e)}
+                            >
+                              {index + 1 + '- ' + (e?.title ?? e?.name)}
+                            </h1>
                             <div className='flex-1 text-black-100'>
                               <span>{e?.release_date}</span>
                             </div>

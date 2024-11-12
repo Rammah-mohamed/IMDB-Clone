@@ -49,10 +49,14 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
     error: popularMoviesError,
     data: popularMoviesData,
   } = useQuery(GET_POPULAR_MOVIES);
-  const [getSimilarMovies, { loading: similarMoviesLoading, error: similarMoviesError }] =
-    useLazyQuery(GET_SIMILAR_MOVIES);
-  const [getRecommendMovies, { loading: recommendMoviesLoading, error: recommendMoviesError }] =
-    useLazyQuery(GET_RECOMMEND_MOVIES);
+  const [
+    getSimilarMovies,
+    { loading: similarMoviesLoading, error: similarMoviesError, data: _movieSimlarData },
+  ] = useLazyQuery(GET_SIMILAR_MOVIES);
+  const [
+    getRecommendMovies,
+    { loading: recommendMoviesLoading, error: recommendMoviesError, data: _movieRecommendData },
+  ] = useLazyQuery(GET_RECOMMEND_MOVIES);
   const {
     loading: tvAiringsLoading,
     error: tvAiringsError,
@@ -63,10 +67,12 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
     error: tvPopularError,
     data: tvPopularData,
   } = useQuery(GET_TV_POPULAR);
-  const [getTvSimilar, { loading: tvSimilarLoading, error: tvSimilarError }] =
+  const [getTvSimilar, { loading: tvSimilarLoading, error: tvSimilarError, data: _tvSimilarData }] =
     useLazyQuery(GET_TV_SIMILAR);
-  const [getTvRecommend, { loading: tvRecommendLoading, error: tvRecommendError }] =
-    useLazyQuery(GET_TV_RECOMMEND);
+  const [
+    getTvRecommend,
+    { loading: tvRecommendLoading, error: tvRecommendError, data: _tvRecommendData },
+  ] = useLazyQuery(GET_TV_RECOMMEND);
   const navigate = useNavigate();
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   let count = 0;

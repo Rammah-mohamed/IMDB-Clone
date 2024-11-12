@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const GET_TRENDING = gql`
-  query {
-    trendingAll {
+  query ($time: String = null) {
+    trendingAll(time: $time) {
       name
       title
       id
@@ -20,9 +20,47 @@ export const GET_TRENDING = gql`
   }
 `;
 
+export const SEARCH_MEDIA = gql`
+  query ($query: String!, $page: String = null, $lang: String = null) {
+    searchMulti(query: $query, page: $page, lang: $lang) {
+      name
+      title
+      id
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      media_type
+      genre_ids
+      first_air_date
+      profile_path
+      gender
+      known_for_department
+      known_for {
+        id
+        title
+        name
+        overview
+        poster_path
+        backdrop_path
+        release_date
+        first_air_date
+        genre_ids
+        media_type
+        popularity
+        vote_average
+        vote_count
+      }
+    }
+  }
+`;
+
 export const GET_UPCOMING_MOVIES = gql`
-  query {
-    upcomingMovies {
+  query ($page: Int = null) {
+    upcomingMovies(page: $page) {
       title
       id
       overview
@@ -38,8 +76,8 @@ export const GET_UPCOMING_MOVIES = gql`
 `;
 
 export const GET_POPULAR_MOVIES = gql`
-  query {
-    popularMovies {
+  query ($page: Int = null) {
+    popularMovies(page: $page) {
       id
       title
       overview
@@ -53,9 +91,44 @@ export const GET_POPULAR_MOVIES = gql`
     }
   }
 `;
+
+export const GET_TRENDING_MOVIES = gql`
+  query ($time: String = null) {
+    trendingMovies(time: $time) {
+      id
+      title
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      genre_ids
+    }
+  }
+`;
+
+export const GET_TOP_MOVIES = gql`
+  query ($page: Int = null) {
+    topMovies(page: $page) {
+      id
+      title
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      genre_ids
+    }
+  }
+`;
+
 export const GET_SIMILAR_MOVIES = gql`
-  query ($id: Int!) {
-    movieSimilar(id: $id) {
+  query ($id: Int!, $page: String = null) {
+    movieSimilar(id: $id, page: $page) {
       id
       title
       overview
@@ -71,8 +144,25 @@ export const GET_SIMILAR_MOVIES = gql`
 `;
 
 export const GET_RECOMMEND_MOVIES = gql`
-  query ($id: Int!) {
-    moviesRecommend(id: $id) {
+  query ($id: Int!, $page: String = null) {
+    moviesRecommend(id: $id, page: $page) {
+      id
+      title
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      genre_ids
+    }
+  }
+`;
+
+export const SEARCH_MOVIES = gql`
+  query ($query: String!, $page: String = null, $lang: String = null, $year: String = null) {
+    searchMovies(query: $query, page: $page, lang: $lang, year: $year) {
       id
       title
       overview
@@ -161,8 +251,25 @@ export const GET_MOVIE_REVIEW = gql`
 `;
 
 export const GET_TV_AIRING = gql`
-  query {
-    tvAiring {
+  query ($page: Int = null) {
+    tvAiring(page: $page) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+  }
+`;
+
+export const GET_TRENDING_TV = gql`
+  query ($time: String = null) {
+    trendingTV(time: $time) {
       id
       name
       overview
@@ -178,8 +285,25 @@ export const GET_TV_AIRING = gql`
 `;
 
 export const GET_TV_POPULAR = gql`
-  query {
-    tvPopular {
+  query ($page: Int = null) {
+    tvPopular(page: $page) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+  }
+`;
+
+export const GET_TOP_TV = gql`
+  query ($page: Int = null) {
+    topTv(page: $page) {
       id
       name
       overview
@@ -195,8 +319,8 @@ export const GET_TV_POPULAR = gql`
 `;
 
 export const GET_TV_SIMILAR = gql`
-  query ($id: Int!) {
-    tvSimilar(id: $is) {
+  query ($id: Int!, $page: Int = null) {
+    tvSimilar(id: $id, page: $page) {
       id
       name
       overview
@@ -211,8 +335,25 @@ export const GET_TV_SIMILAR = gql`
   }
 `;
 export const GET_TV_RECOMMEND = gql`
-  query ($id: Int!) {
-    tvRecommed(id: $id) {
+  query ($id: Int!, $page: Int = null) {
+    tvRecommed(id: $id, page: $page) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+  }
+`;
+
+export const SEARCH_TV = gql`
+  query ($query: String!, $page: String = null, $lang: String = null, $year: String = null) {
+    searchTV(query: $query, page: $page, lang: $lang, year: $year) {
       id
       name
       overview
@@ -352,15 +493,11 @@ export const GET_CELEBRITY_IMAGES = gql`
 `;
 
 export const SEARCH_CELEBRITY = gql`
-  query ($query: String!) {
-    searchCelebrity(query: $query) {
+  query ($query: String!, $page: String = null, $lang: String = null) {
+    searchCelebrity(query: $query, page: $page, lang: $lang) {
       id
-      imdb_id
       name
       profile_path
-      biography
-      birthday
-      deathday
       gender
       known_for_department
       known_for {
@@ -378,7 +515,6 @@ export const SEARCH_CELEBRITY = gql`
         vote_average
         vote_count
       }
-      place_of_birth
       popularity
     }
   }
