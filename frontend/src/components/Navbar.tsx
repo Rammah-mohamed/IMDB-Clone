@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Menu from './Menu';
 import SearchMenu from './SearchMenu';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -8,13 +9,32 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 
-const Navbar = () => {
+type Props = {
+  isLogged: boolean;
+  setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const Navbar: React.FC<Props> = ({ isLogged, setIsLogged }) => {
   const [query, setQuery] = useState<string>('');
   const [focus, setFocus] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('All');
   const navigate = useNavigate();
+
+  const handleLog = async () => {
+    if (isLogged) {
+      try {
+        const response = await axios.post('http://localhost:3000/auth/logout');
+        if (response.data === 'Logged out successfully.') {
+          setIsLogged(false);
+          navigate('/');
+        }
+      } catch (error: any) {
+        console.error(error.response.data);
+      }
+    } else navigate('/sign');
+  };
 
   const handleSearch = (e: KeyboardEvent): void => {
     if (e.key === 'Enter' && focus && query.trim() !== '') {
@@ -79,13 +99,13 @@ const Navbar = () => {
           <LibraryAddIcon />
           <span>Watchlist</span>
         </Link>
-        <Link
-          to={''}
+        <button
           className=' py-1 px-3 text-white text-sm rounded hover:bg-gray'
           style={{ marginLeft: '-0.5rem' }}
+          onClick={handleLog}
         >
-          Sign In
-        </Link>
+          {isLogged ? 'Sign out' : 'Sign In'}
+        </button>
         <span className='py-1 px-3 text-white text-sm rounded hover:bg-gray cursor-pointer'>
           EN
         </span>

@@ -3,11 +3,17 @@ import Lists from '../components/Lists';
 import MediaList from '../components/MediaList';
 import Navbar from '../components/Navbar';
 import PopularCelebrity from '../components/PopularCelebrity';
+import UserList from '../components/UserList';
 
-const Home = () => {
+type Props = {
+  isLogged: boolean;
+  setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const Home: React.FC<Props> = ({ isLogged, setIsLogged }) => {
   return (
     <div className='bg-black'>
-      <Navbar />
+      <Navbar isLogged={isLogged} setIsLogged={setIsLogged} />
       <Feature />
       <Lists title={'Featured today'} listFor='Feature' />
       <PopularCelebrity />
@@ -15,6 +21,7 @@ const Home = () => {
       <MediaList title='Trendings' />
       <MediaList title='Upcomings Movies' />
       <MediaList title='Popular Movies' />
+      <UserList />
       <MediaList title='TV Airings' />
       <MediaList title='Popular TV Shows' />
     </div>

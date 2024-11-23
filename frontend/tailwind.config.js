@@ -29,6 +29,7 @@ export default {
       },
       overlay: { DEFAULT: '#11111130', 50: '#11111150', 60: '#11111160', 70: '#11111170' },
       green: '#66AB58',
+      red: 'red',
     },
     extend: {
       fontFamily: {
@@ -40,6 +41,11 @@ export default {
         3: '3 3 0%',
         4: '4 4 0%',
       },
+    },
+  },
+  variants: {
+    extend: {
+      borderColor: ['focus'], // Ensure the `focus` variant is enabled for `borderColor`
     },
   },
   plugins: [],

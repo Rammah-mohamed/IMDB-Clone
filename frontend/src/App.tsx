@@ -7,12 +7,16 @@ import Media from './pages/Media';
 import MediaDetail from './components/MediaDetail';
 import Critics from './pages/Critics';
 import Search from './pages/Search';
+import Sign from './pages/Sign';
+import { useState } from 'react';
 
 const App = () => {
+  const [isLogged, setIsLogged] = useState<boolean>(false);
   return (
     <div className='font-roboto'>
       <Routes>
-        <Route path='/' element={<Home />} />
+        <Route path='/' element={<Home isLogged={isLogged} setIsLogged={setIsLogged} />} />
+        <Route path='/sign' element={<Sign setIsLogged={setIsLogged} />} />
         <Route path='/search' element={<Search />} />
         <Route path='/videos' element={<Videos />} />
         <Route path='/listDetails' element={<ListDetails />} />
