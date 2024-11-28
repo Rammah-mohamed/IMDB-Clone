@@ -14,6 +14,7 @@ const MovieSchema = new mongoose.Schema({
   popularity: Number,
   vote_average: String,
   vote_count: String,
+  isAdded: { type: Boolean, default: false },
   __typename: String,
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

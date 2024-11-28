@@ -20,6 +20,8 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/authContext';
 
 type ListProps = {
   id?: number;
@@ -28,6 +30,7 @@ type ListProps = {
 };
 
 const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
+  const { user } = useAuth();
   const [data, setData] = useState<Media[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [width, setWidth] = useState<number>(0);
@@ -152,8 +155,82 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
     setIndex((prev) => (prev !== 0 ? prev - 1 : dataArray.length - 6));
   };
 
-  const handleDetails = (media: Media): void => {
+  const handleDetails = (e: React.MouseEvent, media: Media): void => {
+    e.stopPropagation();
     navigate('/mediaDetail', { state: media });
+  };
+
+  useEffect(() => {
+    const getUserMovies = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/movies', {
+          withCredentials: true,
+        });
+
+        setData((prev) =>
+          prev?.map((m) =>
+            response?.data.some((d: Media) => d.isAdded && d.id === m.id)
+              ? { ...m, isAdded: true }
+              : m
+          )
+        );
+      } catch (error: any) {
+        if (error.response) {
+          console.error('Server Error:', error.response.data);
+        } else {
+          console.error('Error:', error.message);
+        }
+      }
+    };
+    getUserMovies();
+  }, []);
+
+  //Add and delete to the watchlist
+  const handleAddTOWatchList = async (e: React.MouseEvent, data: Media) => {
+    e.stopPropagation();
+    try {
+      if (user && data.isAdded) {
+        const deleteResponse = await axios.delete(`http://localhost:3000/movies/${data.id}`, {
+          withCredentials: true,
+        });
+        console.log(deleteResponse.data);
+        const getResponse = await axios.get('http://localhost:3000/movies', {
+          withCredentials: true,
+        });
+        console.log(getResponse.data);
+
+        setData((prev) => prev?.map((m) => (m.id === data.id ? { ...m, isAdded: false } : m)));
+      } else if (user) {
+        const postResponse = await axios.post('http://localhost:3000/movies', data, {
+          withCredentials: true,
+        });
+        console.log(postResponse.data);
+        const updateResponse = await axios.put(
+          `http://localhost:3000/movies/${data.id}`,
+          { isAdded: true },
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(updateResponse.data);
+        const getResponse = await axios.get('http://localhost:3000/movies', {
+          withCredentials: true,
+        });
+
+        setData((prev) =>
+          prev?.map((m) =>
+            getResponse?.data.some((d: Media) => d.isAdded && d.id === m.id)
+              ? { ...m, isAdded: true }
+              : m
+          )
+        );
+      }
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+    if (!user) {
+      navigate('/sign');
+    }
   };
 
   const queries = [
@@ -215,7 +292,7 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
               key={m?.id}
               ref={containerRef}
               className='flex flex-col cursor-pointer'
-              onClick={(): void => handleDetails(m)}
+              onClick={(e): void => handleDetails(e, m)}
             >
               <div
                 ref={heightRef}
@@ -224,8 +301,11 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
               >
                 <span className='group-hover/item:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                 <AddIcon
-                  className='absolute top-0 left-0 bg-black-transparent text-white'
+                  className={`absolute top-0 left-0 ${
+                    m?.isAdded ? 'bg-primary text-black-100' : 'bg-black-transparent text-white'
+                  } z-30`}
                   style={{ fontSize: '2.5rem' }}
+                  onClick={(e) => handleAddTOWatchList(e, m)}
                 />
                 <img
                   src={TMDB_URL + m?.poster_path}

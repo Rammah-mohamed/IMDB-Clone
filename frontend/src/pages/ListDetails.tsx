@@ -15,8 +15,11 @@ import { GET_MOVIE_CAST, GET_MOVIE_CREW, GET_TV_CAST, GET_TV_CREW } from '../gra
 import { useEffect, useMemo, useState } from 'react';
 import SearchMenu from '../components/SearchMenu';
 import { Cast, CastState, Crew, Media, View } from '../types/media';
+import axios from 'axios';
+import { useAuth } from '../context/authContext';
 
 const ListDetails = () => {
+  const { user } = useAuth();
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [orderText, setOrderText] = useState<string>('List Order');
   const [isReverse, setIsReverse] = useState<boolean>(false);
@@ -30,10 +33,13 @@ const ListDetails = () => {
   const location = useLocation();
   const data = location?.state?.data;
   const title = location?.state?.title;
-  const listData: Media[] = data;
+  const [listData, setListData] = useState<Media[]>(() => {
+    if (data) {
+      return data;
+    }
+  });
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   let mediaCount: number = 0;
-  // let orderCount: number = 0;
   const [getMovieCast, { loading: movieCastLoading, error: movieCastError }] =
     useLazyQuery(GET_MOVIE_CAST);
   const [getMovieCrew, { loading: movieCrewLoading, error: movieCrewError }] =
@@ -88,6 +94,73 @@ const ListDetails = () => {
         });
   };
 
+  const handleAddTOWatchList = async (e: React.MouseEvent, data: Media) => {
+    e.stopPropagation();
+    try {
+      if (user && data.isAdded) {
+        const deleteResponse = await axios.delete(`http://localhost:3000/movies/${data.id}`, {
+          withCredentials: true,
+        });
+        console.log(deleteResponse.data);
+        const getResponse = await axios.get('http://localhost:3000/movies', {
+          withCredentials: true,
+        });
+        console.log(getResponse.data);
+
+        setListData((prev) => prev?.map((m) => (m.id === data.id ? { ...m, isAdded: false } : m)));
+      } else if (user) {
+        const postResponse = await axios.post('http://localhost:3000/movies', data, {
+          withCredentials: true,
+        });
+        console.log(postResponse.data);
+        const updateResponse = await axios.put(
+          `http://localhost:3000/movies/${data.id}`,
+          { isAdded: true },
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(updateResponse.data);
+        const getResponse = await axios.get('http://localhost:3000/movies', {
+          withCredentials: true,
+        });
+
+        setListData((prev) =>
+          prev?.map((m) =>
+            getResponse?.data.some((d: Media) => d.isAdded && d.id === m.id)
+              ? { ...m, isAdded: true }
+              : m
+          )
+        );
+      }
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+    if (!user) {
+      navigate('/sign');
+    }
+  };
+
+  useEffect(() => {
+    const getUserMovies = async () => {
+      try {
+        if (user) {
+          const response = await axios.get('http://localhost:3000/movies', {
+            withCredentials: true,
+          });
+          setListData(response.data);
+        }
+      } catch (error: any) {
+        if (error.response) {
+          console.error('Server Error:', error.response.data);
+        } else {
+          console.error('Error:', error.message);
+        }
+      }
+    };
+    getUserMovies();
+  }, []);
+
   useEffect(() => {
     if (listData && mediaCount === 0) {
       const IDs = listData?.map((item) => item.id);
@@ -110,7 +183,7 @@ const ListDetails = () => {
   const orderdList: Media[] = useMemo(() => {
     const alphabeticSort =
       listData &&
-      [...listData].sort((a, b) => {
+      [...listData]?.sort((a, b) => {
         if (a.__typename === 'Movie' && b.__typename === 'Movie') {
           if (!a.title && !b.title) return 0;
           if (!a.title) return 1;
@@ -130,7 +203,7 @@ const ListDetails = () => {
 
     const dateSort =
       listData &&
-      [...listData].sort((a, b) => {
+      [...listData]?.sort((a, b) => {
         if (a.__typename === 'Movie' && b.__typename === 'Movie') {
           if (!a.release_date && !b.release_date) return 0;
           if (!a.release_date) return 1;
@@ -150,7 +223,7 @@ const ListDetails = () => {
 
     const ratingSort =
       listData &&
-      [...listData].sort((a, b) => {
+      [...listData]?.sort((a, b) => {
         if (!a.vote_average && !b.vote_average) return 0;
         if (!a.vote_average) return 1;
         if (!b.vote_average) return -1;
@@ -159,7 +232,7 @@ const ListDetails = () => {
 
     const ratingnumberSort =
       listData &&
-      [...listData].sort((a, b) => {
+      [...listData]?.sort((a, b) => {
         if (!a.vote_count && !b.vote_count) return 0;
         if (!a.vote_count) return 1;
         if (!b.vote_count) return -1;
@@ -168,7 +241,7 @@ const ListDetails = () => {
 
     const popularitySort =
       listData &&
-      [...listData].sort((a, b) => {
+      [...listData]?.sort((a, b) => {
         if (!a.popularity && !b.popularity) return 0;
         if (!a.popularity) return 1;
         if (!b.popularity) return -1;
@@ -189,7 +262,7 @@ const ListDetails = () => {
       default:
         return listData || [];
     }
-  }, [orderText]);
+  }, [orderText, listData]);
 
   const handleDirector = (crew: Crew): string | undefined => {
     if (crew?.job === 'Director') {
@@ -292,106 +365,110 @@ const ListDetails = () => {
                 view.grid ? 'flex-row flex-wrap items-center justify-center' : 'flex-col'
               } gap-4 p-2 border-2 border-gray-250 rounded-sm`}
             >
-              {cast?.length === listData?.length &&
-                (isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
-                  (e: Media, index: number) => (
-                    <div className='flex flex-1 flex-col gap-2' key={index}>
+              {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
+                (el: Media, index: number) => (
+                  <div className='flex flex-1 flex-col gap-2' key={index}>
+                    <div
+                      className={`flex items-center ${
+                        !view.grid ? 'justify-between' : 'border-2 border-gray-100 shadow-md'
+                      }`}
+                    >
                       <div
-                        className={`flex items-center ${
-                          !view.grid ? 'justify-between' : 'border-2 border-gray-100 shadow-md'
-                        }`}
+                        className={`flex flex-1 ${
+                          view.grid ? 'flex-col' : 'flex-row items-center'
+                        } gap-3`}
+                        style={{ height: view.grid ? '28rem' : '' }}
                       >
                         <div
-                          className={`flex flex-1 ${
-                            view.grid ? 'flex-col' : 'flex-row items-center'
-                          } gap-3`}
-                          style={{ height: view.grid ? '28rem' : '' }}
+                          className={`group relative ${
+                            view.grid ? 'w-48 h-72' : 'w-24 h-32'
+                          } overflow-hidden rounded-xl cursor-pointer`}
+                          onClick={(): void => handleDetails(el)}
                         >
-                          <div
-                            className={`group relative ${
-                              view.grid ? 'w-48 h-72' : 'w-24 h-32'
-                            } overflow-hidden rounded-xl cursor-pointer`}
-                            onClick={(): void => handleDetails(e)}
-                          >
-                            <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                            <AddIcon
-                              className='absolute top-0 left-0 bg-black-transparent text-white'
-                              style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
-                            />
-                            <img
-                              src={TMDB_URL + e?.poster_path}
-                              alt='poster'
-                              className='object-cover w-full h-full'
-                            />
-                          </div>
-                          <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                            <h1
-                              className='flex-2 font-bold cursor-pointer hover:underline'
-                              onClick={(): void => handleDetails(e)}
-                            >
-                              {index + 1 + '- ' + (e?.title ?? e?.name)}
-                            </h1>
-                            <div className='flex-1 text-black-100'>
-                              <span>{e?.release_date}</span>
-                            </div>
-                            <div className='flex text-black-100'>
-                              <StarIcon className='text-primary' />
-                              <p className='flex-1'>
-                                {Number(e?.vote_average ?? 0).toFixed(2)}
-                                <span className='flex-1 pl-2 text-gray font-semibold'>
-                                  {e?.vote_count.toString().length > 3
-                                    ? '(' + e?.vote_count.toString().slice(0, 1) + 'K)'
-                                    : '(' + e?.vote_count + ')'}
-                                </span>
-                              </p>
-                            </div>
-                            {view.grid && (
-                              <button className='bg-secondary-100 text-secondary font-medium w-full p-2 rounded-xl cursor-pointer'>
-                                Details
-                              </button>
-                            )}
-                          </div>
+                          <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+                          <AddIcon
+                            className={`absolute top-0 left-0 ${
+                              el?.isAdded
+                                ? 'bg-primary text-black-100'
+                                : 'bg-black-transparent text-white'
+                            } z-30`}
+                            style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
+                            onClick={(e) => handleAddTOWatchList(e, el)}
+                          />
+                          <img
+                            src={TMDB_URL + el?.poster_path}
+                            alt='poster'
+                            className='object-cover w-full h-full'
+                          />
                         </div>
-                        <ErrorOutlineIcon
-                          className='text-secondary'
-                          style={{ display: view.grid ? 'none' : 'block ' }}
-                        />
-                      </div>
-                      <p className={`${view.details ? 'block' : 'hidden'} font-semibold`}>
-                        {e?.overview}
-                      </p>
-
-                      <div
-                        className={`${
-                          view.details ? 'flex' : 'hidden'
-                        } items-center gap-5 text-base font-medium`}
-                      >
-                        {isDirector(sortedCast[index]?.crew) && (
-                          <div key={index} className='flex gap-3'>
-                            <span>Director</span>
-                            <span className='text-secondary'>
-                              {sortedCast[index]?.crew?.map((c: Crew) => handleDirector(c))}
-                            </span>
+                        <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
+                          <h1
+                            className='flex-2 font-bold cursor-pointer hover:underline'
+                            onClick={(): void => handleDetails(el)}
+                          >
+                            {index + 1 + '- ' + (el?.title ?? el?.name)}
+                          </h1>
+                          <div className='flex-1 text-black-100'>
+                            <span>{el?.release_date}</span>
                           </div>
-                        )}
-
-                        <div className='flex gap-3'>
-                          {sortedCast[index]?.star?.length !== 0 && (
-                            <>
-                              <span>Stars</span>
-                              <div className='flex gap-2 text-secondary'>
-                                {sortedCast[index]?.star?.map(
-                                  (s: Cast, index: number) =>
-                                    index < 3 && <span key={index}>{s.name}</span>
-                                )}
-                              </div>
-                            </>
+                          <div className='flex text-black-100'>
+                            <StarIcon className='text-primary' />
+                            <p className='flex-1'>
+                              {Number(el?.vote_average ?? 0).toFixed(2)}
+                              <span className='flex-1 pl-2 text-gray font-semibold'>
+                                {el?.vote_count.toString().length > 3
+                                  ? '(' + el?.vote_count.toString().slice(0, 1) + 'K)'
+                                  : '(' + el?.vote_count + ')'}
+                              </span>
+                            </p>
+                          </div>
+                          {view.grid && (
+                            <button className='bg-secondary-100 text-secondary font-medium w-full p-2 rounded-xl cursor-pointer'>
+                              Details
+                            </button>
                           )}
                         </div>
                       </div>
+                      <ErrorOutlineIcon
+                        className='text-secondary'
+                        style={{ display: view.grid ? 'none' : 'block ' }}
+                      />
                     </div>
-                  )
-                )}
+                    <p className={`${view.details ? 'block' : 'hidden'} font-semibold`}>
+                      {el?.overview}
+                    </p>
+
+                    <div
+                      className={`${
+                        view.details ? 'flex' : 'hidden'
+                      } items-center gap-5 text-base font-medium`}
+                    >
+                      {isDirector(sortedCast[index]?.crew) && (
+                        <div key={index} className='flex gap-3'>
+                          <span>Director</span>
+                          <span className='text-secondary'>
+                            {sortedCast[index]?.crew?.map((c: Crew) => handleDirector(c))}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className='flex gap-3'>
+                        {sortedCast[index]?.star?.length !== 0 && (
+                          <>
+                            <span>Stars</span>
+                            <div className='flex gap-2 text-secondary'>
+                              {sortedCast[index]?.star?.map(
+                                (s: Cast, index: number) =>
+                                  index < 3 && <span key={index}>{s.name}</span>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           </div>
 

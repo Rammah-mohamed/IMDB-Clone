@@ -17,7 +17,7 @@ router.post('/register', async (req, res) => {
 
     const user = new User({ username, email, password });
     await user.save();
-    res.status(201).send('User registered successfully.');
+    res.status(201).send({ message: 'User registered successfully.', username, email });
   } catch (err) {
     res.status(500).send('Error registering user.');
   }
@@ -31,9 +31,8 @@ router.post('/login', async (req, res) => {
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(401).send('Invalid credentials: Email or Password Was Incorrect.');
   }
-
   req.session.userId = user._id;
-  res.send('Logged in successfully.');
+  res.send({ message: 'Logged in successfully.', username: user.username, email: user.email });
 });
 
 // Logout

@@ -33,6 +33,7 @@ export type Media = {
   popularity: number;
   vote_average: string;
   vote_count: string;
+  isAdded: boolean;
   __typename: string;
 };
 

@@ -5,6 +5,18 @@ const { requireAuth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
+//Get Lists
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    // Retrieve all movies created by the authenticated user
+    const lists = await List.find({ createdBy: req.session.userId });
+    res.status(200).json(lists);
+  } catch (err) {
+    console.error('Error fetching lists:', err);
+    res.status(500).send('Error fetching lists.');
+  }
+});
+
 // Create List
 router.post('/', requireAuth, async (req, res) => {
   try {

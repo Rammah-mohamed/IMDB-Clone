@@ -1,10 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState } from 'react';
-
-type Props = {
-  setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import { useAuth } from '../context/authContext';
 
 type User = {
   username?: string;
@@ -12,9 +9,10 @@ type User = {
   password: string;
 };
 
-const Sign: React.FC<Props> = ({ setIsLogged }) => {
+const Sign: React.FC = () => {
   const [user, setUser] = useState<User>({ username: '', email: '', password: '' });
   const [error, setError] = useState(null);
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const create = location.state;
@@ -29,17 +27,21 @@ const Sign: React.FC<Props> = ({ setIsLogged }) => {
           password: user.password,
         });
       } else {
-        response = await axios.post('http://localhost:3000/auth/login', {
-          email: user.email,
-          password: user.password,
-        });
+        response = await axios.post(
+          'http://localhost:3000/auth/login',
+          {
+            email: user.email,
+            password: user.password,
+          },
+          { withCredentials: true }
+        );
       }
       if (
-        response.data === 'Logged in successfully.' ||
-        response.data === 'User registered successfully.'
+        response.data.message === 'Logged in successfully.' ||
+        response.data.message === 'User registered successfully.'
       ) {
-        setIsLogged(true);
-        navigate('/');
+        login(response.data.username);
+        navigate('/', { state: { username: response.data.username, email: response.data.email } });
       }
     } catch (error: any) {
       console.error(error.response.data);

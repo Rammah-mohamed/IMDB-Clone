@@ -5,15 +5,10 @@ import Navbar from '../components/Navbar';
 import PopularCelebrity from '../components/PopularCelebrity';
 import UserList from '../components/UserList';
 
-type Props = {
-  isLogged: boolean;
-  setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-const Home: React.FC<Props> = ({ isLogged, setIsLogged }) => {
+const Home: React.FC = () => {
   return (
     <div className='bg-black'>
-      <Navbar isLogged={isLogged} setIsLogged={setIsLogged} />
+      <Navbar />
       <Feature />
       <Lists title={'Featured today'} listFor='Feature' />
       <PopularCelebrity />

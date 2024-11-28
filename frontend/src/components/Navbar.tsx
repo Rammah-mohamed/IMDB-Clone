@@ -8,26 +8,24 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useAuth } from '../context/authContext';
 
-type Props = {
-  isLogged: boolean;
-  setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-const Navbar: React.FC<Props> = ({ isLogged, setIsLogged }) => {
+const Navbar: React.FC = () => {
   const [query, setQuery] = useState<string>('');
   const [focus, setFocus] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('All');
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLog = async () => {
-    if (isLogged) {
+    if (user) {
       try {
         const response = await axios.post('http://localhost:3000/auth/logout');
         if (response.data === 'Logged out successfully.') {
-          setIsLogged(false);
+          logout();
           navigate('/');
         }
       } catch (error: any) {
@@ -41,10 +39,12 @@ const Navbar: React.FC<Props> = ({ isLogged, setIsLogged }) => {
       navigate('/search', { state: { query: query, filter: searchText } });
     }
   };
+
   useEffect(() => {
     window.addEventListener('keydown', handleSearch);
     return () => window.removeEventListener('keydown', handleSearch);
   });
+
   return (
     <div className='container bg-black-100'>
       <div className='relative flex items-center justify-between py-3 font-bold'>
@@ -93,7 +93,7 @@ const Navbar: React.FC<Props> = ({ isLogged, setIsLogged }) => {
           IMDB<span className='text-md text-secondary'>Pro</span>
         </p>
         <Link
-          to={''}
+          to={user ? '/listDetails' : '/sign'}
           className='flex items-center gap-1 py-1 px-3 text-white text-sm rounded hover:bg-gray'
         >
           <LibraryAddIcon />
@@ -104,7 +104,14 @@ const Navbar: React.FC<Props> = ({ isLogged, setIsLogged }) => {
           style={{ marginLeft: '-0.5rem' }}
           onClick={handleLog}
         >
-          {isLogged ? 'Sign out' : 'Sign In'}
+          {user ? (
+            <div className='flex items-center gap-1'>
+              <AccountCircleIcon className='text-white' />
+              <span>{user}</span>
+            </div>
+          ) : (
+            'Sign In'
+          )}
         </button>
         <span className='py-1 px-3 text-white text-sm rounded hover:bg-gray cursor-pointer'>
           EN

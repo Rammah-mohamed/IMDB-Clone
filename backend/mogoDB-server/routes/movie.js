@@ -4,6 +4,18 @@ const { requireAuth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
+//Get Movies
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    // Retrieve all movies created by the authenticated user
+    const movies = await Movie.find({ createdBy: req.session.userId });
+    res.status(200).json(movies);
+  } catch (err) {
+    console.error('Error fetching movies:', err);
+    res.status(500).send('Error fetching movies.');
+  }
+});
+
 // Add Movie
 router.post('/', requireAuth, async (req, res) => {
   try {
@@ -83,6 +95,33 @@ router.delete('/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Error deleting movie.');
+  }
+});
+
+router.put('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params; // The movie ID from the URL
+    // Validate that the ID is a number
+    if (isNaN(id)) {
+      return res.status(400).send('Invalid movie ID. It must be a number.');
+    }
+
+    const movie = await Movie.findOne({ id: Number(id) });
+
+    if (!movie || movie.createdBy.toString() !== req.session.userId) {
+      return res.status(403).send('Not authorized.'); // Ownership check
+    }
+
+    // Update movie details
+    const updatedMovie = await Movie.findOneAndUpdate({ id: Number(id) }, req.body, {
+      new: true, // Return the updated document
+      runValidators: true, // Ensure validations are applied
+    });
+
+    res.status(200).json(updatedMovie); // Respond with the updated movie
+  } catch (err) {
+    console.error('Error updating movie:', err);
+    res.status(500).send('Error updating movie.');
   }
 });
 
