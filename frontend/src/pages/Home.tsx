@@ -3,7 +3,7 @@ import Lists from '../components/Lists';
 import MediaList from '../components/MediaList';
 import Navbar from '../components/Navbar';
 import PopularCelebrity from '../components/PopularCelebrity';
-import UserList from '../components/UserList';
+import Watchlist from '../components/Watchlist';
 
 const Home: React.FC = () => {
   return (
@@ -16,7 +16,7 @@ const Home: React.FC = () => {
       <MediaList title='Trendings' />
       <MediaList title='Upcomings Movies' />
       <MediaList title='Popular Movies' />
-      <UserList />
+      <Watchlist />
       <MediaList title='TV Airings' />
       <MediaList title='Popular TV Shows' />
     </div>

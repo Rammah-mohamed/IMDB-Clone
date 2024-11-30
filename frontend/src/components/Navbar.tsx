@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Menu from './Menu';
 import SearchMenu from './SearchMenu';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -10,27 +9,21 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useAuth } from '../context/authContext';
+import UserMenu from './UserMenu';
 
 const Navbar: React.FC = () => {
   const [query, setQuery] = useState<string>('');
   const [focus, setFocus] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('All');
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleLog = async () => {
     if (user) {
-      try {
-        const response = await axios.post('http://localhost:3000/auth/logout');
-        if (response.data === 'Logged out successfully.') {
-          logout();
-          navigate('/');
-        }
-      } catch (error: any) {
-        console.error(error.response.data);
-      }
+      setShowUserMenu((prev) => !prev);
     } else navigate('/sign');
   };
 
@@ -100,7 +93,7 @@ const Navbar: React.FC = () => {
           <span>Watchlist</span>
         </Link>
         <button
-          className=' py-1 px-3 text-white text-sm rounded hover:bg-gray'
+          className='relative py-1 px-3 text-white text-sm rounded hover:bg-gray'
           style={{ marginLeft: '-0.5rem' }}
           onClick={handleLog}
         >
@@ -108,6 +101,7 @@ const Navbar: React.FC = () => {
             <div className='flex items-center gap-1'>
               <AccountCircleIcon className='text-white' />
               <span>{user}</span>
+              <UserMenu showUserMenu={showUserMenu} setshowUserMenu={setShowUserMenu} />
             </div>
           ) : (
             'Sign In'

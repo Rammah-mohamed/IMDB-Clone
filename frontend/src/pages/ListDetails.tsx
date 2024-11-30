@@ -11,6 +11,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import StarIcon from '@mui/icons-material/Star';
+import EditIcon from '@mui/icons-material/Edit';
 import { GET_MOVIE_CAST, GET_MOVIE_CREW, GET_TV_CAST, GET_TV_CREW } from '../graphql/queries';
 import { useEffect, useMemo, useState } from 'react';
 import SearchMenu from '../components/SearchMenu';
@@ -33,6 +34,7 @@ const ListDetails = () => {
   const location = useLocation();
   const data = location?.state?.data;
   const title = location?.state?.title;
+  const discription = location?.state?.discription;
   const [listData, setListData] = useState<Media[]>(() => {
     if (data) {
       return data;
@@ -144,7 +146,7 @@ const ListDetails = () => {
   useEffect(() => {
     const getUserMovies = async () => {
       try {
-        if (user) {
+        if (user && !data) {
           const response = await axios.get('http://localhost:3000/movies', {
             withCredentials: true,
           });
@@ -282,6 +284,12 @@ const ListDetails = () => {
     navigate('/mediaDetail', { state: media });
   };
 
+  const handleCreate = () => {
+    if (user) {
+      navigate('/createList');
+    } else navigate('/sign');
+  };
+
   const queries = [
     { loading: movieCastLoading, error: movieCastError },
     { loading: movieCrewLoading, error: movieCrewError },
@@ -296,9 +304,26 @@ const ListDetails = () => {
   return (
     <div>
       <Navbar />
-      <div className='container bg-gray-400 pt-8 pb-8'>
-        <h1 className='text-white text-3xl font-medium mb-4'>{title}</h1>
+      <div className='container flex items-center justify-between bg-gray-400 pt-8 pb-8'>
+        <div className='flex flex-col gap-3'>
+          <h1 className='text-white text-5xl font-semibold'>{title}</h1>
+          {discription && <p className='text-gray-200 text-xl font-medium'>{discription}</p>}
+        </div>
+        <div className='flex flex-col gap-4'>
+          <div className='cursor-pointer'>
+            <EditIcon style={{ fontSize: '1.5rem' }} className='text-white hover:text-gray-250' />
+            <span className='text-white text-lg ml-2 hover:underline'>Edit</span>
+          </div>
+          <div className='relative group flex items-center gap-1 bg-primary p-3 font-medium rounded-3xl cursor-pointer'>
+            <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
+            <AddIcon />
+            <span className='relative z-30' onClick={handleCreate}>
+              Create a new list
+            </span>
+          </div>
+        </div>
       </div>
+
       <div className='container bg-white pt-6'>
         <div className='flex gap-20'>
           <div className='flex flex-3 flex-col gap-10'>
@@ -388,7 +413,7 @@ const ListDetails = () => {
                           <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                           <AddIcon
                             className={`absolute top-0 left-0 ${
-                              el?.isAdded
+                              user && el?.isAdded
                                 ? 'bg-primary text-black-100'
                                 : 'bg-black-transparent text-white'
                             } z-30`}

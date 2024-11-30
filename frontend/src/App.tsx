@@ -8,6 +8,8 @@ import MediaDetail from './components/MediaDetail';
 import Critics from './pages/Critics';
 import Search from './pages/Search';
 import Sign from './pages/Sign';
+import UserLists from './pages/UserLists';
+import CreateList from './pages/CreateList';
 
 const App = () => {
   return (
@@ -15,6 +17,8 @@ const App = () => {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/sign' element={<Sign />} />
+        <Route path='/userLists' element={<UserLists />} />
+        <Route path='/createList' element={<CreateList />} />
         <Route path='/search' element={<Search />} />
         <Route path='/videos' element={<Videos />} />
         <Route path='/listDetails' element={<ListDetails />} />

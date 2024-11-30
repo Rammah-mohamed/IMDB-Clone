@@ -5,6 +5,7 @@ import {
   Celebrity,
   Crew,
   Genre,
+  List,
   Media,
   Photo,
   Review,
@@ -15,10 +16,13 @@ import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import CloseIcon from '@mui/icons-material/Close';
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
+import CheckIcon from '@mui/icons-material/Check';
 import { Image, VideoLibrary } from '@mui/icons-material';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import {
@@ -39,15 +43,22 @@ import {
 import { useEffect, useState } from 'react';
 import ReactPlayer from 'react-player';
 import MediaList from './MediaList';
+import { useAuth } from '../context/authContext';
+import axios from 'axios';
 
 const MediaDetail = () => {
+  const { user } = useAuth();
+  const [lists, setLists] = useState<List[]>();
+  const [isShowList, setIsShowList] = useState<boolean>(false);
   const [genres, setGenres] = useState<string[]>([]);
   const [trailer, setTrailer] = useState<Trailer>();
   const [cast, setCast] = useState<CastState>();
   const [show, setShow] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const location = useLocation();
-  const data: Media = location.state;
+  const [data, setData] = useState<Media>(() => {
+    return location.state;
+  });
   const navigate = useNavigate();
   const {
     loading: movieTrailerLoading,
@@ -190,7 +201,7 @@ const MediaDetail = () => {
       getGenras(data?.media_type, data?.genre_ids);
     }
     genreCount++;
-  }, [data, movieGenres, tvGenres]);
+  }, [movieGenres, tvGenres]);
 
   const handelVideoMedia = (): void => {
     if (data && (movieVideos || tvVideos)) {
@@ -310,6 +321,55 @@ const MediaDetail = () => {
 
   const currentImage = currentIndex !== null ? (movieImages || tvImages)[currentIndex] : null;
 
+  const handleAddTOWatchList = async (e: React.MouseEvent, data: Media) => {
+    e.stopPropagation();
+    try {
+      if (user && data.isAdded) {
+        const deleteResponse = await axios.delete(`http://localhost:3000/movies/${data.id}`, {
+          withCredentials: true,
+        });
+        console.log(deleteResponse.data);
+
+        setData((prev) => ({ ...prev, isAdded: false }));
+      } else if (user) {
+        const postResponse = await axios.post('http://localhost:3000/movies', data, {
+          withCredentials: true,
+        });
+        console.log(postResponse.data);
+        const updateResponse = await axios.put(
+          `http://localhost:3000/movies/${data.id}`,
+          { isAdded: true },
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(updateResponse.data);
+
+        setData((prev) => ({ ...prev, isAdded: true }));
+      }
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+    if (!user) {
+      navigate('/sign');
+    }
+  };
+
+  useEffect(() => {
+    const getList = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/lists`, {
+          withCredentials: true,
+        });
+        console.log(response.data);
+        setLists(response.data);
+      } catch (error: any) {
+        console.error(error.response.data);
+      }
+    };
+    getList();
+  }, []);
+
   const queries = [
     { loading: movieTrailerLoading, error: movieTrailerError },
     { loading: movieGenresLoading, error: movieGenresError },
@@ -330,10 +390,58 @@ const MediaDetail = () => {
     if (loading) return <p className='text-white'>Trending Loading...</p>;
     if (error) return <p className='text-white'>Error: {error.message}</p>;
   }
-  console.log(movieVideos?.length);
-  console.log(tvVideos?.length);
   return (
     <div>
+      {isShowList && (
+        <div className='fixed top-0 left-0 flex items-center justify-center w-screen h-screen bg-overlay-70 z-40'>
+          <div className='relative flex flex-col bg-black-100' style={{ width: '42rem' }}>
+            <CloseIcon
+              className='absolute right-2 text-white cursor-pointer'
+              style={{ top: '-40px', fontSize: '2rem' }}
+              onClick={() => setIsShowList(false)}
+            />
+            <div className='flex items-center gap-3 p-6'>
+              <div className='relative group w-16 h-20 rounded-lg overflow-hidden'>
+                <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+                <img
+                  src={TMDB_URL + data?.poster_path}
+                  alt='Celebrity poster'
+                  loading='eager'
+                  className='object-cover w-full h-full'
+                />
+              </div>
+              <div className='flex flex-col gap-1'>
+                <h2 className='text-gray-200 font-medium'>{data?.title || data?.name}</h2>
+                <p className='text-white text-2xl font-semibold'>Add to list</p>
+              </div>
+            </div>
+            <div className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'>
+              <p>View Watchlist</p>
+              <KeyboardArrowRightIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+            </div>
+            <div className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'>
+              <p>Create a new list</p>
+              <KeyboardArrowRightIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+            </div>
+            {lists?.length !== 0 &&
+              lists?.map((l, index: number) => (
+                <div
+                  key={index}
+                  className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350 cursor-pointer hover:bg-gray-350'
+                >
+                  <div className='flex items-center gap-2'>
+                    <AddIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+                    <p>{l?.name}</p>
+                  </div>
+                  <KeyboardArrowRightIcon
+                    className='text-gray-250'
+                    style={{ fontSize: '1.5rem' }}
+                  />
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
       <Navbar />
       <div className='container flex flex-col gap-3 bg-gray-400 pt-10'>
         <div className='flex justify-between'>
@@ -369,6 +477,15 @@ const MediaDetail = () => {
         <div className='flex gap-2' style={{ height: '30rem' }}>
           <div className='relative group flex-1 rounded-lg cursor-pointer overflow-hidden'>
             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+            <AddIcon
+              className={`absolute top-0 left-0 ${
+                user && data?.isAdded
+                  ? 'bg-primary text-black-100'
+                  : 'bg-black-transparent text-white'
+              } z-30`}
+              style={{ fontSize: '2.5rem' }}
+              onClick={(e) => handleAddTOWatchList(e, data)}
+            />
             <img
               src={TMDB_URL + data?.poster_path}
               alt='Celebrity poster'
@@ -415,13 +532,13 @@ const MediaDetail = () => {
             </div>
           </div>
         </div>
-        <div className='flex gap-10 pb-4'>
+        <div className='flex items-center gap-10 pb-4'>
           <div className='flex flex-2 flex-col gap-6 p-4'>
             <div className='flex gap-3'>
               {genres?.map((g, index) => (
                 <button
                   key={index}
-                  className='py-1 px-3 text-gray-100 font-medium rounded-3xl border-2 border-gray-100 hover:bg-black-transparent'
+                  className='py-1 px-3 text-gray-100 text-sm font-medium rounded-3xl border-2 border-gray-100 hover:bg-black-transparent'
                 >
                   {g}
                 </button>
@@ -471,8 +588,15 @@ const MediaDetail = () => {
           <div className='flex flex-1 flex-col gap-4 p-4'>
             <div className='relative group flex items-center gap-3 bg-primary p-3 text-lg font-medium rounded-3xl cursor-pointer'>
               <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
-              <AddIcon />
-              <span>Add to Watchlist</span>
+              <div className='relative z-30' onClick={(e) => handleAddTOWatchList(e, data)}>
+                {data.isAdded ? <CheckIcon /> : <AddIcon />}
+                <span>Add to Watchlist</span>
+              </div>
+              <KeyboardArrowDownIcon
+                style={{ fontSize: '2rem' }}
+                className='absolute right-4 top-3 pl-2 border-l-2 border-black z-30'
+                onClick={() => setIsShowList(true)}
+              />
             </div>
             <button
               className='text-secondary font-medium cursor-pointer hover:underline'

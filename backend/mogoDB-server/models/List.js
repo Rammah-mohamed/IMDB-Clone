@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const ListSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  discription: String,
   movies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Movie' }],
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

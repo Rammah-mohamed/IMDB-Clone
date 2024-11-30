@@ -35,6 +35,7 @@ export type Media = {
   vote_count: string;
   isAdded: boolean;
   __typename: string;
+  _id: string;
 };
 
 export type Movie = {
@@ -143,4 +144,10 @@ export type Review = {
   created_at: string;
   updated_at: string;
   url: string;
+};
+
+export type List = {
+  name: string;
+  discription?: string;
+  movies: string[];
 };

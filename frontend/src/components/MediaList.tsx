@@ -302,7 +302,9 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
                 <span className='group-hover/item:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                 <AddIcon
                   className={`absolute top-0 left-0 ${
-                    m?.isAdded ? 'bg-primary text-black-100' : 'bg-black-transparent text-white'
+                    user && m?.isAdded
+                      ? 'bg-primary text-black-100'
+                      : 'bg-black-transparent text-white'
                   } z-30`}
                   style={{ fontSize: '2.5rem' }}
                   onClick={(e) => handleAddTOWatchList(e, m)}

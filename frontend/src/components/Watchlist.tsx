@@ -1,6 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import { Link } from 'react-router-dom';
-const UserList = () => {
+const Watchlist = () => {
   return (
     <div className='container flex flex-col gap-3 py-3 text-white'>
       <h1 className='text-2xl font-semibold pl-3 mt-10 border-l-4 border-primary'>
@@ -24,4 +24,4 @@ const UserList = () => {
   );
 };
 
-export default UserList;
+export default Watchlist;

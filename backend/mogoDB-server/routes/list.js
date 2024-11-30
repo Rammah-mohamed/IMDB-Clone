@@ -20,7 +20,7 @@ router.get('/', requireAuth, async (req, res) => {
 // Create List
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { name, movies } = req.body;
+    const { name, discription, movies } = req.body;
 
     // Validate input
     if (!name || !movies || !Array.isArray(movies)) {
@@ -35,12 +35,13 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(404).send('Some movies not found.');
     }
 
-    // Extract _id values for the list
+    // // Extract _id values for the list
     const movieIds = movieDocs.map((movie) => movie._id);
 
     // Create the new list
     const list = new List({
       name,
+      discription,
       movies: movieIds, // Save ObjectIds in the list
       createdBy: req.session.userId,
     });
