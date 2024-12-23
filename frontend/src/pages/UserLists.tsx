@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
-import { List, Media } from '../types/media';
+import { List } from '../types/media';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
@@ -34,16 +34,50 @@ const UserLists = () => {
     getList();
   }, []);
 
-  const handleMedia = async (list: List) => {
+  const handleMedia = async (list: List, edit?: boolean) => {
     try {
-      const getResponse = await axios.get('http://localhost:3000/movies', {
+      const getResponse = await axios.get(`http://localhost:3000/lists/${list.name}`, {
         withCredentials: true,
       });
-      console.log(getResponse.data);
-      const media = getResponse?.data?.filter((d: Media) => list?.movies?.some((m) => m === d._id));
+      const media = getResponse?.data?.movies;
+      console.log(lists);
       navigate('/listDetails', {
-        state: { title: list.name, discription: list.discription, data: media },
+        state: {
+          lists: lists,
+          listTitle: list.name,
+          description: list.description,
+          data: media,
+          edit,
+        },
       });
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+  };
+
+  //Show and Hide list option
+  const handleList = (e: React.MouseEvent) => {
+    const btn = e.currentTarget as HTMLElement;
+    if (btn.nextElementSibling?.classList.contains('hidden')) {
+      btn.nextElementSibling?.classList.remove('hidden');
+      btn.nextElementSibling?.classList.add('block');
+    } else if (btn.nextElementSibling?.classList.contains('block')) {
+      btn.nextElementSibling?.classList.remove('block');
+      btn.nextElementSibling?.classList.add('hidden');
+    }
+  };
+
+  const handleDeleteList = async (listName: string) => {
+    try {
+      const deleteResponse = await axios.delete(`http://localhost:3000/lists/${listName}`, {
+        withCredentials: true,
+      });
+      console.log(deleteResponse?.data);
+      const getResponse = await axios.get(`http://localhost:3000/lists`, {
+        withCredentials: true,
+      });
+      console.log(getResponse?.data);
+      setLists(getResponse?.data);
     } catch (error: any) {
       console.error(error.response.data);
     }
@@ -92,7 +126,36 @@ const UserLists = () => {
                     </div>
                     <span className='font-semibold cursor-pointer hover:underline'>{l?.name}</span>
                   </div>
-                  <MoreVertIcon className='text-gray-350' />
+                  <div className='relative'>
+                    {l.name !== 'Watchlist' && (
+                      <>
+                        <MoreVertIcon
+                          className={`${l.name} text-gray-350 cursor-pointer`}
+                          onClick={(e) => handleList(e)}
+                        />
+                        <ul className='hidden absolute top-full right-0 bg-gray-400 w-max z-40'>
+                          <li
+                            className='px-2 py-3 text-white hover:bg-gray-350 cursor-pointer'
+                            onClick={() => handleMedia(l)}
+                          >
+                            View list
+                          </li>
+                          <li
+                            className='px-2 py-3 text-white hover:bg-gray-350 cursor-pointer'
+                            onClick={() => handleMedia(l, true)}
+                          >
+                            Edit
+                          </li>
+                          <li
+                            className='px-2 py-3 text-white hover:bg-gray-350 cursor-pointer'
+                            onClick={() => handleDeleteList(l?.name)}
+                          >
+                            Delete
+                          </li>
+                        </ul>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

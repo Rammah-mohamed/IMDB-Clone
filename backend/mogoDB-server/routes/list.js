@@ -1,5 +1,4 @@
 const express = require('express');
-const Movie = require('../models/Movie');
 const List = require('../models/List');
 const { requireAuth } = require('../middleware/authMiddleware');
 
@@ -8,8 +7,23 @@ const router = express.Router();
 //Get Lists
 router.get('/', requireAuth, async (req, res) => {
   try {
-    // Retrieve all movies created by the authenticated user
+    // Retrieve all lists created by the authenticated user
     const lists = await List.find({ createdBy: req.session.userId });
+    res.status(200).json(lists);
+  } catch (err) {
+    console.error('Error fetching lists:', err);
+    res.status(500).send('Error fetching lists.');
+  }
+});
+
+//Get Lists
+router.get('/:name', requireAuth, async (req, res) => {
+  try {
+    const { name } = req.params;
+    const lists = await List.findOne({
+      name: name.replaceAll('_', ' '),
+      createdBy: req.session.userId,
+    });
     res.status(200).json(lists);
   } catch (err) {
     console.error('Error fetching lists:', err);
@@ -20,29 +34,18 @@ router.get('/', requireAuth, async (req, res) => {
 // Create List
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { name, discription, movies } = req.body;
+    const { name, description, movies } = req.body;
 
     // Validate input
-    if (!name || !movies || !Array.isArray(movies)) {
-      return res.status(400).send('Invalid input. "name" and "movies" are required.');
+    if (!name) {
+      return res.status(400).send('Invalid input. "name" is required.');
     }
-
-    // Find movies by custom numeric IDs
-    const movieDocs = await Movie.find({ id: { $in: movies }, createdBy: req.session.userId });
-
-    // Check if all requested movies were found
-    if (movieDocs.length !== movies.length) {
-      return res.status(404).send('Some movies not found.');
-    }
-
-    // // Extract _id values for the list
-    const movieIds = movieDocs.map((movie) => movie._id);
 
     // Create the new list
     const list = new List({
       name,
-      discription,
-      movies: movieIds, // Save ObjectIds in the list
+      description,
+      movies,
       createdBy: req.session.userId,
     });
 
@@ -51,7 +54,7 @@ router.post('/', requireAuth, async (req, res) => {
   } catch (err) {
     if (err.code === 11000) {
       // Duplicate key error
-      return res.status(400).send('You have already added this movie.');
+      return res.status(400).send('You have already added this list.');
     }
     console.error(err);
     res.status(500).send('Error creating list.');
@@ -59,10 +62,10 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // Update List
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:name', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
-    const list = await List.findById(id);
+    const { name } = req.params;
+    const list = await List.findOne({ name: name.replaceAll('_', ' ') });
 
     if (!list || list.createdBy.toString() !== req.session.userId) {
       return res.status(403).send('Not authorized.');
@@ -72,32 +75,108 @@ router.put('/:id', requireAuth, async (req, res) => {
     await list.save();
     res.send('List updated.');
   } catch (err) {
-    res.status(500).send('Error updating list.');
+    res.status(500).send(err.message);
   }
 });
 
-// Delete List
-router.delete('/:id', requireAuth, async (req, res) => {
+// Update List Movie
+router.put('/:name/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const list = await List.findOne(id);
-
-    // Check if movie exists
-    if (!list) {
-      return res.status(404).send('Movie not found.');
-    }
+    const { name, id } = req.params;
+    const list = await List.findOne({ name: name.replaceAll('_', ' ') });
 
     if (!list || list.createdBy.toString() !== req.session.userId) {
       return res.status(403).send('Not authorized.');
     }
 
-    // Delete the movie
+    const movie = list?.movies?.find((m) => m?.id === Number(id));
+    if (!movie) {
+      Object.assign(list, {
+        movies: [...list?.movies, req.body],
+      });
+    } else {
+      const updatedMovie = list?.movies?.map((m) => (m?.id === Number(id) ? req.body : m));
+      Object.assign(list, {
+        movies: updatedMovie,
+      });
+    }
+
+    await list.save();
+    res.send('Movie updated.');
+  } catch (err) {
+    res.status(500).send('Error updating Movie.');
+  }
+});
+
+// Delete List
+router.delete('/:name', requireAuth, async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    const list = await List.findOne({ name: name.replaceAll('_', ' ') });
+
+    if (!list || list.createdBy.toString() !== req.session.userId) {
+      return res.status(403).send('Not authorized.');
+    }
+
     await list.deleteOne();
     res.send('List deleted successfully.');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error deleting list.');
+  }
+});
+
+// Delete movie
+router.delete('/:name/:id', requireAuth, async (req, res) => {
+  try {
+    const { name, id } = req.params;
+
+    if (isNaN(id)) {
+      return res.status(403).send('The ID is not Vaild, Enter a number');
+    }
+
+    const list = await List.findOne({ name: name.replaceAll('_', ' ') });
+
+    if (!list || list.createdBy.toString() !== req.session.userId) {
+      return res.status(403).send('Not authorized.');
+    }
+
+    const movie = list?.movies?.some((m) => m.id === Number(id));
+    if (!movie) {
+      return res.status(403).send('Movie Was not found');
+    }
+
+    Object.assign(list, {
+      movies: list?.movies?.filter((m) => m.id !== Number(id)),
+    });
+    await list.save();
+    res.send('Movie deleted successfully.');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error deleting movie.');
+  }
+});
+
+// Delete All Movies
+router.delete('/:name/movies/all', requireAuth, async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    const list = await List.findOne({ name: name.replaceAll('_', ' ') });
+
+    if (!list || list.createdBy.toString() !== req.session.userId) {
+      return res.status(403).send('Not authorized.');
+    }
+
+    Object.assign(list, {
+      movies: [],
+    });
+    await list.save();
+    res.send('All movies deleted successfully.');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error deleting movies.');
   }
 });
 

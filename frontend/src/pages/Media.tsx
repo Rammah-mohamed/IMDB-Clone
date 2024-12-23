@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Photo, Trailer } from '../types/media';
+import { Episode, Photo, Season_Details, Trailer } from '../types/media';
 import ReactPlayer from 'react-player';
 import Navbar from '../components/Navbar';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -8,10 +8,27 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import CloseIcon from '@mui/icons-material/Close';
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import AddIcon from '@mui/icons-material/Add';
+import StarIcon from '@mui/icons-material/Star';
+
+const topMenu = ['Seasons', 'Years', 'Top-rated'];
+
+type Active = {
+  season: number;
+  year: number | null;
+};
 
 const Media = () => {
   const [show, setShow] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  const [currentSeason, setCurrentSeason] = useState<Season_Details>();
+  const [currentYearEpisodes, setCurrentYearEpisodes] = useState<Episode[]>([]);
+  const [active, setActive] = useState<string>('Seasons');
+  const [currentActive, setCurrentActive] = useState<Active>({
+    season: 1,
+    year: null,
+  });
+  const [Years, setYears] = useState<number[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const photos: Photo[] = location.state.photos;
@@ -21,9 +38,44 @@ const Media = () => {
   const mediaName: string = location.state.mediaName;
   const mediaImage: string = location.state.mediaImage;
   const poster: string = location.state.poster;
+  const season: Season_Details[] = location.state.season;
+  const episodes: Episode[] = location.state.episodes;
+  const topRatedEpisodes: Episode[] = location.state.topRatedEpisodes;
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   const YOUTUBE_URL = 'https://www.youtube.com/watch?v=';
+  const handleCurrentSeason = (seasonNumber: number) => {
+    setCurrentActive((prev) => ({ ...prev, season: seasonNumber }));
+    setCurrentSeason(season.find((s) => s.season_number === seasonNumber));
+  };
 
+  const handleCurrentYear = (yearNumber: number) => {
+    setCurrentActive((prev) => ({ ...prev, year: yearNumber }));
+    setCurrentYearEpisodes(
+      episodes
+        .filter((s) => new Date(s.air_date).getFullYear() === yearNumber)
+        .sort((a, b) => +a.episode_number - +b.episode_number)
+    );
+  };
+
+  useEffect(() => {
+    setCurrentActive((prev) => ({ ...prev, year: Years[0] }));
+    setCurrentYearEpisodes(
+      episodes
+        .filter((s) => new Date(s.air_date).getFullYear() === Years[0])
+        .sort((a, b) => +a.episode_number - +b.episode_number)
+    );
+  }, [Years.length]);
+
+  useEffect(() => {
+    season.map((s) => {
+      const date = new Date(s.air_date).getFullYear();
+      setYears((prev) => (prev.some((y) => y === date) ? prev : [...prev, date]));
+    });
+  }, [season]);
+
+  useEffect(() => {
+    handleCurrentSeason(currentActive.season);
+  }, [currentActive.season]);
   const handleVideo = (videoData: Trailer): void => {
     navigate('/videos', {
       state: { videoID: videoData?.key, name: videoData?.name, related: videos },
@@ -85,12 +137,128 @@ const Media = () => {
                 {celebrityName || mediaName}
               </span>
               <span className='text-6xl text-white font-semibold'>
-                {videos ? 'Videos' : 'Photos'}
+                {(videos && 'Videos') || (season && 'Episode list') || 'Photos'}
               </span>
             </div>
           </div>
         </div>
-        <div className='container flex gap-6 py-10 bg-white'>
+        <div className={`container flex ${season ? 'flex-col' : 'flex-row'} gap-6 py-10 bg-white`}>
+          <div className='flex flex-wrap items-center gap-5'>
+            {topRatedEpisodes?.slice(0, 2)?.map((e) => (
+              <div key={e.id} className='flex flex-col flex-1 gap-4 p-3 shadow-xl rounded-lg'>
+                <div className='flex flex-1 items-center gap-3'>
+                  <AddIcon className='bg-gray-250 text-black' style={{ fontSize: '2rem' }} />
+                  <div className='flex flex-1 flex-col gap-1 justify-between'>
+                    {Number(e.vote_average) >= 8.0 && (
+                      <span
+                        className='text-black  uppercase font-medium bg-primary pl-2 w-2/5 rounded'
+                        style={{ fontSize: '0.8rem' }}
+                      >
+                        Top-rated
+                      </span>
+                    )}
+                    <span className=' text-gray-350 font-medium' style={{ fontSize: '0.8rem' }}>
+                      {e?.air_date}
+                    </span>
+                  </div>
+                </div>
+                <div className='flex-1'>
+                  <h1 className='text-base font-bold mb-1 w-fit hover:text-gray-300 cursor-pointer'>
+                    S{e?.season_number}.E{e?.episode_number} - {e.name}
+                  </h1>
+                  <p className='text-gray-350'>{e?.overview}</p>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <StarIcon className='text-primary' />
+                  <span className='text-gray-350'>{Number(e.vote_average).toFixed(1)}/10</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className='flex flex-col gap-3'>
+            <ul className='flex items-center gap-3 bg-gray-200 text-black font-medium'>
+              {topMenu.map((m, index: number) => (
+                <li
+                  key={index}
+                  className={`p-4 ${
+                    m === active && 'border-b-secondary border-4'
+                  } cursor-pointer transition-all duration-100 ease-in`}
+                  onClick={() => setActive(m)}
+                >
+                  {m}
+                </li>
+              ))}
+            </ul>
+            <ul className='flex items-center gap-2 text-black'>
+              {active === 'Seasons'
+                ? season.map((s) => (
+                    <span
+                      key={s.id}
+                      className={`flex items-center justify-center w-11 h-11 ${
+                        s.season_number === currentActive.season ? 'bg-primary' : 'bg-gray-250'
+                      } rounded-full cursor-pointer`}
+                      onClick={() => handleCurrentSeason(s.season_number)}
+                    >
+                      {s.season_number}
+                    </span>
+                  ))
+                : active === 'Years' &&
+                  Years?.map((y, index) => (
+                    <span
+                      key={index}
+                      className={`flex items-center justify-center w-11 h-11 ${
+                        y === currentActive.year ? 'bg-primary' : 'bg-gray-250'
+                      } rounded-full cursor-pointer`}
+                      onClick={() => handleCurrentYear(y)}
+                    >
+                      {y}
+                    </span>
+                  ))}
+            </ul>
+          </div>
+
+          <div className='flex flex-col gap-6 bg-white'>
+            {(active === 'Seasons'
+              ? currentSeason?.episodes
+              : active === 'Years'
+              ? currentYearEpisodes
+              : topRatedEpisodes.slice(0, 10)
+            )?.map((e) => (
+              <div key={e.id} className='flex gap-4'>
+                <div className='flex-1 w-60 h-32 rounded-lg rounded-tl-none overflow-hidden'>
+                  <img
+                    src={TMDB_URL + e.still_path}
+                    alt='episode poster'
+                    className='w-full h-full object-cover'
+                  />
+                </div>
+                <div className='flex flex-3 flex-col gap-1'>
+                  <div className='flex flex-col gap-3'>
+                    {Number(e.vote_average) >= 8.0 && (
+                      <span
+                        className='text-black  uppercase font-medium bg-primary pl-2 w-2/5 rounded'
+                        style={{ fontSize: '0.8rem' }}
+                      >
+                        Top-rated
+                      </span>
+                    )}
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <h1 className='text-base font-bold mb-1 w-fit hover:text-gray-300 cursor-pointer'>
+                      S{e?.season_number}.E{e?.episode_number} - {e.name}
+                    </h1>
+                    <span className='text-gray-300'>{e?.air_date}</span>
+                  </div>
+                  <p className='text-gray-350'>{e.overview}</p>
+                  <div className='flex items-center gap-2'>
+                    <StarIcon className='text-primary' />
+                    <span className='text-gray-350'>{Number(e.vote_average).toFixed(1)}/10</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
           <div className='flex flex-3 flex-wrap gap-2 '>
             {photos &&
               photos?.map((p: Photo, index: number) => (

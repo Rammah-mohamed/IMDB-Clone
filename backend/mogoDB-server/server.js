@@ -6,7 +6,7 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
 const authRoutes = require('./routes/auth');
-const movieRoutes = require('./routes/movie');
+// const movieRoutes = require('./routes/movie');
 const listRoutes = require('./routes/list');
 const cookieParser = require('cookie-parser');
 const app = express();
@@ -29,10 +29,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 const sessionOptions = session({
-  secret: process.env.REACT_APP_SESSION_SECRET,
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.REACT_APP_MONGODB_URL }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URL }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     httpOnly: true,
@@ -44,15 +44,13 @@ app.use(sessionOptions);
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/movies', movieRoutes);
+// app.use('/movies', movieRoutes);
 app.use('/lists', listRoutes);
 
 // Connect to MongoDB and Start Server
 mongoose
-  .connect(process.env.REACT_APP_MONGODB_URL)
+  .connect(process.env.MONGODB_URL)
   .then(() =>
-    app.listen(process.env.REACT_APP_PORT, () =>
-      console.log(`Server running on port ${process.env.REACT_APP_PORT}`)
-    )
+    app.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}`))
   )
   .catch((err) => console.error(err));

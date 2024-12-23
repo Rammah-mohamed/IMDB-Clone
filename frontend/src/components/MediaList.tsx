@@ -11,7 +11,7 @@ import {
   GET_TV_SIMILAR,
   GET_UPCOMING_MOVIES,
 } from '../graphql/queries';
-import { Media } from '../types/media';
+import { List, Media } from '../types/media';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
@@ -163,13 +163,14 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
   useEffect(() => {
     const getUserMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/movies', {
+        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
           withCredentials: true,
         });
+        console.log(response.data);
 
         setData((prev) =>
           prev?.map((m) =>
-            response?.data.some((d: Media) => d.isAdded && d.id === m.id)
+            response?.data?.movies?.some((d: Media) => d.isAdded && Number(d.id) === m.id)
               ? { ...m, isAdded: true }
               : m
           )
@@ -182,7 +183,9 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
         }
       }
     };
-    getUserMovies();
+    if (user) {
+      getUserMovies();
+    }
   }, []);
 
   //Add and delete to the watchlist
@@ -190,36 +193,35 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
     e.stopPropagation();
     try {
       if (user && data.isAdded) {
-        const deleteResponse = await axios.delete(`http://localhost:3000/movies/${data.id}`, {
-          withCredentials: true,
-        });
+        const deleteResponse = await axios.delete(
+          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
+          {
+            withCredentials: true,
+          }
+        );
         console.log(deleteResponse.data);
-        const getResponse = await axios.get('http://localhost:3000/movies', {
-          withCredentials: true,
-        });
-        console.log(getResponse.data);
-
         setData((prev) => prev?.map((m) => (m.id === data.id ? { ...m, isAdded: false } : m)));
-      } else if (user) {
-        const postResponse = await axios.post('http://localhost:3000/movies', data, {
-          withCredentials: true,
-        });
-        console.log(postResponse.data);
+      } else if (user && !data.isAdded) {
         const updateResponse = await axios.put(
-          `http://localhost:3000/movies/${data.id}`,
-          { isAdded: true },
+          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
+          { ...data, isAdded: true },
           {
             withCredentials: true,
           }
         );
         console.log(updateResponse.data);
-        const getResponse = await axios.get('http://localhost:3000/movies', {
-          withCredentials: true,
-        });
 
+        const getResponse = await axios.get(
+          'http://localhost:3000/lists',
+
+          {
+            withCredentials: true,
+          }
+        );
+        const watchlist = getResponse?.data?.find((l: List) => l.name === 'Your Watchlist');
         setData((prev) =>
           prev?.map((m) =>
-            getResponse?.data.some((d: Media) => d.isAdded && d.id === m.id)
+            watchlist?.movies?.some((d: Media) => d.isAdded && d.id === m.id)
               ? { ...m, isAdded: true }
               : m
           )
@@ -232,6 +234,8 @@ const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
       navigate('/sign');
     }
   };
+
+  // console.log(data);
 
   const queries = [
     { loading: trendingLoading, error: trendingError },

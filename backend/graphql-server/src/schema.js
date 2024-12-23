@@ -1,28 +1,7 @@
 const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
-  interface MotionPicture {
-    id: Int!
-    overview: String
-    poster_path: String
-    backdrop_path: String
-    genre_ids: [Int]!
-    popularity: Float!
-    vote_average: String!
-    vote_count: String!
-  }
-
-  interface Movies {
-    title: String
-    release_date: String
-  }
-
-  interface TVs {
-    first_air_date: String
-    name: String
-  }
-
-  type All implements MotionPicture & Movies & TVs {
+  type All {
     id: Int!
     title: String
     overview: String
@@ -38,7 +17,7 @@ const typeDefs = gql`
     vote_count: String!
   }
 
-  type SeachAll {
+  type SearchAll {
     id: Int!
     title: String
     overview: String
@@ -58,7 +37,7 @@ const typeDefs = gql`
     known_for: [All]
   }
 
-  type Movie implements MotionPicture & Movies {
+  type Movie {
     id: Int!
     title: String!
     overview: String!
@@ -78,7 +57,7 @@ const typeDefs = gql`
     overview: String!
     poster_path: String!
     backdrop_path: String!
-    genres: [String!]!
+    genres: [Genres]
     release_date: String!
     budget: Int
     revenue: Int
@@ -87,7 +66,7 @@ const typeDefs = gql`
     vote_count: String!
   }
 
-  type TV implements MotionPicture & TVs {
+  type TV {
     id: Int!
     name: String!
     overview: String!
@@ -108,7 +87,7 @@ const typeDefs = gql`
     backdrop_path: String
     first_air_date: String!
     genres: [Genres]
-    popularity: Int
+    popularity: Float!
     seasons: [Season]!
     last_air_date: String!
     last_episode_to_air: Episode
@@ -117,8 +96,8 @@ const typeDefs = gql`
     number_of_episodes: Int!
     number_of_seasons: Int!
     status: String!
-    vote_average: Int
-    vote_count: Int
+    vote_average: String
+    vote_count: String
   }
 
   type Season {
@@ -129,7 +108,7 @@ const typeDefs = gql`
     air_date: String
     episode_count: Int
     season_number: Int
-    vote_average: Int
+    vote_average: String
   }
 
   type SeasonDetail {
@@ -140,7 +119,7 @@ const typeDefs = gql`
     air_date: String!
     episodes: [Episode]
     season_number: Int
-    vote_average: Int
+    vote_average: String
   }
 
   type Cast {
@@ -182,8 +161,8 @@ const typeDefs = gql`
     season_number: Int!
     episode_number: Int!
     runtime: Int
-    vote_average: Int
-    vote_count: Int
+    vote_average: String
+    vote_count: String
   }
 
   type Celebrity {
@@ -235,7 +214,7 @@ const typeDefs = gql`
 
   type Query {
     trendingAll(time: String): [All]!
-    searchMulti(query: String!, lang: String, page: String): [SeachAll]!
+    searchMulti(query: String!, lang: String, page: String): [SearchAll]!
     trendingMovies(time: String): [Movie]!
     popularMovies(page: Int): [Movie]!
     upcomingMovies(page: Int): [Movie]!

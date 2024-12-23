@@ -250,6 +250,29 @@ export const GET_MOVIE_REVIEW = gql`
   }
 `;
 
+export const GET_MOVIE_DETAILS = gql`
+  query ($id: Int!) {
+    movieDetail(id: $id) {
+      id
+      imdb_id
+      title
+      overview
+      poster_path
+      backdrop_path
+      genres {
+        id
+        name
+      }
+      budget
+      release_date
+      revenue
+      runtime
+      vote_average
+      vote_count
+    }
+  }
+`;
+
 export const GET_TV_AIRING = gql`
   query ($page: Int = null) {
     tvAiring(page: $page) {
@@ -347,6 +370,82 @@ export const GET_TV_RECOMMEND = gql`
       popularity
       genre_ids
       first_air_date
+    }
+  }
+`;
+
+export const GET_TV_Details = gql`
+  query ($id: Int!) {
+    tvDetail(id: $id) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      first_air_date
+      last_air_date
+      episode_run_time
+      number_of_episodes
+      number_of_seasons
+      popularity
+      status
+      vote_average
+      vote_count
+      genres {
+        id
+        name
+      }
+      seasons {
+        id
+        name
+        overview
+        poster_path
+        air_date
+        season_number
+        episode_count
+        vote_average
+      }
+    }
+  }
+`;
+
+export const GET_SEASON_DETAILS = gql`
+  query ($id: Int!, $number: Int!) {
+    seasonDetail(id: $id, number: $number) {
+      id
+      name
+      overview
+      poster_path
+      air_date
+      season_number
+      episodes {
+        id
+        name
+        overview
+        show_id
+        still_path
+        vote_average
+        vote_count
+        runtime
+        season_number
+        episode_number
+        air_date
+        crew {
+          id
+          name
+          job
+          profile_path
+          gender
+        }
+        guest_stars {
+          id
+          name
+          character
+          profile_path
+          gender
+        }
+      }
+      vote_average
     }
   }
 `;

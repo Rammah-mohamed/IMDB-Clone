@@ -4,11 +4,14 @@ import {
   CastState,
   Celebrity,
   Crew,
+  Details,
+  Episode,
   Genre,
   List,
   Media,
   Photo,
   Review,
+  Season_Details,
   Trailer,
 } from '../types/media';
 import Navbar from './Navbar';
@@ -23,17 +26,21 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import CloseIcon from '@mui/icons-material/Close';
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import CheckIcon from '@mui/icons-material/Check';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { Image, VideoLibrary } from '@mui/icons-material';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import {
   GET_MOVIE_CAST,
   GET_MOVIE_CREW,
+  GET_MOVIE_DETAILS,
   GET_MOVIE_GENRES,
   GET_MOVIE_IMAGES,
   GET_MOVIE_REVIEW,
   GET_MOVIE_TRAILER,
+  GET_SEASON_DETAILS,
   GET_TV_CAST,
   GET_TV_CREW,
+  GET_TV_Details,
   GET_TV_GENRES,
   GET_TV_IMAGES,
   GET_TV_REVIEW,
@@ -51,13 +58,16 @@ const MediaDetail = () => {
   const [lists, setLists] = useState<List[]>();
   const [isShowList, setIsShowList] = useState<boolean>(false);
   const [genres, setGenres] = useState<string[]>([]);
+  const [season, setSeason] = useState<Season_Details[]>([]);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [topRatedEpisodes, setTopRatedEpisodes] = useState<Episode[]>([]);
   const [trailer, setTrailer] = useState<Trailer>();
   const [cast, setCast] = useState<CastState>();
   const [show, setShow] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const location = useLocation();
-  const [data, setData] = useState<Media>(() => {
-    return location.state;
+  const [data, setData] = useState<Details>(() => {
+    return location?.state;
   });
   const navigate = useNavigate();
   const {
@@ -110,6 +120,12 @@ const MediaDetail = () => {
     error: tvReviewError,
     data: tvReviewData,
   } = useQuery(GET_TV_REVIEW, { variables: { id: data?.id } });
+  const [getMovieDetails, { loading: moviesDetailsLoading, error: moviesDetailsError }] =
+    useLazyQuery(GET_MOVIE_DETAILS);
+  const [getTvDetails, { loading: tvDetailsLoading, error: tvDetailsError }] =
+    useLazyQuery(GET_TV_Details);
+  const [getSeasonDetails, { loading: seasonDetailsLoading, error: seasonDetailsError }] =
+    useLazyQuery(GET_SEASON_DETAILS);
   const [SearchCelebrity, { loading: celebrityLoading, error: celebrityError }] =
     useLazyQuery(SEARCH_CELEBRITY);
   const {
@@ -139,6 +155,59 @@ const MediaDetail = () => {
   let trailerCount: number = 0;
   let castCount: number = 0;
   let genreCount: number = 0;
+
+  const handleMediaDetails = (id: number, mediaType: string): void => {
+    if (mediaType === 'movie') {
+      getMovieDetails({ variables: { id: id } }).then((response) => {
+        const result: Details = response?.data?.movieDetail;
+        // console.log(response?.data?.movieDetail);
+        setData(result);
+      });
+    } else if (mediaType === 'tv') {
+      getTvDetails({ variables: { id: id } }).then((response) => {
+        const result: Details = response?.data?.tvDetail;
+        // console.log(response?.data?.tvDetail);
+        setData(result);
+        result.seasons.map((s) => {
+          getSeasonDetails({ variables: { id: result.id, number: s.season_number } }).then(
+            (response) => {
+              const data: Season_Details = response.data?.seasonDetail;
+              setSeason((prev) => (prev.some((s) => s.id === data.id) ? prev : [...prev, data]));
+            }
+          );
+        });
+      });
+    }
+  };
+
+  useEffect(() => {
+    data && handleMediaDetails(data?.id, data.media_type);
+  }, [data?.id, data?.media_type]);
+
+  useEffect(() => {
+    setSeason((prev) =>
+      prev.sort((a, b) => a.season_number - b.season_number).filter((s) => s.season_number !== 0)
+    );
+  }, [season.length]);
+
+  useEffect(() => {
+    season?.map((s) =>
+      s?.episodes.map((e) =>
+        setEpisodes((prev) => (prev.some((ep) => ep.id === e.id) ? prev : [...prev, e]))
+      )
+    );
+    setEpisodes((prev) =>
+      prev.sort((a, b) => a.season_number - b.season_number).filter((s) => s.season_number !== 0)
+    );
+  }, [season.length]);
+
+  useEffect(() => {
+    setTopRatedEpisodes(
+      episodes
+        ?.sort((a, b) => +b.vote_average - +a.vote_average)
+        .filter((e) => Number(e?.vote_average) >= 8.0)
+    );
+  }, [episodes]);
 
   const handleCritics = (): void => {
     navigate('/critics', {
@@ -197,19 +266,39 @@ const MediaDetail = () => {
   };
 
   useEffect(() => {
-    if (data && movieGenres && tvGenres && genreCount === 0) {
+    if (data && data?.genre_ids && movieGenres && tvGenres && genreCount === 0) {
       getGenras(data?.media_type, data?.genre_ids);
     }
     genreCount++;
   }, [movieGenres, tvGenres]);
 
-  const handelVideoMedia = (): void => {
-    if (data && (movieVideos || tvVideos)) {
+  const handleVideoMedia = (): void => {
+    if (data && (movieVideos || tvVideos || season)) {
       navigate('/media', {
         state: {
           videos: movieVideos || tvVideos,
           mediaName: data?.name || data?.title,
           mediaImage: data?.poster_path,
+          season: season,
+          episodes: episodes,
+          topRatedEpisodes: topRatedEpisodes,
+        },
+      });
+      window.scrollTo({ top: 0 });
+    }
+  };
+
+  const handleSeason = (): void => {
+    console.log(season.length);
+    console.log(data.number_of_seasons);
+    if (data && season.length === data.number_of_seasons) {
+      navigate('/media', {
+        state: {
+          mediaName: data?.name,
+          mediaImage: data?.poster_path,
+          season: season,
+          episodes: episodes,
+          topRatedEpisodes: topRatedEpisodes,
         },
       });
       window.scrollTo({ top: 0 });
@@ -321,31 +410,45 @@ const MediaDetail = () => {
 
   const currentImage = currentIndex !== null ? (movieImages || tvImages)[currentIndex] : null;
 
-  const handleAddTOWatchList = async (e: React.MouseEvent, data: Media) => {
+  const handleAddToList = async (e: React.MouseEvent, data: Media, list?: List) => {
     e.stopPropagation();
+    const currentList = lists?.find((l) => l?.name === list?.name);
+    const isExist = currentList?.movies?.some((m) => m.id === data.id);
     try {
-      if (user && data.isAdded) {
-        const deleteResponse = await axios.delete(`http://localhost:3000/movies/${data.id}`, {
-          withCredentials: true,
-        });
+      if (user && (data.isAdded || isExist)) {
+        const deleteResponse = await axios.delete(
+          `http://localhost:3000/lists/${list?.name || 'Your_Watchlist'}/${data?.id}`,
+          {
+            withCredentials: true,
+          }
+        );
         console.log(deleteResponse.data);
-
-        setData((prev) => ({ ...prev, isAdded: false }));
-      } else if (user) {
-        const postResponse = await axios.post('http://localhost:3000/movies', data, {
+        const response = await axios.get(`http://localhost:3000/lists`, {
           withCredentials: true,
         });
-        console.log(postResponse.data);
+        console.log(response.data);
+        setLists(response.data);
+        (list?.name === undefined || list.name === 'Your Watchlist') &&
+          setData((prev) => ({ ...prev, isAdded: false }));
+      } else if (user && (!data.isAdded || !isExist)) {
         const updateResponse = await axios.put(
-          `http://localhost:3000/movies/${data.id}`,
-          { isAdded: true },
+          `http://localhost:3000/lists/${list?.name || 'Your_Watchlist'}/${data?.id}`,
+          {
+            ...data,
+            isAdded: list?.name === 'Your Watchlist' || list?.name === undefined ? true : false,
+          },
           {
             withCredentials: true,
           }
         );
         console.log(updateResponse.data);
-
-        setData((prev) => ({ ...prev, isAdded: true }));
+        const response = await axios.get(`http://localhost:3000/lists`, {
+          withCredentials: true,
+        });
+        console.log(response.data);
+        setLists(response.data);
+        (list === undefined || list.name === 'Your Watchlist') &&
+          setData((prev) => ({ ...prev, isAdded: true }));
       }
     } catch (error: any) {
       console.error(error.response.data);
@@ -355,8 +458,52 @@ const MediaDetail = () => {
     }
   };
 
+  const handleList = async (list: List) => {
+    try {
+      const getResponse = await axios.get(
+        `http://localhost:3000/lists/${
+          list.name === 'Your Watchlist' ? 'Your_Watchlist' : list.name
+        }`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      const media = getResponse?.data?.movies;
+      navigate('/listDetails', {
+        state: { title: list.name, discription: list.description, data: media },
+      });
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+  };
+
+  const handleCreate = () => {
+    if (user) {
+      navigate('/createList');
+    } else navigate('/sign');
+  };
+
+  const handleWatchlist = async () => {
+    try {
+      const getResponse = await axios.get(`http://localhost:3000/lists/Watchlist`, {
+        withCredentials: true,
+      });
+
+      const media = getResponse?.data?.movies;
+      if (user) {
+        navigate('/listDetails', {
+          state: { data: media },
+        });
+      } else navigate('/sign');
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+  };
+
+  //Get user lists
   useEffect(() => {
-    const getList = async () => {
+    const getLists = async () => {
       try {
         const response = await axios.get(`http://localhost:3000/lists`, {
           withCredentials: true,
@@ -367,7 +514,29 @@ const MediaDetail = () => {
         console.error(error.response.data);
       }
     };
-    getList();
+    if (user) {
+      getLists();
+    }
+  }, []);
+
+  //Sync the media to the watchlist state
+  useEffect(() => {
+    const getWatchlist = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/lists/Your_Watchlist`, {
+          withCredentials: true,
+        });
+        const isExist = response?.data?.movies?.find((m: Media) => m.id === data.id);
+        if (!isExist) {
+          setData((prev) => ({ ...prev, isAdded: false }));
+        } else setData((prev) => ({ ...prev, isAdded: true }));
+      } catch (error: any) {
+        console.error(error.response.data);
+      }
+    };
+    if (user) {
+      getWatchlist();
+    }
   }, []);
 
   const queries = [
@@ -377,7 +546,10 @@ const MediaDetail = () => {
     { loading: movieCrewLoading, error: movieCrewError },
     { loading: movieImagesLoading, error: movieImagesError },
     { loading: movieReviewLoading, error: movieReviewError },
+    { loading: moviesDetailsLoading, error: moviesDetailsError },
     { loading: tvTrailerLoading, error: tvTrailerError },
+    { loading: tvDetailsLoading, error: tvDetailsError },
+    { loading: seasonDetailsLoading, error: seasonDetailsError },
     { loading: tvGenresLoading, error: tvGenresError },
     { loading: tvCastLoading, error: tvCastError },
     { loading: tvCrewLoading, error: tvCrewError },
@@ -390,6 +562,8 @@ const MediaDetail = () => {
     if (loading) return <p className='text-white'>Trending Loading...</p>;
     if (error) return <p className='text-white'>Error: {error.message}</p>;
   }
+  console.log(episodes);
+  console.log(data);
   return (
     <div>
       {isShowList && (
@@ -415,11 +589,17 @@ const MediaDetail = () => {
                 <p className='text-white text-2xl font-semibold'>Add to list</p>
               </div>
             </div>
-            <div className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'>
+            <div
+              className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'
+              onClick={handleWatchlist}
+            >
               <p>View Watchlist</p>
               <KeyboardArrowRightIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
             </div>
-            <div className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'>
+            <div
+              className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'
+              onClick={handleCreate}
+            >
               <p>Create a new list</p>
               <KeyboardArrowRightIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
             </div>
@@ -429,13 +609,21 @@ const MediaDetail = () => {
                   key={index}
                   className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350 cursor-pointer hover:bg-gray-350'
                 >
-                  <div className='flex items-center gap-2'>
-                    <AddIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+                  <div
+                    className='flex items-center gap-2'
+                    onClick={(e) => handleAddToList(e, data, l)}
+                  >
+                    {l?.movies?.some((m) => m.id === data.id) ? (
+                      <PlaylistAddCheckIcon className='text-green' style={{ fontSize: '1.5rem' }} />
+                    ) : (
+                      <AddIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+                    )}
                     <p>{l?.name}</p>
                   </div>
                   <KeyboardArrowRightIcon
                     className='text-gray-250'
                     style={{ fontSize: '1.5rem' }}
+                    onClick={() => handleList(l)}
                   />
                 </div>
               ))}
@@ -468,7 +656,7 @@ const MediaDetail = () => {
                   <TrendingUpIcon className='text-green' style={{ fontSize: '1.5rem' }} />
                 </div>
                 <span className='text-lg font-semibold text-gray-200'>
-                  {data?.popularity.toFixed(0)}
+                  {data?.popularity?.toFixed(0)}
                 </span>
               </div>
             </div>
@@ -484,7 +672,7 @@ const MediaDetail = () => {
                   : 'bg-black-transparent text-white'
               } z-30`}
               style={{ fontSize: '2.5rem' }}
-              onClick={(e) => handleAddTOWatchList(e, data)}
+              onClick={(e) => handleAddToList(e, data)}
             />
             <img
               src={TMDB_URL + data?.poster_path}
@@ -524,7 +712,7 @@ const MediaDetail = () => {
             </div>
             <div
               className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
-              onClick={() => handelVideoMedia()}
+              onClick={() => handleVideoMedia()}
             >
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <VideoLibrary style={{ fontSize: '2.5rem' }} />
@@ -588,8 +776,8 @@ const MediaDetail = () => {
           <div className='flex flex-1 flex-col gap-4 p-4'>
             <div className='relative group flex items-center gap-3 bg-primary p-3 text-lg font-medium rounded-3xl cursor-pointer'>
               <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
-              <div className='relative z-30' onClick={(e) => handleAddTOWatchList(e, data)}>
-                {data.isAdded ? <CheckIcon /> : <AddIcon />}
+              <div className='relative z-30' onClick={(e) => handleAddToList(e, data)}>
+                {user && data.isAdded ? <CheckIcon /> : <AddIcon />}
                 <span>Add to Watchlist</span>
               </div>
               <KeyboardArrowDownIcon
@@ -610,12 +798,71 @@ const MediaDetail = () => {
           </div>
         </div>
       </div>
+      {season && (
+        <div className='container flex gap-6 py-10 bg-white'>
+          <div className='flex flex-col gap-4 flex-3'>
+            <div
+              className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
+              onClick={() => handleSeason()}
+            >
+              <h1>Episodes</h1>
+              <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
+              <span className='text-gray-350 text-lg'>{data?.number_of_episodes}</span>
+            </div>
+            <div className='flex flex-wrap items-center gap-5'>
+              {topRatedEpisodes?.slice(0, 2)?.map((e) => (
+                <div key={e.id} className='flex flex-col flex-1 gap-4 p-3 shadow-xl rounded-lg'>
+                  <div className='flex flex-1 items-center gap-3'>
+                    <AddIcon className='bg-gray-250 text-black' style={{ fontSize: '2rem' }} />
+                    <div className='flex flex-1 flex-col gap-1 justify-between'>
+                      {Number(e.vote_average) >= 8.0 && (
+                        <span
+                          className='text-black  uppercase font-medium bg-primary pl-2 w-2/5 rounded'
+                          style={{ fontSize: '0.8rem' }}
+                        >
+                          Top-rated
+                        </span>
+                      )}
+                      <span className=' text-gray-350 font-medium' style={{ fontSize: '0.8rem' }}>
+                        {e?.air_date}
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex-1'>
+                    <h1 className='text-base font-bold mb-1 w-fit hover:text-gray-300 cursor-pointer'>
+                      S{e?.season_number}.E{e?.episode_number} - {e.name}
+                    </h1>
+                    <p className='text-gray-350'>{e?.overview}</p>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <StarIcon className='text-primary' />
+                    <span className='text-gray-350'>{Number(e.vote_average).toFixed(1)}/10</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className='flex flex-1 flex-col gap-4'>
+            <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
+              More to explore
+            </h1>
+            <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
+              <h2 className='text-2xl font-medium'>Feedback</h2>
+              <p className='text-secondary hover:underline cursor-pointer'>
+                Tell us what you think about this feature.
+              </p>
+              <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
+            </div>
+          </div>
+        </div>
+      )}
       {movieVideos && movieVideos?.length !== 0 && tvVideos && tvVideos?.length !== 0 && (
         <div className='container flex gap-6 py-10 bg-white'>
           <div className='flex flex-col gap-4 flex-3'>
             <div
               className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
-              onClick={() => handelVideoMedia()}
+              onClick={() => handleVideoMedia()}
             >
               <h1>Videos</h1>
               <ArrowForwardIosIcon className='group-hover/icon:text-primary' />

@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
 import Menu from './Menu';
 import SearchMenu from './SearchMenu';
+import UserMenu from './UserMenu';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useAuth } from '../context/authContext';
-import UserMenu from './UserMenu';
 
 const Navbar: React.FC = () => {
   const [query, setQuery] = useState<string>('');
@@ -27,22 +27,23 @@ const Navbar: React.FC = () => {
     } else navigate('/sign');
   };
 
-  const handleSearch = (e: KeyboardEvent): void => {
-    if (e.key === 'Enter' && focus && query.trim() !== '') {
-      navigate('/search', { state: { query: query, filter: searchText } });
-    }
-  };
-
   useEffect(() => {
-    window.addEventListener('keydown', handleSearch);
-    return () => window.removeEventListener('keydown', handleSearch);
-  });
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && focus && query.trim() !== '') {
+        navigate('/search', { state: { query, filter: searchText } });
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [focus, query, searchText, navigate]);
 
   return (
     <div className='container bg-black-100'>
-      <div className='relative flex items-center justify-between py-3 font-bold'>
-        <Link to={'/'}>
+      <div className='relative flex items-center justify-between py-2 font-bold'>
+        <Link to={'/'} className='group relative'>
           <h1 className=' bg-primary py-0.5 px-1.5 text-xl font-black rounded'>IMDB</h1>
+          <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
         </Link>
         <div
           className='flex items-center gap-1 py-1 px-3 text-white text-sm cursor-pointer rounded hover:bg-gray'

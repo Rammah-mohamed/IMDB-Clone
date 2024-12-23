@@ -26,7 +26,7 @@ export type Media = {
   overview: string;
   poster_path: string;
   backdrop_path: string;
-  genre_ids: number[];
+  genre_ids?: number[];
   release_date?: string;
   first_air_date?: string;
   media_type: string;
@@ -34,6 +34,36 @@ export type Media = {
   vote_average: string;
   vote_count: string;
   isAdded: boolean;
+  __typename: string;
+  _id: string;
+};
+
+export type Details = {
+  id: number;
+  imdb_id: string;
+  name?: string;
+  title?: string;
+  overview: string;
+  poster_path: string;
+  backdrop_path: string;
+  genre_ids?: number[];
+  genres: Genre[];
+  release_date?: string;
+  first_air_date?: string;
+  last_air_date: string;
+  media_type: string;
+  popularity: number;
+  vote_average: string;
+  vote_count: string;
+  isAdded: boolean;
+  budget: string;
+  revenue: number;
+  runtime: number;
+  seasons: Season[];
+  episode_run_time: string;
+  number_of_episodes: number;
+  number_of_seasons: number;
+  status: string;
   __typename: string;
   _id: string;
 };
@@ -67,6 +97,52 @@ export type TV = {
   vote_average: string;
   vote_count: string;
   __typename: string;
+};
+
+type Season = {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  air_date: string;
+  season_number: number;
+  episode_count: string;
+  vote_average: string;
+};
+
+export type Season_Details = {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  air_date: string;
+  season_number: number;
+  episodes: Episode[];
+  vote_average: string;
+};
+
+export type Episode = {
+  id: number;
+  name: string;
+  overview: string;
+  show_id: string;
+  still_path: string;
+  vote_average: string;
+  vote_count: string;
+  runtime: string;
+  season_number: number;
+  episode_number: string;
+  air_date: string;
+  crew: Star;
+  guest_stars: Star;
+};
+
+type Star = {
+  id: number;
+  name: string;
+  job: string;
+  profile_path: string;
+  gender: string;
 };
 
 export type Genre = {
@@ -148,6 +224,6 @@ export type Review = {
 
 export type List = {
   name: string;
-  discription?: string;
-  movies: string[];
+  description?: string;
+  movies: Media[];
 };

@@ -1,15 +1,15 @@
 import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
+import Sign from './pages/Sign';
+import UserLists from './pages/UserLists';
+import CreateList from './pages/CreateList';
+import Search from './pages/Search';
 import Videos from './pages/Videos';
 import ListDetails from './pages/ListDetails';
 import CelebrityDetails from './pages/CelebrityDetails';
 import Media from './pages/Media';
 import MediaDetail from './components/MediaDetail';
 import Critics from './pages/Critics';
-import Search from './pages/Search';
-import Sign from './pages/Sign';
-import UserLists from './pages/UserLists';
-import CreateList from './pages/CreateList';
 
 const App = () => {
   return (

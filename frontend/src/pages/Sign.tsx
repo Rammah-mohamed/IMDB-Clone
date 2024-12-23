@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState } from 'react';
 import { useAuth } from '../context/authContext';
+import { List } from '../types/media';
 
 type User = {
   username?: string;
@@ -41,6 +42,23 @@ const Sign: React.FC = () => {
         response.data.message === 'User registered successfully.'
       ) {
         login(response.data.username);
+        const listResponse = await axios.get('http://localhost:3000/lists', {
+          withCredentials: true,
+        });
+
+        //Check is the user have Watchlist
+        const isExist = listResponse?.data?.some((l: List) => l.name === 'Your Watchlist');
+        if (!isExist) {
+          const createResponse = await axios.post(
+            'http://localhost:3000/lists',
+            {
+              name: 'Your Watchlist',
+            },
+            { withCredentials: true }
+          );
+          console.log(createResponse?.data);
+        }
+
         navigate('/', { state: { username: response.data.username, email: response.data.email } });
       }
     } catch (error: any) {

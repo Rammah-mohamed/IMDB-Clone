@@ -1,8 +1,8 @@
+import Navbar from '../components/Navbar';
 import Feature from '../components/Feature';
 import Lists from '../components/Lists';
-import MediaList from '../components/MediaList';
-import Navbar from '../components/Navbar';
 import PopularCelebrity from '../components/PopularCelebrity';
+import MediaList from '../components/MediaList';
 import Watchlist from '../components/Watchlist';
 
 const Home: React.FC = () => {

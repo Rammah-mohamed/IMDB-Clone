@@ -7,9 +7,9 @@ export default {
       padding: '8rem',
     },
     colors: {
-      primary: '#deb522',
+      primary: '#E2B616',
       secondary: {
-        DEFAULT: '#128bb5',
+        DEFAULT: '#0E63BE',
         100: '#128bb521',
       },
       white: { DEFAULT: '#fff' },

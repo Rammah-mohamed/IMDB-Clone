@@ -1,5 +1,6 @@
 import { useLazyQuery } from '@apollo/client';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import Navbar from '../components/Navbar';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -12,12 +13,19 @@ import AddIcon from '@mui/icons-material/Add';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import StarIcon from '@mui/icons-material/Star';
 import EditIcon from '@mui/icons-material/Edit';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { GET_MOVIE_CAST, GET_MOVIE_CREW, GET_TV_CAST, GET_TV_CREW } from '../graphql/queries';
-import { useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import SearchMenu from '../components/SearchMenu';
-import { Cast, CastState, Crew, Media, View } from '../types/media';
+import { Cast, CastState, Crew, List, Media, View } from '../types/media';
 import axios from 'axios';
 import { useAuth } from '../context/authContext';
+
+type Check = { id: number; data?: Media; isChecked: boolean };
+type Lists = { name: string; movies?: Media[]; isChecked: boolean };
 
 const ListDetails = () => {
   const { user } = useAuth();
@@ -34,11 +42,39 @@ const ListDetails = () => {
   const location = useLocation();
   const data = location?.state?.data;
   const title = location?.state?.title;
-  const discription = location?.state?.discription;
+  const lists: List[] = location?.state?.lists;
+  const [listTitle, setListTitle] = useState<string>(() => {
+    return location?.state?.listTitle;
+  });
+  const [description, setdescription] = useState<string>(() => {
+    return location?.state?.description;
+  });
   const [listData, setListData] = useState<Media[]>(() => {
     if (data) {
       return data;
     }
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [isEdit, setIsEdit] = useState<boolean>(() => {
+    if (location.state.edit) {
+      return true;
+    } else return false;
+  });
+  const [isCopy, setIsCopy] = useState<boolean>(false);
+  const [isMove, setIsMove] = useState<boolean>(false);
+  const [isCheckAll, setIsCheckAll] = useState<boolean>(false);
+  const [checkboxStates, setCheckboxStates] = useState<Check[]>(() => {
+    let checkboxs: Check[] = [];
+    listData?.forEach((d) => checkboxs.push({ id: d.id, data: d, isChecked: false }));
+    return checkboxs;
+  });
+  const [checkStates, setCheckStates] = useState<Lists[]>(() => {
+    let checkboxs: Lists[] = [];
+    lists?.forEach(
+      (l) =>
+        l.name !== listTitle && checkboxs.push({ name: l.name, movies: l.movies, isChecked: false })
+    );
+    return checkboxs.map((l, index: number) => (index === 0 ? { ...l, isChecked: true } : l));
   });
   const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   let mediaCount: number = 0;
@@ -96,40 +132,40 @@ const ListDetails = () => {
         });
   };
 
+  //Add and delete to the watchlist
   const handleAddTOWatchList = async (e: React.MouseEvent, data: Media) => {
     e.stopPropagation();
     try {
       if (user && data.isAdded) {
-        const deleteResponse = await axios.delete(`http://localhost:3000/movies/${data.id}`, {
-          withCredentials: true,
-        });
+        const deleteResponse = await axios.delete(
+          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
+          {
+            withCredentials: true,
+          }
+        );
         console.log(deleteResponse.data);
-        const getResponse = await axios.get('http://localhost:3000/movies', {
-          withCredentials: true,
-        });
-        console.log(getResponse.data);
-
         setListData((prev) => prev?.map((m) => (m.id === data.id ? { ...m, isAdded: false } : m)));
-      } else if (user) {
-        const postResponse = await axios.post('http://localhost:3000/movies', data, {
-          withCredentials: true,
-        });
-        console.log(postResponse.data);
+      } else if (user && !data.isAdded) {
         const updateResponse = await axios.put(
-          `http://localhost:3000/movies/${data.id}`,
-          { isAdded: true },
+          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
+          { ...data, isAdded: true },
           {
             withCredentials: true,
           }
         );
         console.log(updateResponse.data);
-        const getResponse = await axios.get('http://localhost:3000/movies', {
-          withCredentials: true,
-        });
 
+        const getResponse = await axios.get(
+          'http://localhost:3000/lists',
+
+          {
+            withCredentials: true,
+          }
+        );
+        const watchlist = getResponse?.data?.find((l: List) => l.name === 'Your Watchlist');
         setListData((prev) =>
           prev?.map((m) =>
-            getResponse?.data.some((d: Media) => d.isAdded && d.id === m.id)
+            watchlist?.movies?.some((d: Media) => d.isAdded && d.id === m.id)
               ? { ...m, isAdded: true }
               : m
           )
@@ -146,12 +182,18 @@ const ListDetails = () => {
   useEffect(() => {
     const getUserMovies = async () => {
       try {
-        if (user && !data) {
-          const response = await axios.get('http://localhost:3000/movies', {
-            withCredentials: true,
-          });
-          setListData(response.data);
-        }
+        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
+          withCredentials: true,
+        });
+        console.log(response.data);
+        setListData(response?.data?.movies);
+        setCheckboxStates(() => {
+          let checkboxs: Check[] = [];
+          response?.data?.movies?.forEach((d: Media) =>
+            checkboxs.push({ id: d.id, isChecked: false })
+          );
+          return checkboxs;
+        });
       } catch (error: any) {
         if (error.response) {
           console.error('Server Error:', error.response.data);
@@ -160,7 +202,35 @@ const ListDetails = () => {
         }
       }
     };
-    getUserMovies();
+    if (!data) {
+      getUserMovies();
+    }
+  }, []);
+
+  //Sync the media to the watchlist state
+  useEffect(() => {
+    const getWatchlistMovies = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/lists/Watchlist', {
+          withCredentials: true,
+        });
+
+        setListData((prev) =>
+          prev?.map((m) =>
+            response?.data?.movies?.some((d: Media) => d.isAdded && Number(d.id) === m.id)
+              ? { ...m, isAdded: true }
+              : m
+          )
+        );
+      } catch (error: any) {
+        if (error.response) {
+          console.error('Server Error:', error.response.data);
+        } else {
+          console.error('Error:', error.message);
+        }
+      }
+    };
+    getWatchlistMovies();
   }, []);
 
   useEffect(() => {
@@ -290,6 +360,185 @@ const ListDetails = () => {
     } else navigate('/sign');
   };
 
+  const handleList = async (e: ChangeEvent<HTMLInputElement>, type: string) => {
+    try {
+      if (user) {
+        let response;
+        if (type === 'title') {
+          setListTitle(e.target?.value);
+          response = await axios.put(
+            `http://localhost:3000/lists/${listTitle}`,
+            {
+              name: e.target?.value,
+            },
+            {
+              withCredentials: true,
+            }
+          );
+        } else if (type === 'description') {
+          setdescription(e.target?.value);
+          response = await axios.put(
+            `http://localhost:3000/lists/${listTitle}`,
+            {
+              description: e.target?.value,
+            },
+            {
+              withCredentials: true,
+            }
+          );
+        }
+        console.log(response?.data);
+      }
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+  };
+
+  const handleCheckboxChange = (id: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCheckboxStates((prevState) =>
+      prevState?.map((item) =>
+        item.id === id ? { ...item, isChecked: event.target.checked } : item
+      )
+    );
+  };
+
+  const toggleSelectAll = () => {
+    setIsCheckAll((prev) => !prev);
+    console.log(checkboxStates);
+    setCheckboxStates((prevState) => prevState?.map((i) => ({ ...i, isChecked: !isCheckAll })));
+  };
+
+  const handleDelete = async (listName: string) => {
+    if (isCheckAll) {
+      setListData([]);
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/lists/${listName || 'Your_Watchlist'}/movies/all`,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(response.data);
+      } catch (error: any) {
+        console.error(error.response.data);
+      }
+    } else {
+      const id = checkboxStates.find((b) => b.isChecked)?.id;
+      const newList = listData.filter((d) => d.id !== id);
+      console.log(newList);
+      setListData(newList);
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/lists/${listName || 'Your_Watchlist'}/${id}`,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(response.data);
+      } catch (error: any) {
+        console.error(error.response.data);
+      }
+    }
+  };
+
+  const handleCopyMove = async () => {
+    const list = checkStates.find((l) => l.isChecked);
+    if (isCheckAll) {
+      try {
+        const response = await axios.put(
+          `http://localhost:3000/lists/${list?.name}`,
+          {
+            movies: [...(list?.movies || []), ...listData],
+          },
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(response.data);
+        isMove && handleDelete(listTitle);
+        handleCancel();
+      } catch (error: any) {
+        console.error(error.response.data);
+      }
+    } else {
+      const checkedMedia = checkboxStates.filter((m) => m.isChecked);
+      const checkedData = checkedMedia.map((m) => m.data);
+      try {
+        const response = await axios.put(
+          `http://localhost:3000/lists/${list?.name}`,
+          {
+            movies: [...(list?.movies || []), ...checkedData],
+          },
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(response.data);
+        isMove && handleDelete(listTitle);
+        handleCancel();
+      } catch (error: any) {
+        console.error(error.response.data);
+        if (error.response.data === 'Duplicate movie IDs are not allowed in the list.') {
+          setError(`You already have this title in the ${list?.name}`);
+          setTimeout(() => {
+            setError(null);
+          }, 5000);
+        }
+      }
+    }
+  };
+
+  const handleCheckLists = (list: Lists) => {
+    const checkList = checkStates.map((l) =>
+      l.name === list.name ? { ...l, isChecked: true } : { ...l, isChecked: false }
+    );
+    setCheckStates(checkList);
+  };
+
+  const handleCancel = () => {
+    setIsCopy(false);
+    setIsMove(false);
+  };
+
+  const reOrederList = async (media: Media[], listName: string) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/lists/${
+          listName === 'Your Watchlist' ? 'Your_Watchlist' : listName
+        }`,
+        {
+          movies: media,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log(response.data);
+    } catch (error: any) {
+      console.error(error.response.data);
+    }
+  };
+
+  // Helper function to reorder items
+  const reorder = (list: Media[], startIndex: number, endIndex: number) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    const { source, destination } = result;
+
+    // If dropped outside the list
+    if (!destination) return;
+
+    // Reorder items
+    const reorderedItems = reorder(orderdList, source.index, destination.index);
+    setListData(reorderedItems);
+    reOrederList(reorderedItems, listTitle);
+  };
+
   const queries = [
     { loading: movieCastLoading, error: movieCastError },
     { loading: movieCrewLoading, error: movieCrewError },
@@ -302,15 +551,106 @@ const ListDetails = () => {
     if (error) return <p className='text-white'>Error: {error.message}</p>;
   }
   return (
-    <div>
+    <div className='relative'>
       <Navbar />
-      <div className='container flex items-center justify-between bg-gray-400 pt-8 pb-8'>
-        <div className='flex flex-col gap-3'>
-          <h1 className='text-white text-5xl font-semibold'>{title}</h1>
-          {discription && <p className='text-gray-200 text-xl font-medium'>{discription}</p>}
+      {(isCopy || isMove) && (
+        <div className='fixed top-0 left-0 w-screen h-screen bg-black-transparent flex items-center justify-center z-50'>
+          {error && (
+            <p
+              className='absolute bottom-16 left-1/2 p-4 text-xl text-white bg-red'
+              style={{ transform: 'translateX(-50%)' }}
+            >
+              {error}
+            </p>
+          )}
+          <div
+            className='absolute top-1/2 left-1/2 flex flex-col gap-10 p-6 bg-gray-400 w-1/3 rounded-lg'
+            style={{ transform: 'translate(-50%, -50%)' }}
+          >
+            <span
+              className='absolute right-3 text-2xl text-white cursor-pointer'
+              style={{ top: '-40px' }}
+              onClick={handleCancel}
+            >
+              X
+            </span>
+            <div className='flex flex-col gap-2'>
+              <span className='text-white text-2xl font-semibold'>
+                {isCopy ? 'Copy' : 'Move'} to another list
+              </span>
+              <span className='text-gray-250'>Your lists</span>
+            </div>
+            <div className='flex flex-col gap-4'>
+              {checkStates?.map((l, index: number) => (
+                <div key={index} className='flex items-center gap-3 cursor-pointer'>
+                  <label className='relative flex items-center cursor-pointer'>
+                    <input
+                      type='checkbox'
+                      className='peer hidden'
+                      checked={checkStates[index].isChecked}
+                      onChange={() => handleCheckLists(l)}
+                    />
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 ${
+                        checkStates[index].isChecked
+                          ? 'border-gray-250 bg-secondary'
+                          : 'border-gray-250'
+                      } transition-colors`}
+                    ></div>
+                  </label>
+                  <span className='text-gray-100 text-lg'>{l?.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className='flex items-center justify-between gap-3'>
+              <button
+                className='group relative flex-1 p-2 rounded-3xl bg-gray-350 text-secondary cursor-pointer'
+                onClick={handleCancel}
+              >
+                Cancel
+                <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+              </button>
+              <button
+                className='group relative flex-1 p-2 rounded-3xl bg-secondary text-white cursor-pointer'
+                onClick={handleCopyMove}
+              >
+                <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+                Save
+              </button>
+            </div>
+          </div>
         </div>
-        <div className='flex flex-col gap-4'>
-          <div className='cursor-pointer'>
+      )}
+      <div className='container flex items-center justify-between gap-4 bg-gray-400 py-12'>
+        <div className='flex flex-4 flex-col gap-3'>
+          {listTitle ? (
+            <input
+              type='text'
+              value={listTitle}
+              className='text-white text-5xl p-2 font-medium bg-gray-400 focus-within:outline-none border-2 border-gray-400 hover:border-primary transition duration-500 ease-in'
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleList(e, 'title')}
+            />
+          ) : (
+            <h1 className='text-white text-5xl font-medium'>{title || 'Your Watchlist'}</h1>
+          )}
+          {listTitle ? (
+            <input
+              type='text'
+              value={description}
+              placeholder='Enter a description for your list'
+              className='text-gray-200 placeholder:text-gray-200  p-2 bg-gray-400 focus-within:outline-none border-2 hover:border-primary border-gray-400 order-primary transition duration-500 ease-in'
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleList(e, 'description')}
+            />
+          ) : (
+            <p className='text-gray-200'>
+              Your Watchlist is the place to track the titles you want to watch. You can sort your
+              Watchlist by the IMDb rating, popularity score and arrange your titles in the order
+              you want to see them.
+            </p>
+          )}
+        </div>
+        <div className='flex flex-1 flex-col gap-4'>
+          <div className='cursor-pointer' onClick={() => setIsEdit((prev) => !prev)}>
             <EditIcon style={{ fontSize: '1.5rem' }} className='text-white hover:text-gray-250' />
             <span className='text-white text-lg ml-2 hover:underline'>Edit</span>
           </div>
@@ -328,10 +668,66 @@ const ListDetails = () => {
         <div className='flex gap-20'>
           <div className='flex flex-3 flex-col gap-10'>
             <div className='flex items-center justify-between'>
-              <span className='flex-1 text-black-100'>
-                {listData?.length >= 100 ? listData?.length.toString().slice() : listData?.length}{' '}
-                titles
-              </span>
+              <div className='flex items-center gap-6'>
+                <span className='flex-1 text-black-100'>
+                  {listData?.length >= 100 ? listData?.length.toString().slice() : listData?.length}{' '}
+                  titles
+                </span>
+                {isEdit && (
+                  <>
+                    <div className='flex items-center gap-3'>
+                      <input
+                        type='checkbox'
+                        checked={isCheckAll}
+                        onChange={() => toggleSelectAll()}
+                      />
+                      <div className='flex flex-col'>
+                        <span>Select all</span>
+                        <span className='text-gray-300 text-sm'>{} selected</span>
+                      </div>
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-2xl ${
+                        checkboxStates.some((m) => m.isChecked)
+                          ? 'bg-white hover:bg-secondary-100'
+                          : 'bg-gray-200'
+                      } ${
+                        checkboxStates.some((m) => m.isChecked) ? 'text-secondary' : 'text-gray-350'
+                      } text-sm font-semibold cursor-pointer`}
+                      onClick={() => checkboxStates.some((m) => m.isChecked) && setIsCopy(true)}
+                    >
+                      <ContentCopyIcon style={{ fontSize: '1.4rem' }} />
+                      <span>Copy</span>
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-2xl ${
+                        checkboxStates.some((m) => m.isChecked)
+                          ? 'bg-white hover:bg-secondary-100'
+                          : 'bg-gray-200'
+                      } ${
+                        checkboxStates.some((m) => m.isChecked) ? 'text-secondary' : 'text-gray-350'
+                      } text-sm font-semibold cursor-pointer`}
+                      onClick={() => checkboxStates.some((m) => m.isChecked) && setIsMove(true)}
+                    >
+                      <DriveFileMoveIcon style={{ fontSize: '1.4rem' }} />
+                      <span>Move</span>
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-2xl ${
+                        checkboxStates.some((m) => m.isChecked)
+                          ? 'bg-white hover:bg-secondary-100'
+                          : 'bg-gray-200'
+                      } ${
+                        checkboxStates.some((m) => m.isChecked) ? 'text-secondary' : 'text-gray-350'
+                      } text-sm font-semibold cursor-pointer`}
+                      onClick={() => handleDelete(listTitle)}
+                    >
+                      <DeleteIcon style={{ fontSize: '1.4rem' }} />
+                      <span>Delete</span>
+                    </div>
+                  </>
+                )}
+              </div>
               <div className='flex flex-1 items-center justify-end gap-2'>
                 <div className='flex items-center gap-2'>
                   <span>Sort By</span>
@@ -362,139 +758,193 @@ const ListDetails = () => {
                     onClick={() => setIsReverse((prev) => !prev)}
                   />
                 )}
-                <ListIcon
-                  style={{ fontSize: '2.5rem' }}
-                  className={`detailsView ${
-                    view.details && 'text-secondary'
-                  } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
-                  onClick={(e) => handleView(e)}
-                />
-                <AppsIcon
-                  style={{ fontSize: '2.5rem' }}
-                  className={`gridView ${
-                    view.grid && 'text-secondary'
-                  } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
-                  onClick={(e) => handleView(e)}
-                />
-                <MenuIcon
-                  style={{ fontSize: '2.5rem' }}
-                  className={`compactView ${
-                    view.compact && 'text-secondary'
-                  } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
-                  onClick={(e) => handleView(e)}
-                />
+
+                {!isEdit && (
+                  <>
+                    <ListIcon
+                      style={{ fontSize: '2.5rem' }}
+                      className={`detailsView ${
+                        view.details && 'text-secondary'
+                      } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
+                      onClick={(e) => handleView(e)}
+                    />
+                    <AppsIcon
+                      style={{ fontSize: '2.5rem' }}
+                      className={`gridView ${
+                        view.grid && 'text-secondary'
+                      } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
+                      onClick={(e) => handleView(e)}
+                    />
+                    <MenuIcon
+                      style={{ fontSize: '2.5rem' }}
+                      className={`compactView ${
+                        view.compact && 'text-secondary'
+                      } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
+                      onClick={(e) => handleView(e)}
+                    />
+                  </>
+                )}
               </div>
             </div>
-            <div
-              className={`flex ${
-                view.grid ? 'flex-row flex-wrap items-center justify-center' : 'flex-col'
-              } gap-4 p-2 border-2 border-gray-250 rounded-sm`}
-            >
-              {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
-                (el: Media, index: number) => (
-                  <div className='flex flex-1 flex-col gap-2' key={index}>
-                    <div
-                      className={`flex items-center ${
-                        !view.grid ? 'justify-between' : 'border-2 border-gray-100 shadow-md'
-                      }`}
-                    >
-                      <div
-                        className={`flex flex-1 ${
-                          view.grid ? 'flex-col' : 'flex-row items-center'
-                        } gap-3`}
-                        style={{ height: view.grid ? '28rem' : '' }}
-                      >
-                        <div
-                          className={`group relative ${
-                            view.grid ? 'w-48 h-72' : 'w-24 h-32'
-                          } overflow-hidden rounded-xl cursor-pointer`}
-                          onClick={(): void => handleDetails(el)}
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId='droppable'>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`flex ${
+                      view.grid ? 'flex-row flex-wrap items-center justify-center' : 'flex-col'
+                    } gap-4 p-2 border-2 border-gray-250 rounded-sm`}
+                  >
+                    {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
+                      (el: Media, index: number) => (
+                        <Draggable
+                          key={index.toString()}
+                          draggableId={index.toString()}
+                          index={index}
                         >
-                          <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                          <AddIcon
-                            className={`absolute top-0 left-0 ${
-                              user && el?.isAdded
-                                ? 'bg-primary text-black-100'
-                                : 'bg-black-transparent text-white'
-                            } z-30`}
-                            style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
-                            onClick={(e) => handleAddTOWatchList(e, el)}
-                          />
-                          <img
-                            src={TMDB_URL + el?.poster_path}
-                            alt='poster'
-                            className='object-cover w-full h-full'
-                          />
-                        </div>
-                        <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                          <h1
-                            className='flex-2 font-bold cursor-pointer hover:underline'
-                            onClick={(): void => handleDetails(el)}
-                          >
-                            {index + 1 + '- ' + (el?.title ?? el?.name)}
-                          </h1>
-                          <div className='flex-1 text-black-100'>
-                            <span>{el?.release_date}</span>
-                          </div>
-                          <div className='flex text-black-100'>
-                            <StarIcon className='text-primary' />
-                            <p className='flex-1'>
-                              {Number(el?.vote_average ?? 0).toFixed(2)}
-                              <span className='flex-1 pl-2 text-gray font-semibold'>
-                                {el?.vote_count.toString().length > 3
-                                  ? '(' + el?.vote_count.toString().slice(0, 1) + 'K)'
-                                  : '(' + el?.vote_count + ')'}
-                              </span>
-                            </p>
-                          </div>
-                          {view.grid && (
-                            <button className='bg-secondary-100 text-secondary font-medium w-full p-2 rounded-xl cursor-pointer'>
-                              Details
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <ErrorOutlineIcon
-                        className='text-secondary'
-                        style={{ display: view.grid ? 'none' : 'block ' }}
-                      />
-                    </div>
-                    <p className={`${view.details ? 'block' : 'hidden'} font-semibold`}>
-                      {el?.overview}
-                    </p>
-
-                    <div
-                      className={`${
-                        view.details ? 'flex' : 'hidden'
-                      } items-center gap-5 text-base font-medium`}
-                    >
-                      {isDirector(sortedCast[index]?.crew) && (
-                        <div key={index} className='flex gap-3'>
-                          <span>Director</span>
-                          <span className='text-secondary'>
-                            {sortedCast[index]?.crew?.map((c: Crew) => handleDirector(c))}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className='flex gap-3'>
-                        {sortedCast[index]?.star?.length !== 0 && (
-                          <>
-                            <span>Stars</span>
-                            <div className='flex gap-2 text-secondary'>
-                              {sortedCast[index]?.star?.map(
-                                (s: Cast, index: number) =>
-                                  index < 3 && <span key={index}>{s.name}</span>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className='flex items-center gap-5'
+                              style={{ ...provided.draggableProps.style }}
+                            >
+                              <div {...provided.dragHandleProps}>
+                                <DragHandleIcon
+                                  className='text-gray-400 cursor-grab'
+                                  style={{ fontSize: '1.8rem' }}
+                                />
+                              </div>
+                              {isEdit && (
+                                <input
+                                  type='checkbox'
+                                  name='checkBox'
+                                  id={index.toString()}
+                                  checked={checkboxStates[index]?.isChecked}
+                                  onChange={handleCheckboxChange(el.id)}
+                                />
                               )}
+                              <div className='flex flex-1 flex-col gap-2'>
+                                <div
+                                  className={`flex items-center ${
+                                    !view.grid
+                                      ? 'justify-between'
+                                      : 'border-2 border-gray-100 shadow-md'
+                                  }`}
+                                >
+                                  <div
+                                    className={`flex flex-1 ${
+                                      view.grid ? 'flex-col' : 'flex-row items-center'
+                                    } gap-3`}
+                                    style={{ height: view.grid ? '28rem' : '' }}
+                                  >
+                                    <div
+                                      className={`group relative ${
+                                        view.grid ? 'w-48 h-72' : 'w-24 h-32'
+                                      } overflow-hidden rounded-xl cursor-pointer`}
+                                      onClick={(): void => handleDetails(el)}
+                                    >
+                                      <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+                                      <AddIcon
+                                        className={`absolute top-0 left-0 ${
+                                          user && el?.isAdded
+                                            ? 'bg-primary text-black-100'
+                                            : 'bg-black-transparent text-white'
+                                        } z-30`}
+                                        style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
+                                        onClick={(e) => handleAddTOWatchList(e, el)}
+                                      />
+                                      <img
+                                        src={TMDB_URL + el?.poster_path}
+                                        alt='poster'
+                                        className='object-cover w-full h-full'
+                                      />
+                                    </div>
+                                    <div
+                                      className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}
+                                    >
+                                      <h1
+                                        className='flex-2 font-bold cursor-pointer hover:underline'
+                                        onClick={(): void => handleDetails(el)}
+                                      >
+                                        {index + 1 + '- ' + (el?.title ?? el?.name)}
+                                      </h1>
+                                      <div className='flex-1 text-black-100'>
+                                        <span>{el?.release_date}</span>
+                                      </div>
+                                      <div className='flex text-black-100'>
+                                        <StarIcon className='text-primary' />
+                                        <p className='flex-1'>
+                                          {Number(el?.vote_average ?? 0).toFixed(2)}
+                                          <span className='flex-1 pl-2 text-gray font-semibold'>
+                                            {el?.vote_count?.toString().length > 3
+                                              ? '(' + el?.vote_count.toString().slice(0, 1) + 'K)'
+                                              : '(' + el?.vote_count + ')'}
+                                          </span>
+                                        </p>
+                                      </div>
+                                      {view.grid && (
+                                        <button className='bg-secondary-100 text-secondary font-medium w-full p-2 rounded-xl cursor-pointer'>
+                                          Details
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <ErrorOutlineIcon
+                                    className='text-secondary'
+                                    style={{ display: view.grid ? 'none' : 'block ' }}
+                                  />
+                                </div>
+                                {!isEdit && (
+                                  <p
+                                    className={`${view.details ? 'block' : 'hidden'} font-semibold`}
+                                  >
+                                    {el?.overview}
+                                  </p>
+                                )}
+
+                                <div
+                                  className={`${
+                                    view.details ? 'flex' : 'hidden'
+                                  } items-center gap-5 text-base font-medium`}
+                                >
+                                  {isDirector(sortedCast[index]?.crew) && (
+                                    <div key={index} className='flex gap-3'>
+                                      <span>Director</span>
+                                      <span className='text-secondary'>
+                                        {sortedCast[index]?.crew?.map((c: Crew) =>
+                                          handleDirector(c)
+                                        )}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  <div className='flex gap-3'>
+                                    {sortedCast[index]?.star?.length !== 0 && !isEdit && (
+                                      <>
+                                        <span>Stars</span>
+                                        <div className='flex gap-2 text-secondary'>
+                                          {sortedCast[index]?.star?.map(
+                                            (s: Cast, index: number) =>
+                                              index < 3 && <span key={index}>{s.name}</span>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                          )}
+                        </Draggable>
+                      )
+                    )}
+                    {provided.placeholder}
                   </div>
-                )
-              )}
-            </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </div>
 
           <div className='flex flex-1 flex-col gap-4'>

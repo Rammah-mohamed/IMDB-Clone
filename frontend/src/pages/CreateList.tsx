@@ -6,18 +6,18 @@ import { useAuth } from '../context/authContext';
 
 type List = {
   listName: string;
-  discription: string;
+  description: string;
 };
 
 type Count = {
   listNameChars: number;
-  discriptionChars: number;
+  descriptionChars: number;
 };
 
 const CreateList = () => {
   const { user } = useAuth();
-  const [count, setCount] = useState<Count>({ listNameChars: 0, discriptionChars: 0 });
-  const [list, setList] = useState<List>({ listName: '', discription: '' });
+  const [count, setCount] = useState<Count>({ listNameChars: 0, descriptionChars: 0 });
+  const [list, setList] = useState<List>({ listName: '', description: '' });
   const [validate, setValidate] = useState<string>('');
   const navigate = useNavigate();
 
@@ -35,31 +35,31 @@ const CreateList = () => {
     }
   };
 
-  const handleDiscription = (e: React.ChangeEvent) => {
+  const handledescription = (e: React.ChangeEvent) => {
     const { value } = e.target as HTMLInputElement;
     setList((prev) => ({
       ...prev,
-      discription: value,
+      description: value,
     }));
     if (value.length <= 10000) {
       setCount((prev) => ({
         ...prev,
-        discriptionChars: value.length,
+        descriptionChars: value.length,
       }));
     }
   };
 
   const handleCreate = async () => {
     if (user) {
-      if (list.listName === '') {
+      if (list.listName.trim() === '') {
         setValidate('Enter a title');
       } else {
         try {
           const response = await axios.post(
             `http://localhost:3000/lists`,
             {
-              name: list.listName,
-              discription: list.discription,
+              name: list.listName.trim(),
+              description: list.description.trim(),
               movies: [],
             },
             {
@@ -100,14 +100,14 @@ const CreateList = () => {
           </div>
           <div className='flex flex-col gap-1'>
             <textarea
-              value={list.discription}
-              onChange={handleDiscription}
+              value={list.description}
+              onChange={handledescription}
               placeholder='Enter the name of your list'
               className='p-2 w-full h-20 border-gray-300 border-2 rounded-lg focus-within:outline-none'
               required
             />
             <p className='text-gray-300 text-sm'>
-              <span>{count.discriptionChars}</span> of 10000 characters
+              <span>{count.descriptionChars}</span> of 10000 characters
             </p>
           </div>
           <button

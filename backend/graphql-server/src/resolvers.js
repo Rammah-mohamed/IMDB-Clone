@@ -1,14 +1,11 @@
-const axios = require('axios');
 const BASE_URL = 'https://api.themoviedb.org/3/';
 const options = {
   method: 'GET',
   headers: {
     accept: 'application/json',
-    Authorization:
-      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmM1ZTczMzc2ZjI3OWNkMDM1NjEwMGY4MTgxNDQ0MyIsIm5iZiI6MTcyNzUzOTY1OC43ODcxNzIsInN1YiI6IjY2ZjgyN2RkZTdkMjRlYmIyYmEyMWQ5MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Rp7b-rgie5qrxql6CadpA1lenxkBhHSKOvQuFTUXvDQ',
+    Authorization: process.env.TMDB_AUTH_KEY,
   },
 };
-
 const resolvers = {
   Query: {
     trendingAll: async (_, { time }) => {

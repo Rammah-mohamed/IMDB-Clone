@@ -1,8 +1,21 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const { requireAuth } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 
 const router = express.Router();
+
+//Get users
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    // Retrieve all movies created by the authenticated user
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).send('Error fetching users.');
+  }
+});
 
 // Register
 router.post('/register', async (req, res) => {
