@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
-import axios from 'axios';
-import Navbar from '../components/Navbar';
 import { List } from '../types/media';
+import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
 
+// Lazy load the components
+const Navbar = React.lazy(() => import('../components/Navbar'));
+
 const UserLists = () => {
   const { user } = useAuth();
-  const [lists, setLists] = useState<List[]>();
   const navigate = useNavigate();
+
+  // Initialize state
+  const [lists, setLists] = useState<List[]>();
 
   const handleCreate = () => {
     if (user) {
@@ -19,31 +23,33 @@ const UserLists = () => {
     } else navigate('/sign');
   };
 
+  // Fetch user lists
   useEffect(() => {
     const getList = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/lists`, {
+        const { data } = await axios.get(`http://localhost:3000/lists`, {
           withCredentials: true,
         });
-        console.log(response.data);
-        setLists(response.data);
+        setLists(data);
       } catch (error: any) {
-        console.error(error.response.data);
+        console.error(error?.response?.data || 'An error occurred');
       }
     };
+
     getList();
   }, []);
 
+  // Fetch list Media
   const handleMedia = async (list: List, edit?: boolean) => {
     try {
-      const getResponse = await axios.get(`http://localhost:3000/lists/${list.name}`, {
+      const { data } = await axios.get(`http://localhost:3000/lists/${list.name}`, {
         withCredentials: true,
       });
-      const media = getResponse?.data?.movies;
-      console.log(lists);
+      const media = data?.movies;
+
       navigate('/listDetails', {
         state: {
-          lists: lists,
+          lists,
           listTitle: list.name,
           description: list.description,
           data: media,
@@ -51,36 +57,36 @@ const UserLists = () => {
         },
       });
     } catch (error: any) {
-      console.error(error.response.data);
+      console.error(error?.response?.data || 'An error occurred while fetching the list');
+    }
+  };
+
+  // Delete List
+  const handleDeleteList = async (listName: string) => {
+    try {
+      // Delete the list
+      await axios.delete(`http://localhost:3000/lists/${listName}`, {
+        withCredentials: true,
+      });
+
+      // Fetch updated lists after deletion
+      const { data } = await axios.get(`http://localhost:3000/lists`, {
+        withCredentials: true,
+      });
+      setLists(data);
+    } catch (error: any) {
+      console.error(error?.response?.data || 'An error occurred while deleting the list');
     }
   };
 
   //Show and Hide list option
   const handleList = (e: React.MouseEvent) => {
     const btn = e.currentTarget as HTMLElement;
-    if (btn.nextElementSibling?.classList.contains('hidden')) {
-      btn.nextElementSibling?.classList.remove('hidden');
-      btn.nextElementSibling?.classList.add('block');
-    } else if (btn.nextElementSibling?.classList.contains('block')) {
-      btn.nextElementSibling?.classList.remove('block');
-      btn.nextElementSibling?.classList.add('hidden');
-    }
-  };
+    const list = btn.nextElementSibling as HTMLElement;
 
-  const handleDeleteList = async (listName: string) => {
-    try {
-      const deleteResponse = await axios.delete(`http://localhost:3000/lists/${listName}`, {
-        withCredentials: true,
-      });
-      console.log(deleteResponse?.data);
-      const getResponse = await axios.get(`http://localhost:3000/lists`, {
-        withCredentials: true,
-      });
-      console.log(getResponse?.data);
-      setLists(getResponse?.data);
-    } catch (error: any) {
-      console.error(error.response.data);
-    }
+    // Toggle visibility by switching 'hidden' and 'block' classes
+    list.classList.toggle('hidden');
+    list.classList.toggle('block');
   };
 
   return (

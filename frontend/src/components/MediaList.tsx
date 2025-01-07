@@ -1,17 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
 import { useLazyQuery, useQuery } from '@apollo/client';
+import { Media } from '../types/media';
 import {
-  GET_POPULAR_MOVIES,
+  GET_LIST_MEDIA,
   GET_RECOMMEND_MOVIES,
   GET_SIMILAR_MOVIES,
-  GET_TRENDING,
-  GET_TV_AIRING,
-  GET_TV_POPULAR,
   GET_TV_RECOMMEND,
   GET_TV_SIMILAR,
-  GET_UPCOMING_MOVIES,
 } from '../graphql/queries';
-import { List, Media } from '../types/media';
+import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
@@ -19,342 +18,370 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/authContext';
 
+// Type for Media list props
 type ListProps = {
   id?: number;
   title: string;
   mediaType?: string;
 };
 
-const MediaList: React.FC<ListProps> = ({ id, title, mediaType }) => {
+//Types for each query's return value
+interface QueryResult {
+  fetch: (variables?: Record<string, any>) => Promise<any>;
+  loading: boolean;
+  error: any;
+  data: any;
+}
+
+// Type for the accumulator object (queries)
+interface Queries {
+  [key: string]: QueryResult;
+}
+
+// GraphQL queries
+const QUERY_CONFIG = {
+  recommendMovies: GET_RECOMMEND_MOVIES,
+  similarMovies: GET_SIMILAR_MOVIES,
+  tvRecommend: GET_TV_RECOMMEND,
+  tvSimilar: GET_TV_SIMILAR,
+};
+
+// TMDB API image URL
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+
+const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Initialize state hooks
   const [data, setData] = useState<Media[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [width, setWidth] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
+
+  // Initialize Ref hooks
   const containerRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
-  const {
-    loading: trendingLoading,
-    error: trendingError,
-    data: trendingData,
-  } = useQuery(GET_TRENDING);
-  const {
-    loading: upcomingsLoading,
-    error: upcomingsError,
-    data: upcomingsData,
-  } = useQuery(GET_UPCOMING_MOVIES);
-  const {
-    loading: popularMoviesLoading,
-    error: popularMoviesError,
-    data: popularMoviesData,
-  } = useQuery(GET_POPULAR_MOVIES);
-  const [
-    getSimilarMovies,
-    { loading: similarMoviesLoading, error: similarMoviesError, data: _movieSimlarData },
-  ] = useLazyQuery(GET_SIMILAR_MOVIES);
-  const [
-    getRecommendMovies,
-    { loading: recommendMoviesLoading, error: recommendMoviesError, data: _movieRecommendData },
-  ] = useLazyQuery(GET_RECOMMEND_MOVIES);
-  const {
-    loading: tvAiringsLoading,
-    error: tvAiringsError,
-    data: tvAiringsData,
-  } = useQuery(GET_TV_AIRING);
-  const {
-    loading: tvPopularLoading,
-    error: tvPopularError,
-    data: tvPopularData,
-  } = useQuery(GET_TV_POPULAR);
-  const [getTvSimilar, { loading: tvSimilarLoading, error: tvSimilarError, data: _tvSimilarData }] =
-    useLazyQuery(GET_TV_SIMILAR);
-  const [
-    getTvRecommend,
-    { loading: tvRecommendLoading, error: tvRecommendError, data: _tvRecommendData },
-  ] = useLazyQuery(GET_TV_RECOMMEND);
-  const navigate = useNavigate();
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
-  let count = 0;
 
-  const handleData = (title: string): void => {
-    if (title === 'Trendings') {
-      setData(trendingData?.trendingAll);
-    } else if (title === 'Upcomings Movies') {
-      setData(upcomingsData?.upcomingMovies);
-    } else if (title === 'Popular Movies') {
-      setData(popularMoviesData?.popularMovies);
-    } else if (title === 'TV Airings') {
-      setData(tvAiringsData?.tvAiring);
-    } else if (title === 'Popular TV Shows') {
-      setData(tvPopularData?.tvPopular);
+  // Handle GraphQL query
+  const {
+    data: listMediaData,
+    loading: listLoading,
+    error: listError,
+  } = useQuery(GET_LIST_MEDIA, {
+    fetchPolicy: 'cache-first',
+  });
+
+  // Custom hook to Handle GraphQl Queries
+  const useRecommendAndSimilarQueries = useCallback(() => {
+    const queries: Queries = Object.entries(QUERY_CONFIG).reduce((acc, [key, query]) => {
+      const [fetch, { loading, error, data }] = useLazyQuery(query);
+      acc[key] = {
+        fetch: async (variables?: Record<string, any>) => {
+          const result = await fetch({ variables });
+          return result;
+        },
+        loading,
+        error,
+        data,
+      };
+      return acc;
+    }, {} as Queries);
+
+    return queries;
+  }, [QUERY_CONFIG]);
+
+  const { recommendMovies, similarMovies, tvRecommend, tvSimilar } =
+    useRecommendAndSimilarQueries();
+
+  // Handle list Data
+  const handleData = async (title: string): Promise<void> => {
+    const mediaMappings: { [key: string]: any } = {
+      Trendings: listMediaData?.trendingAll,
+      'Upcomings Movies': listMediaData?.upcomingMovies,
+      'Popular Movies': listMediaData?.popularMovies,
+      'TV Airings': listMediaData?.tvAiring,
+      'Popular TV Shows': listMediaData?.tvPopular,
+    };
+
+    // Handle direct mappings
+    if (mediaMappings[title]) {
+      setData(mediaMappings[title]);
+      return;
     }
+
+    // Handle API fetch cases
     if (title === 'Similar') {
-      if (mediaType === 'movie') {
-        getSimilarMovies({ variables: { id: id } }).then((response) => {
-          setData(response?.data?.movieSimilar);
-        });
-      } else {
-        getTvSimilar({ variables: { id: id } }).then((response) => {
-          setData(response?.data?.tvSimilar);
-        });
-      }
+      const fetchData =
+        mediaType === 'movie' ? similarMovies.fetch({ id }) : tvSimilar.fetch({ id });
+
+      const response = await fetchData;
+      setData(mediaType === 'movie' ? response?.data?.movieSimilar : response?.data?.tvSimilar);
+      return;
     }
+
     if (title === 'Recommend') {
-      if (mediaType === 'movie') {
-        getRecommendMovies({ variables: { id: id } }).then((response) => {
-          setData(response?.data?.moviesRecommend);
-        });
-      } else {
-        getTvRecommend({ variables: { id: id } }).then((response) => {
-          setData(response?.data?.tvRecommend);
-        });
-      }
+      const fetchData =
+        mediaType === 'movie' ? recommendMovies.fetch({ id }) : tvRecommend.fetch({ id });
+
+      const response = await fetchData;
+      setData(
+        mediaType === 'movie' ? response?.data?.moviesRecommend : response?.data?.tvRecommend
+      );
     }
   };
 
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    if (
-      trendingData &&
-      upcomingsData &&
-      popularMoviesData &&
-      tvAiringsData &&
-      tvPopularData &&
-      count === 0
-    ) {
+    if (listMediaData && !hasInitialized.current) {
       handleData(title);
+      hasInitialized.current = true;
     }
-    count++;
-  }, [trendingData, upcomingsData, popularMoviesData, tvAiringsData, tvPopularData]);
+  }, [listMediaData, title]);
 
-  const handleResize = (): void => {
+  // Handle list resizing
+  const handleResize = useCallback((): void => {
     if (containerRef.current && heightRef.current) {
-      setWidth(containerRef.current.getBoundingClientRect().width);
-      setHeight(heightRef.current.getBoundingClientRect().height);
+      const containerWidth = containerRef.current.getBoundingClientRect().width;
+      const containerHeight = heightRef.current.getBoundingClientRect().height;
+      setWidth(containerWidth);
+      setHeight(containerHeight);
     }
-  };
+  }, []);
 
-  //Get the feature container width and height when the app is mount or window gets resized
+  // Debounce function
+  function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T {
+    let timeoutId: NodeJS.Timeout;
+    return ((...args: Parameters<T>) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    }) as T;
+  }
+
   useEffect(() => {
-    if (data && containerRef.current && heightRef.current) {
-      setWidth(containerRef.current.getBoundingClientRect().width);
-      setHeight(heightRef.current.getBoundingClientRect().height);
-      window.addEventListener('resize', handleResize);
+    if (data.length !== 0) {
+      handleResize();
+      const debouncedResize = debounce(handleResize, 200);
+      window.addEventListener('resize', debouncedResize);
+      return () => window.removeEventListener('resize', debouncedResize);
     }
-    return (): void => window.removeEventListener('resize', handleResize);
-  }, [data]);
+  }, [data, handleResize]);
+
+  // Handle list Horizental scrolling
+  const updateIndex = (direction: 'right' | 'left', dataArray: Media[]): void => {
+    setIndex((prevIndex) => {
+      const maxIndex = dataArray.length - 6;
+      if (direction === 'right') {
+        return prevIndex < maxIndex ? prevIndex + 1 : 0;
+      }
+      if (direction === 'left') {
+        return prevIndex > 0 ? prevIndex - 1 : maxIndex;
+      }
+      return prevIndex; // Fallback for invalid direction
+    });
+  };
 
   const handleRight = (dataArray: Media[]): void => {
-    setIndex((prev) => (prev !== dataArray.length - 6 ? prev + 1 : 0));
+    updateIndex('right', dataArray);
   };
 
   const handleLeft = (dataArray: Media[]): void => {
-    setIndex((prev) => (prev !== 0 ? prev - 1 : dataArray.length - 6));
+    updateIndex('left', dataArray);
   };
 
-  const handleDetails = (e: React.MouseEvent, media: Media): void => {
-    e.stopPropagation();
-    navigate('/mediaDetail', { state: media });
-  };
-
+  // Sync User watchlist in the database to the current list
   useEffect(() => {
+    if (!user) return;
     const getUserMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
-        console.log(response.data);
-
-        setData((prev) =>
-          prev?.map((m) =>
-            response?.data?.movies?.some((d: Media) => d.isAdded && Number(d.id) === m.id)
-              ? { ...m, isAdded: true }
-              : m
-          )
+        const { data } = await axios.get<{ movies: Media[] }>(
+          'http://localhost:3000/lists/Your_Watchlist',
+          { withCredentials: true }
         );
-      } catch (error: any) {
-        if (error.response) {
-          console.error('Server Error:', error.response.data);
-        } else {
-          console.error('Error:', error.message);
-        }
+
+        setData((prevMovies) =>
+          prevMovies?.map((movie) => {
+            const isAdded = data.movies?.some(
+              (watchlistMovie) => watchlistMovie.isAdded && Number(watchlistMovie.id) === movie.id
+            );
+            return isAdded ? { ...movie, isAdded: true } : movie;
+          })
+        );
+      } catch (error: unknown) {
+        console.error(
+          'Error fetching user watchlist:',
+          axios.isAxiosError(error) && error.response
+            ? error.response.data
+            : (error as Error).message
+        );
       }
     };
     if (user) {
       getUserMovies();
     }
-  }, []);
+  }, [user]);
 
   //Add and delete to the watchlist
-  const handleAddTOWatchList = async (e: React.MouseEvent, data: Media) => {
+  const handleAddToWatchList = async (e: React.MouseEvent, media: Media) => {
     e.stopPropagation();
-    try {
-      if (user && data.isAdded) {
-        const deleteResponse = await axios.delete(
-          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
-          {
-            withCredentials: true,
-          }
-        );
-        console.log(deleteResponse.data);
-        setData((prev) => prev?.map((m) => (m.id === data.id ? { ...m, isAdded: false } : m)));
-      } else if (user && !data.isAdded) {
-        const updateResponse = await axios.put(
-          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
-          { ...data, isAdded: true },
-          {
-            withCredentials: true,
-          }
-        );
-        console.log(updateResponse.data);
 
-        const getResponse = await axios.get(
-          'http://localhost:3000/lists',
-
-          {
-            withCredentials: true,
-          }
-        );
-        const watchlist = getResponse?.data?.find((l: List) => l.name === 'Your Watchlist');
-        setData((prev) =>
-          prev?.map((m) =>
-            watchlist?.movies?.some((d: Media) => d.isAdded && d.id === m.id)
-              ? { ...m, isAdded: true }
-              : m
-          )
-        );
-      }
-    } catch (error: any) {
-      console.error(error.response.data);
-    }
     if (!user) {
       navigate('/sign');
+      return;
+    }
+
+    try {
+      const apiUrl = `http://localhost:3000/lists/Your_Watchlist/${media.id}`;
+      const config = { withCredentials: true };
+
+      if (media.isAdded) {
+        // Remove from watchlist
+        const { data } = await axios.delete(apiUrl, config);
+        console.log('Removed from Watchlist:', data);
+
+        // Update state
+        setData((prev) =>
+          prev?.map((item) => (item.id === media.id ? { ...item, isAdded: false } : item))
+        );
+      } else {
+        // Add to watchlist
+        const { data: updatedData } = await axios.put(apiUrl, { ...media, isAdded: true }, config);
+        console.log('Added to Watchlist:', updatedData);
+
+        // Update state
+        setData((prev) =>
+          prev?.map((item) => (item.id === media.id ? { ...item, isAdded: true } : item))
+        );
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error('API Error:', error.response?.data || error.message);
+      } else {
+        console.error('Unexpected Error:', (error as Error).message);
+      }
     }
   };
 
-  // console.log(data);
+  // Navigate to media details page
+  const handleDetails = (e: React.MouseEvent, media: Media): void => {
+    e.stopPropagation();
+    navigate('/mediaDetail', { state: media });
+    window.scrollTo({ top: 0 });
+  };
 
-  const queries = [
-    { loading: trendingLoading, error: trendingError },
-    { loading: upcomingsLoading, error: upcomingsError },
-    { loading: popularMoviesLoading, error: popularMoviesError },
-    { loading: similarMoviesLoading, error: similarMoviesError },
-    { loading: recommendMoviesLoading, error: recommendMoviesError },
-    { loading: tvAiringsLoading, error: tvAiringsError },
-    { loading: tvPopularLoading, error: tvPopularError },
-    { loading: tvSimilarLoading, error: tvSimilarError },
-    { loading: tvRecommendLoading, error: tvRecommendError },
-  ];
+  // Loading and error states
+  if (listLoading)
+    return (
+      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+    );
 
-  for (const { loading, error } of queries) {
-    if (loading) return <p className='text-white'>Trending Loading...</p>;
-    if (error) return <p className='text-white'>Error: {error.message}</p>;
-  }
+  if (listError) return <div className='text-white text-sm'>Error: {listError.message}</div>;
   return (
-    <div className='container flex flex-col gap-3 py-3'>
-      <h1
-        className={`${
-          mediaType ? 'text-4xl text-black' : 'text-2xl text-white'
-        } font-semibold pl-3 mt-10 border-l-4 border-primary`}
-      >
-        {title}
-      </h1>
-      <div className='relative group overflow-hidden'>
-        {height !== 0 && (
-          <>
-            <button
-              className={`absolute top-1/2 left-4 p-3 ${
-                mediaType ? 'text-gray-200' : 'text-white'
-              } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
-              style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
-              onClick={() => handleLeft(data)}
-            >
-              <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
-            </button>
-            <button
-              className={`absolute top-1/2 right-4 p-3 ${
-                mediaType ? 'text-gray-200' : 'text-white'
-              } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
-              style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
-              onClick={() => handleRight(data)}
-            >
-              <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
-            </button>
-          </>
-        )}
-        <div
-          className='flex items-center gap-4 transition-transform duration-500'
-          style={{
-            transform: `translateX(${-(width * index + 16 * index)}px)`,
-          }}
+    data.length !== 0 && (
+      <div className='container flex flex-col gap-3 py-3'>
+        <h1
+          className={`${
+            mediaType ? 'text-4xl text-black' : 'text-2xl text-white'
+          } font-semibold pl-3 mt-10 border-l-4 border-primary`}
         >
-          {data?.map((m: Media) => (
-            <div
-              key={m?.id}
-              ref={containerRef}
-              className='flex flex-col cursor-pointer'
-              onClick={(e): void => handleDetails(e, m)}
-            >
-              <div
-                ref={heightRef}
-                className='relative group/item h-72 rounded-xl rounded-b-none overflow-hidden'
-                style={{ width: '12.16rem' }}
+          {title}
+        </h1>
+        <div className='relative group overflow-hidden'>
+          {height !== 0 && (
+            <>
+              <button
+                className={`absolute top-1/2 left-4 p-3 ${
+                  mediaType ? 'text-gray-200' : 'text-white'
+                } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
+                style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
+                onClick={() => handleLeft(data)}
               >
-                <span className='group-hover/item:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                <AddIcon
-                  className={`absolute top-0 left-0 ${
-                    user && m?.isAdded
-                      ? 'bg-primary text-black-100'
-                      : 'bg-black-transparent text-white'
-                  } z-30`}
-                  style={{ fontSize: '2.5rem' }}
-                  onClick={(e) => handleAddTOWatchList(e, m)}
-                />
-                <img
-                  src={TMDB_URL + m?.poster_path}
-                  alt='poster'
-                  loading='lazy'
-                  className='object-cover w-full h-full'
-                />
-              </div>
-              <div
-                className={`flex flex-1 flex-col gap-3 p-4 ${
-                  mediaType ? 'text-black bg-gray-200' : 'text-white bg-black-100'
-                } rounded-xl rounded-t-none overflow-hidden`}
+                <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
+              </button>
+              <button
+                className={`absolute top-1/2 right-4 p-3 ${
+                  mediaType ? 'text-gray-200' : 'text-white'
+                } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
+                style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
+                onClick={() => handleRight(data)}
               >
-                <div className='flex items-center gap-2'>
-                  <div className='flex items-center'>
-                    <StarIcon className='text-primary' />
-                    <span>{m?.vote_average}</span>
-                  </div>
-                  <StarOutlineIcon />
-                </div>
-                <h1 className='text-base min-h-12'>{m?.title || m?.name}</h1>
-                <button
-                  className={`flex items-center justify-center gap-2 p-1 text-secondary ${
-                    mediaType ? 'bg-gray-250' : 'bg-gray-400'
-                  } rounded-2xl cursor-pointer`}
+                <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
+              </button>
+            </>
+          )}
+          <div
+            className='flex items-center gap-4 transition-transform duration-500'
+            style={{
+              transform: `translateX(${-(width * index + 16 * index)}px)`,
+            }}
+          >
+            {data?.length !== 0 &&
+              data?.map((m: Media) => (
+                <div
+                  key={m?.id}
+                  ref={containerRef}
+                  className='flex flex-col cursor-pointer'
+                  onClick={(e): void => handleDetails(e, m)}
                 >
-                  <AddIcon />
-                  <span>Watchlist</span>
-                </button>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-2'>
-                    <PlayArrowIcon />
-                    <span>Trailer</span>
+                  <div
+                    ref={heightRef}
+                    className='relative group/item h-72 rounded-xl rounded-b-none overflow-hidden'
+                    style={{ width: '12.16rem' }}
+                  >
+                    <span className='group-hover/item:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+                    <AddIcon
+                      className={`absolute top-0 left-0 ${
+                        user && m?.isAdded
+                          ? 'bg-primary text-black-100'
+                          : 'bg-black-transparent text-white'
+                      } z-30`}
+                      style={{ fontSize: '2.5rem' }}
+                      onClick={(e) => handleAddToWatchList(e, m)}
+                    />
+                    <img
+                      src={TMDB_URL + m?.poster_path}
+                      alt='poster'
+                      loading='lazy'
+                      className='object-cover w-full h-full'
+                    />
                   </div>
-                  <ErrorOutlineIcon />
+                  <div
+                    className={`flex flex-1 flex-col gap-3 p-4 ${
+                      mediaType ? 'text-black bg-gray-200' : 'text-white bg-black-100'
+                    } rounded-xl rounded-t-none overflow-hidden`}
+                  >
+                    <div className='flex items-center gap-2'>
+                      <div className='flex items-center'>
+                        <StarIcon className='text-primary' />
+                        <span>{m?.vote_average}</span>
+                      </div>
+                      <StarOutlineIcon />
+                    </div>
+                    <h1 className='text-base min-h-12'>{m?.title || m?.name}</h1>
+                    <button
+                      className={`flex items-center justify-center gap-2 p-1 text-secondary ${
+                        mediaType ? 'bg-gray-250' : 'bg-gray-400'
+                      } rounded-2xl cursor-pointer`}
+                    >
+                      <AddIcon />
+                      <span>Watchlist</span>
+                    </button>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <PlayArrowIcon />
+                        <span>Trailer</span>
+                      </div>
+                      <ErrorOutlineIcon />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              ))}
+          </div>
         </div>
       </div>
-    </div>
+    )
   );
-};
+});
 
 export default MediaList;

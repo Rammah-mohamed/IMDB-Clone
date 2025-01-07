@@ -1,122 +1,159 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useLazyQuery, useQuery } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { Genre, Media, Trailer } from '../types/media';
+import { GET_GENRES, GET_MOVIE_TRAILER, GET_TV_TRAILER } from '../graphql/queries';
+import { debounce } from 'lodash';
 import ReactPlayer from 'react-player';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import Lists from '../components/Lists';
-import { Genre, Media, Trailer } from '../types/media';
-import {
-  GET_MOVIE_GENRES,
-  GET_MOVIE_TRAILER,
-  GET_TV_GENRES,
-  GET_TV_TRAILER,
-} from '../graphql/queries';
+
+// Lazy load the components
+const Navbar = React.lazy(() => import('../components/Navbar'));
+const Lists = React.lazy(() => import('../components/Lists'));
+
+// TMDB API URL for images and YouTube video URL
+const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const Videos = () => {
-  const {
-    loading: tvGenresLoading,
-    error: tvGenresError,
-    data: tvGenresData,
-  } = useQuery(GET_TV_GENRES);
-  const {
-    loading: movieGenresLoading,
-    error: movieGenresError,
-    data: movieGenresData,
-  } = useQuery(GET_MOVIE_GENRES);
-  const [
-    getMovieTrailer,
-    { loading: movieTrailerLoading, error: movieTrailerError, data: movieTrailerData },
-  ] = useLazyQuery(GET_MOVIE_TRAILER);
-  const [getTvTrailer, { loading: tvTrailerLoading, error: tvTrailerError, data: tvTrailerData }] =
-    useLazyQuery(GET_TV_TRAILER);
-  const movieGenres: Genre[] = movieGenresData?.movieGenres;
-  const tvGenres: Genre[] = tvGenresData?.tvGenres;
-  const movieTrailer: Trailer[] = movieTrailerData?.movieVideos;
-  const tvTrailer: Trailer[] = tvTrailerData?.tvVideos;
-  const [trailer, setTrailer] = useState<Trailer | null>(null);
-  const [genres, setGenres] = useState<string[]>([]);
-  const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   const location = useLocation();
-  const data: Media = location.state.data;
-  const trending: Media[] = location.state.trending;
-  const videoID: string = location.state.videoID;
-  const videoName: string = location.state.name;
-  const videos: Trailer[] = location.state.related;
 
-  const navigate = useNavigate();
-  const [videoData, _setVideoData] = useState<Media | null>((): Media | null => {
-    const savedData: Media | string = localStorage.getItem('video') ?? '';
-    return savedData ? JSON.parse(savedData) : null;
+  // Values from location state
+  const state = location?.state;
+  const data: Media = state.data;
+  const trending: Media[] = state.trending;
+  const videoID: string = state.videoID;
+  const videoName: string = state.name;
+  const videos: Trailer[] = state.related;
+
+  // States
+  const [videoData, setVideoData] = useState<Media | null>(() => {
+    try {
+      const savedData = localStorage.getItem('video');
+      return savedData ? JSON.parse(savedData) : null;
+    } catch {
+      return null;
+    }
   });
 
+  const [genres, setGenres] = useState<string[]>([]);
+  const [trailer, setTrailer] = useState<Trailer | null>(null);
+  const [loadingTrailer, setLoadingTrailer] = useState(true);
+
+  // Update localStorage whenever `data` changes
   useEffect(() => {
     if (data) {
       localStorage.setItem('video', JSON.stringify(data));
+      setVideoData(data);
     }
   }, [data]);
 
-  //Get media genre from genre IDs
-  const getGenras = (mediaType: string, array: number[]): string[] => {
-    for (let i = 0; i < array.length; i++) {
-      if (mediaType === 'movie') {
-        movieGenres?.map((g) =>
-          g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null
-        );
-      } else if (mediaType === 'tv') {
-        tvGenres?.map((g) => (g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null));
-      }
-    }
-    return genres;
-  };
+  // GraphQL queries
+  const {
+    data: genresData,
+    loading: genresLoading,
+    error: genresError,
+  } = useQuery(GET_GENRES, {
+    fetchPolicy: 'cache-first',
+  });
 
+  const [getMovieTrailer] = useLazyQuery(GET_MOVIE_TRAILER);
+  const [GetTVTrailer] = useLazyQuery(GET_TV_TRAILER);
+
+  const movieGenres: Genre[] = genresData?.movieGenres || [];
+  const tvGenres: Genre[] = genresData?.tvGenres || [];
+  const [movieTrailer, setMovieTrailer] = useState<Trailer[]>([]);
+  const [tvTrailer, setTvTrailer] = useState<Trailer[]>([]);
+
+  // Fetch media videos funtions with memoized debounced functions
+  const fetchMovieTrailer = useCallback(
+    (id: number) =>
+      new Promise<any>((resolve, reject) => {
+        debounce(async () => {
+          try {
+            const response = await getMovieTrailer({ variables: { id } });
+            resolve(response.data); // Resolve with response data
+          } catch (err) {
+            reject(err); // Reject on error
+          }
+        }, 300)();
+      }),
+    [getMovieTrailer]
+  );
+
+  const fetchTvTrailer = useCallback(
+    (id: number) =>
+      new Promise<any>((resolve, reject) => {
+        debounce(async () => {
+          try {
+            const response = await GetTVTrailer({ variables: { id } });
+            resolve(response.data); // Resolve with response data
+          } catch (err) {
+            reject(err); // Reject on error
+          }
+        }, 300)();
+      }),
+    [GetTVTrailer]
+  );
+
+  // Fetch genres and trailers based on media type
   useEffect(() => {
-    if (data) {
-      getGenras(data?.media_type, data?.genre_ids || videoData?.genre_ids);
-    } else if (videoData) {
-      getGenras(videoData?.media_type, videoData?.genre_ids || videoData?.genre_ids);
-    }
-  }, [data, videoData]);
+    const targetData = data || videoData;
+    if (!targetData) return;
 
-  //Get Media videos for movie or tv show
-  const handleTrailer = (mediaType: string, id: number): void => {
-    if (mediaType === 'movie') {
-      getMovieTrailer({ variables: { id: id } });
-    } else if (mediaType === 'tv') {
-      getTvTrailer({ variables: { id: id } });
-    }
-  };
+    const mediaType = targetData.media_type || targetData.__typename?.slice(0.5).toLowerCase();
 
+    const genreList = mediaType === 'movie' ? movieGenres : tvGenres;
+    const genreNames = genreList
+      .filter((genre) => targetData.genre_ids.includes(genre.id))
+      .map((genre) => genre.name);
+
+    if (JSON.stringify(genreNames) !== JSON.stringify(genres)) {
+      setGenres(genreNames);
+    }
+
+    const fetchTrailer = mediaType === 'movie' ? fetchMovieTrailer : fetchTvTrailer;
+
+    if (fetchTrailer && targetData.id) {
+      setLoadingTrailer(true);
+      fetchTrailer(targetData.id)
+        .then((response) => {
+          if (mediaType === 'movie') {
+            setMovieTrailer(response?.movieVideos);
+            setTvTrailer([]);
+          } else {
+            setTvTrailer(response?.tvVideos);
+            setMovieTrailer([]);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching trailer:', error);
+        })
+        .finally(() => {
+          setLoadingTrailer(false);
+        });
+    }
+  }, [data, videoData, movieGenres, tvGenres, genres, fetchMovieTrailer, fetchTvTrailer]);
+
+  // Set the selected trailer
   useEffect(() => {
-    if (data) {
-      handleTrailer(data?.media_type, data?.id);
-    } else if (videoData) {
-      handleTrailer(videoData?.media_type, videoData?.id);
+    const allTrailers = movieTrailer.length > 0 ? movieTrailer : tvTrailer;
+    const foundTrailer = allTrailers.find((trailer) => trailer.type === 'Trailer');
+
+    if (foundTrailer) {
+      setTrailer(foundTrailer);
     }
-    (movieTrailer || tvTrailer)?.forEach(
-      (t) => t.type === 'Trailer' && setTrailer({ key: t.key, name: t.name, type: t.type })
+  }, [movieTrailer, tvTrailer]);
+
+  // Render loading or error state
+  if (genresLoading)
+    return (
+      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
     );
-  }, [data, videoData, movieTrailer, tvTrailer]);
+  if (genresError) return <div className='text-black text-sm'>Error: {genresError?.message}</div>;
 
-  const handleVideo = (videoData: Trailer): void => {
-    navigate('/videos', {
-      state: { videoID: videoData?.key, name: videoData?.name, related: videos },
-    });
-  };
-
-  if (movieTrailerLoading) return <p className='text-white'>Movie Trailer Loading...</p>;
-  if (movieTrailerError) return <p className='text-white'>Error: {movieTrailerError.message}</p>;
-  if (tvTrailerLoading) return <p className='text-white'>TV Trailer Loading...</p>;
-  if (tvTrailerError) return <p className='text-white'>Error: {tvTrailerError.message}</p>;
-  if (movieGenresLoading) return <p className='text-white'>Movie Geres Loading...</p>;
-  if (movieGenresError) return <p className='text-white'>Error: {movieGenresError.message}</p>;
-  if (tvGenresLoading) return <p className='text-white'>TV Genres Loading...</p>;
-  if (tvGenresError) return <p className='text-white'>Error: {tvGenresError.message}</p>;
   return (
     <div className='bg-black'>
       <Navbar />
@@ -133,92 +170,62 @@ const Videos = () => {
             width={'100%'}
             height={'100%'}
             controls={true}
-            playing={true}
+            playing={false}
           />
         </div>
         <div className='flex-1 flex flex-col gap-6 p-5 mb-4 bg-black-100 rounded-2xl'>
-          {!videoName && (
-            <div className='relative flex gap-2 pb-6 border-b-2 border-gray-300'>
-              <div className='group relative w-24 h-36 overflow-hidden rounded-xl cursor-pointer'>
-                <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                <AddIcon
-                  className='absolute top-0 left-0 bg-black-transparent '
-                  style={{ fontSize: '1.5rem' }}
-                />
-                <img
-                  src={TMDB_URL + (data?.poster_path || videoData?.poster_path)}
-                  alt={
-                    data?.media_type === 'movie' || (videoData && videoData?.media_type === 'movie')
-                      ? 'Movie Poster'
-                      : 'TV Show Poster'
-                  }
-                  className='object-cover w-full h-full'
-                />
-              </div>
-              <div className='flex flex-col gap-2 font-semibold'>
-                <h2>
-                  {data?.media_type === 'movie' || (videoData && videoData?.media_type === 'movie')
-                    ? data?.title || videoData?.title
-                    : data?.name || videoData?.name}
-                </h2>
-                <div className='flex flex-wrap items-center gap-2 text-sm text-gray-250'>
-                  {genres.map((g: string, index: number) => (
-                    <p key={index}>{g}</p>
-                  ))}
-                </div>
-              </div>
-              <KeyboardArrowRightIcon className='absolute right-3 top-0' />
+          <div className='relative flex gap-2 pb-6 border-b-2 border-gray-300'>
+            <div className='group relative w-24 h-36 overflow-hidden rounded-xl cursor-pointer'>
+              <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+              <AddIcon
+                className='absolute top-0 left-0 bg-black-transparent '
+                style={{ fontSize: '1.5rem' }}
+              />
+              <img
+                src={TMDB_URL + (data?.poster_path || videoData?.poster_path)}
+                loading='lazy'
+                alt={
+                  data?.media_type === 'movie' || (videoData && videoData?.media_type === 'movie')
+                    ? 'Movie Poster'
+                    : 'TV Show Poster'
+                }
+                className='object-cover w-full h-full'
+              />
             </div>
-          )}
+            <div className='flex flex-col gap-2 font-semibold'>
+              <h2>
+                {data?.media_type === 'movie' || (videoData && videoData?.media_type === 'movie')
+                  ? data?.title || videoData?.title
+                  : data?.name || videoData?.name}
+              </h2>
+              <div className='flex flex-wrap items-center gap-2 text-sm text-gray-250'>
+                {genres.map((g: string, index: number) => (
+                  <p key={index}>{g}</p>
+                ))}
+              </div>
+            </div>
+            <KeyboardArrowRightIcon className='absolute right-3 top-0' />
+          </div>
           <div>
             <h1 className='text-2xl font-bold mb-2'>{trailer?.name || videoName}</h1>
-            {!videoName && <p className='text-gray-200'>{data?.overview || videoData?.overview}</p>}
+            {<p className='text-gray-200'>{data?.overview || videoData?.overview}</p>}
           </div>
         </div>
       </div>
-      {!videoName && (
+      {!videoName ? (
         <>
-          <Lists title={'Featured Videos'} data={trending} />
-          <Lists
-            title={'Related Videos'}
-            relatedVideos={movieTrailer ?? tvTrailer}
-            poster={data?.backdrop_path ?? videoData?.backdrop_path}
-          />
+          {trending && <Lists title={'Featured Videos'} data={trending} />}
+          {!loadingTrailer && (movieTrailer.length !== 0 || tvTrailer.length !== 0) && (
+            <Lists
+              title='Related Videos'
+              data={trending}
+              relatedVideos={movieTrailer.length !== 0 ? movieTrailer : tvTrailer}
+              poster={data?.backdrop_path || videoData?.backdrop_path}
+            />
+          )}
         </>
-      )}
-      {videoName && (
-        <div className='container flex flex-col gap-4 pb-10'>
-          <div className='group/icon flex items-center gap-2 w-fit text-white text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'>
-            <h1>Videos</h1>
-            <ArrowForwardIosIcon className='group-hover/icon:text-primary text-white' />
-            <span className='text-white text-lg'>{videos?.length}</span>
-          </div>
-          <div className='flex flex-wrap gap-6'>
-            {videos?.map((v) => (
-              <div
-                key={v?.key}
-                className='group/trailer relative w-96 h-64 rounded-lg cursor-pointer overflow-hidden'
-                onClick={(): void => handleVideo(v)}
-              >
-                <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                <div className='flex items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20'>
-                  <PlayCircleOutlineIcon style={{ fontSize: '4.5rem', color: 'white' }} />
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-white text-3xl'>Play Trailer</span>
-                    <span className='text-gray-200 text-xl'>{videos[0]?.name}</span>
-                  </div>
-                </div>
-                <ReactPlayer
-                  url={`${YOUTUBE_URL}${v?.key}`}
-                  width={'100%'}
-                  height={'100%'}
-                  muted={true}
-                  playing={false}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+      ) : (
+        <Lists title={'Related Videos'} relatedVideos={videos} poster={data.backdrop_path} />
       )}
     </div>
   );

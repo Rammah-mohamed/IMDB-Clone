@@ -1,17 +1,13 @@
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import ListIcon from '@mui/icons-material/List';
-import { useQuery } from '@apollo/client';
-import { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Media, Movie, TV } from '../types/media';
-import {
-  GET_UPCOMING_MOVIES,
-  GET_TV_AIRING,
-  GET_POPULAR_MOVIES,
-  GET_TV_POPULAR,
-} from '../graphql/queries';
+import { useQuery } from '@apollo/client';
+import { GET_LIST_MEDIA } from '../graphql/queries';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import ListIcon from '@mui/icons-material/List';
 
-type Listprops = {
+// Type for list props
+type ListProps = {
   title?: string;
   videoID?: string;
   poster?: string;
@@ -22,147 +18,136 @@ type Listprops = {
   setWidth: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const List: React.FC<Listprops> = ({
-  title,
-  listFor,
-  containerRef,
-  setWidth,
-  info,
-  trending,
-  videoID,
-  poster,
-}) => {
-  const {
-    loading: upcomingsLoading,
-    error: upcomingsError,
-    data: upcomingsData,
-  } = useQuery(GET_UPCOMING_MOVIES);
-  const {
-    loading: popularMoviesLoading,
-    error: popularMoviesError,
-    data: popularMoviesData,
-  } = useQuery(GET_POPULAR_MOVIES);
-  const {
-    loading: tvAiringLoading,
-    error: tvAiringError,
-    data: tvAiringData,
-  } = useQuery(GET_TV_AIRING);
-  const {
-    loading: tvPopularLoading,
-    error: tvPopularError,
-    data: tvPopularData,
-  } = useQuery(GET_TV_POPULAR);
-  const upcomings: Movie[] = upcomingsData?.upcomingMovies;
-  const popularMovies: Movie[] = popularMoviesData?.popularMovies;
-  const tvAirings: TV[] = tvAiringData?.tvAiring;
-  const tvPopular: TV[] = tvPopularData?.tvPopular;
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
-  const navigate = useNavigate();
-  let imageURL: any;
-  const listData = (() => {
-    switch (title) {
-      case 'Upcomings Movies':
-        return upcomings;
-      case 'Popular Movies':
-        return popularMovies;
-      case 'TV Airings':
-        return tvAirings;
-      case 'Popular TV':
-        return tvPopular;
-    }
-  })();
+// TMDB API base image URL (static)
+const TMDB_URL = 'https://image.tmdb.org/t/p/original';
 
-  //Get The Image For each List
-  if (title === 'Upcomings Movies' && upcomings) {
-    imageURL = TMDB_URL + upcomings[0]?.backdrop_path;
-  } else if (title === 'TV Airings' && tvAirings) {
-    imageURL = TMDB_URL + tvAirings[1]?.backdrop_path;
-  } else if (title === 'Popular TV' && tvPopular) {
-    imageURL = TMDB_URL + tvPopular[1]?.backdrop_path;
-  } else if (title === 'Popular Movies' && popularMovies) {
-    imageURL = TMDB_URL + popularMovies[1]?.backdrop_path;
-  } else if (poster) {
-    imageURL = TMDB_URL + poster;
-  }
+const List: React.FC<ListProps> = React.memo(
+  ({ title, listFor, containerRef, setWidth, info, trending, videoID, poster }) => {
+    const navigate = useNavigate();
 
-  const handleResize = (): void => {
-    if (containerRef.current) {
-      setWidth(containerRef.current.getBoundingClientRect().width);
-    }
-  };
+    // GraphQL Query
+    const {
+      data: listMediaData,
+      loading: listLoading,
+      error: listError,
+    } = useQuery(GET_LIST_MEDIA, {
+      fetchPolicy: 'cache-first',
+    });
 
-  //Get the feature container width and height when the app is mount or window gets resized
-  useEffect(() => {
-    if ((upcomings && popularMovies && tvAirings && tvPopular) || info || poster) {
+    // Extract lists based on GraphQL query results
+    const upcomings: Movie[] = listMediaData?.upcomingMovies || [];
+    const popularMovies: Movie[] = listMediaData?.popularMovies || [];
+    const tvAirings: TV[] = listMediaData?.tvAiring || [];
+    const tvPopular: TV[] = listMediaData?.tvPopular || [];
+
+    // Determine the list data based on the `title` prop
+    const listData = React.useMemo(() => {
+      switch (title) {
+        case 'Upcomings Movies':
+          return upcomings;
+        case 'Popular Movies':
+          return popularMovies;
+        case 'TV Airings':
+          return tvAirings;
+        case 'Popular TV':
+          return tvPopular;
+        default:
+          return [];
+      }
+    }, [title, upcomings, popularMovies, tvAirings, tvPopular]);
+
+    // Memoize the image URL
+    const imageURL = React.useMemo(() => {
+      if (poster) return `${TMDB_URL}${poster}`;
+      const source = listData[1]?.backdrop_path || info?.backdrop_path;
+      return source ? `${TMDB_URL}${source}` : '';
+    }, [poster, listData, info]);
+
+    // Handle container resizing
+    const handleResize = useCallback(() => {
       if (containerRef.current) {
         setWidth(containerRef.current.getBoundingClientRect().width);
       }
-      window.addEventListener('resize', handleResize);
-    }
-    return (): void => window.removeEventListener('resize', handleResize);
-  }, [upcomings, popularMovies, tvAirings, tvPopular, info, poster]);
+    }, [containerRef, setWidth]);
 
-  const handleTrailer = (): void => {
-    navigate('/videos', { state: { data: info, trending: trending, videoID: videoID } });
-    window.scrollTo({ top: 0 });
-  };
+    useEffect(() => {
+      if (containerRef.current) {
+        setWidth(containerRef.current.getBoundingClientRect().width);
+      }
+      const debouncedResize = debounce(handleResize, 100); // Debounce the resize event
+      window.addEventListener('resize', debouncedResize);
+      return () => {
+        window.removeEventListener('resize', debouncedResize);
+      };
+    }, [handleResize, containerRef, setWidth]);
 
-  const handleList = (): void => {
-    navigate('/listDetails', { state: { data: listData, title: title } });
-  };
+    // Debounce utility
+    const debounce = (func: Function, wait: number) => {
+      let timeout: NodeJS.Timeout;
+      return (...args: any[]) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      };
+    };
 
-  const handleClick = (): void => {
-    if (listFor) {
-      handleList();
-    } else {
-      handleTrailer();
-    }
-  };
+    // Handlers for navigation
+    const handleTrailer = () => {
+      navigate('/videos', { state: { data: info, trending, videoID } });
+      window.scrollTo({ top: 0 });
+    };
 
-  const queries = [
-    { loading: upcomingsLoading, error: upcomingsError },
-    { loading: popularMoviesLoading, error: popularMoviesError },
-    { loading: tvAiringLoading, error: tvAiringError },
-    { loading: tvPopularLoading, error: tvPopularError },
-  ];
+    const handleList = () => {
+      navigate('/listDetails', { state: { data: listData, title } });
+    };
 
-  for (const { loading, error } of queries) {
-    if (loading) return <p className='text-white'>Trending Loading...</p>;
-    if (error) return <p className='text-white'>Error: {error.message}</p>;
+    // console.log(info);
+    // console.log(videoID);
+    const handleClick = () => {
+      listFor ? handleList() : handleTrailer();
+    };
+
+    // Loading and error states
+    if (listLoading)
+      return (
+        <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      );
+
+    if (listError) return <div className='text-white text-sm'>Error: {listError.message}</div>;
+
+    return (
+      <div
+        ref={containerRef}
+        className='pl-4 cursor-pointer'
+        style={{ flex: '0 0 33%' }}
+        onClick={handleClick}
+      >
+        <div className='group/icon relative mb-3 rounded-2xl overflow-hidden'>
+          <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+          <img
+            src={imageURL}
+            alt='List Image'
+            loading='lazy'
+            className='object-cover w-full h-full'
+          />
+          {info || videoID ? (
+            <PlayCircleOutlineIcon
+              className='absolute left-1 bottom-1 text-white group-hover/icon:text-primary'
+              style={{ fontSize: '2rem' }}
+            />
+          ) : (
+            <ListIcon
+              className='absolute left-1 bottom-1 text-white group-hover/icon:text-primary'
+              style={{ fontSize: '2rem' }}
+            />
+          )}
+        </div>
+        <div>
+          <h1 className='text-2xl text-white mb-3 hover:underline'>{title}</h1>
+          {info && <p className='text-gray-300'>{info.overview?.slice(0, 90)}...</p>}
+        </div>
+      </div>
+    );
   }
-  return (
-    <div
-      ref={containerRef}
-      className='pl-4 cursor-pointer'
-      style={{ flex: '0 0 33%' }}
-      onClick={handleClick}
-    >
-      <div className='group/icon relative mb-3 rounded-2xl overflow-hidden'>
-        <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-        <img
-          src={imageURL || TMDB_URL + info?.backdrop_path}
-          alt='List Image'
-          loading='lazy'
-          className='object-cover w-full h-full'
-        />
-        {info || videoID ? (
-          <PlayCircleOutlineIcon
-            className='absolute left-1 bottom-1 text-white group-hover/icon:text-primary'
-            style={{ fontSize: '2rem' }}
-          />
-        ) : (
-          <ListIcon
-            className='absolute left-1 bottom-1 text-white group-hover/icon:text-primary'
-            style={{ fontSize: '2rem' }}
-          />
-        )}
-      </div>
-      <div>
-        <h1 className='text-2xl text-white mb-3 hover:underline'>{title}</h1>
-        {info && <p className='text-gray-300'>{info.overview?.slice(0, 90)}...</p>}
-      </div>
-    </div>
-  );
-};
+);
 
 export default List;

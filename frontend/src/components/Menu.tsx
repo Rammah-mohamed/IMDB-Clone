@@ -1,8 +1,13 @@
+import React, { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLazyQuery } from '@apollo/client';
+import { Movie, TV } from '../types/media';
 import CloseIcon from '@mui/icons-material/Close';
 import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
 import TvIcon from '@mui/icons-material/Tv';
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+
+// Import GrapgQL queries
 import {
   GET_POPULAR_MOVIES,
   GET_TOP_MOVIES,
@@ -13,13 +18,55 @@ import {
   GET_TV_POPULAR,
   GET_UPCOMING_MOVIES,
 } from '../graphql/queries';
-import { useLazyQuery } from '@apollo/client';
 
+// Types for each query's return value
+interface QueryResult {
+  fetch: (variables?: Record<string, any>) => Promise<any>;
+  loading: boolean;
+  error: any;
+  data: any;
+}
+
+// Type for the accumulator object (queries)
+interface Queries {
+  [key: string]: QueryResult;
+}
+
+// Movie response type
+interface TopMoviesResponse {
+  data: {
+    topMovies: Movie[];
+    topTv?: TV[];
+  };
+}
+
+// TV response type
+interface TopTvResponse {
+  data: {
+    topTv: TV[];
+    topMovies?: Movie[];
+  };
+}
+
+// Type for menu props
 type MenuProps = {
   showMenu: boolean;
   setShowMenu: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+// GraphQL queries
+const QUERY_CONFIG = {
+  topMovies: GET_TOP_MOVIES,
+  upcomingMovies: GET_UPCOMING_MOVIES,
+  trendingMovies: GET_TRENDING_MOVIES,
+  popularMovies: GET_POPULAR_MOVIES,
+  topTv: GET_TOP_TV,
+  popularTv: GET_TV_POPULAR,
+  trendingTv: GET_TRENDING_TV,
+  tvAiring: GET_TV_AIRING,
+};
+
+// Menu movies text
 const movies: string[] = [
   'Top 100 Movies',
   'Trending Movies',
@@ -28,6 +75,7 @@ const movies: string[] = [
   'Browse Movies By Genre',
 ];
 
+// Menu shows text
 const shows: string[] = [
   'Top 100 TV Shows',
   "What's on TV & Streaming",
@@ -36,26 +84,87 @@ const shows: string[] = [
   'Browse TV Shows By Genre',
 ];
 
+// Menu trailer text
 const trailers: string[] = ['Watch Trailers', 'Latest Trailer', 'IMDB Originals', 'IMDB Picks'];
 
-const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
+const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
   const navigate = useNavigate();
-  const [getTopMovie, { loading: topMovieLoading, error: topMovieError }] =
-    useLazyQuery(GET_TOP_MOVIES);
-  const [getUpcomingsMovies, { loading: upcomingsMoviesLoading, error: upcomingsMoviesError }] =
-    useLazyQuery(GET_UPCOMING_MOVIES);
-  const [getTrendingMovies, { loading: trendingMoviesLoading, error: trendingMoviesError }] =
-    useLazyQuery(GET_TRENDING_MOVIES);
-  const [getPopularMovies, { loading: popularMoviesLoading, error: popularMoviesError }] =
-    useLazyQuery(GET_POPULAR_MOVIES);
-  const [getTopTv, { loading: topTvLoading, error: topTvError }] = useLazyQuery(GET_TOP_TV);
-  const [getPopularTv, { loading: popularTvLoading, error: popularTvError }] =
-    useLazyQuery(GET_TV_POPULAR);
-  const [getTrendingTv, { loading: trendingTvLoading, error: trendingTvError }] =
-    useLazyQuery(GET_TRENDING_TV);
-  const [getTvAiring, { loading: tvAiringLoading, error: tvAiringError }] =
-    useLazyQuery(GET_TV_AIRING);
 
+  // Handle GraphQl Queries
+  const useMovieAndTvQueries = useCallback(() => {
+    const queries: Queries = Object.entries(QUERY_CONFIG).reduce((acc, [key, query]) => {
+      const [fetch, { loading, error, data }] = useLazyQuery<TopMoviesResponse | TopTvResponse>(
+        query
+      );
+      acc[key] = {
+        fetch: async (variables?: Record<string, any>) => {
+          const result = await fetch({ variables });
+          return result;
+        },
+        loading,
+        error,
+        data,
+      };
+      return acc;
+    }, {} as Queries);
+
+    return queries;
+  }, [QUERY_CONFIG]);
+
+  const {
+    topMovies,
+    upcomingMovies,
+    trendingMovies,
+    popularMovies,
+    topTv,
+    popularTv,
+    trendingTv,
+    tvAiring,
+  } = useMovieAndTvQueries();
+
+  // Query loading handling
+  const isAnyLoading = Object.values({
+    topMovies: topMovies.loading,
+    upcomingMovies: upcomingMovies.loading,
+    trendingMovies: trendingMovies.loading,
+    popularMovies: popularMovies.loading,
+    topTv: topTv.loading,
+    popularTv: popularTv.loading,
+    trendingTv: trendingTv.loading,
+    tvAiring: tvAiring.loading,
+  }).some(Boolean);
+
+  if (isAnyLoading) {
+    return (
+      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+    );
+  }
+
+  // Query error handling
+  const anyErrors = Object.values({
+    topMovies: topMovies.error,
+    upcomingMovies: upcomingMovies.error,
+    trendingMovies: trendingMovies.error,
+    popularMovies: popularMovies.error,
+    topTv: topTv.error,
+    popularTv: popularTv.error,
+    trendingTv: trendingTv.error,
+    tvAiring: tvAiring.error,
+  }).filter(Boolean);
+
+  if (anyErrors.length > 0) {
+    return (
+      <ul className='flex flex-col'>
+        {anyErrors.map((e, index) => (
+          <li key={index} className='text-white'>
+            {e}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Close Menu
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
     const target = e.target as HTMLButtonElement;
@@ -64,29 +173,31 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
     }
   };
 
+  // Fetch 100 Media (Movie/TV)
   const fetchAllMedia = async (mediaType: string, title: string): Promise<void> => {
     const totalItems: number = 100;
     const itemsPerPage: number = 20;
     const totalPages: number = Math.ceil(totalItems / itemsPerPage);
-    const promises = [];
+    const promises: Promise<TopMoviesResponse | TopTvResponse>[] = [];
 
     if (mediaType === 'movie') {
       for (let page = 1; page <= totalPages; page++) {
-        promises.push(getTopMovie({ variables: { page: page } }));
+        promises.push(topMovies.fetch({ page }));
       }
     } else if (mediaType === 'tv') {
       for (let page = 1; page <= totalPages; page++) {
-        promises.push(getTopTv({ variables: { page: page } }));
+        promises.push(topTv.fetch({ page }));
       }
     }
 
     try {
       const responses = await Promise.all(promises);
-      let allMovies, allTv;
+      let allMovies: Movie[], allTv: TV[];
       if (mediaType === 'movie') {
         allMovies = responses.flatMap((response) => response?.data?.topMovies || []);
         if (allMovies) {
           const topHundred = allMovies?.slice(0, 250);
+
           navigate('/listDetails', {
             state: { data: topHundred, title: title },
           });
@@ -95,6 +206,7 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
         allTv = responses.flatMap((response) => response?.data?.topTv || []);
         if (allTv) {
           const topHundred = allTv?.slice(0, 250);
+
           navigate('/listDetails', {
             state: { data: topHundred, title: title },
           });
@@ -108,60 +220,52 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
     }
   };
 
+  // Fetch media depending on menu title
   const handleList = (title: string): void => {
     if (title === 'Top 100 Movies') {
       fetchAllMedia('movie', title);
     } else if (title === 'Trending Movies') {
-      getTrendingMovies().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.trendingMovies, title: title } });
+      trendingMovies.fetch().then((response) => {
+        navigate('/listDetails', {
+          state: { data: response?.data?.trendingMovies, title: title },
+        });
       });
     } else if (title === 'Upcoming Movies') {
-      getUpcomingsMovies().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.upcomingMovies, title: title } });
+      upcomingMovies.fetch().then((response) => {
+        navigate('/listDetails', {
+          state: { data: response?.data?.upcomingMovies, title: title },
+        });
       });
     } else if (title === 'Most Popular Movies') {
-      getPopularMovies().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.popularMovies, title: title } });
+      popularMovies.fetch().then((response) => {
+        navigate('/listDetails', {
+          state: { data: response?.data?.popularMovies, title: title },
+        });
       });
     } else if (title === 'Browse Movies By Genre') {
-      getTopMovie().then((response) => {
+      topMovies.fetch().then((response) => {
         navigate('/listDetails', { state: { data: response?.data?.topMovies, title: title } });
       });
     } else if (title === 'Top 100 TV Shows') {
       fetchAllMedia('tv', title);
     } else if (title === "What's on TV & Streaming") {
-      getTvAiring().then((response) => {
+      tvAiring.fetch().then((response) => {
         navigate('/listDetails', { state: { data: response?.data?.tvAiring, title: title } });
       });
     } else if (title === 'Trending TV Shows') {
-      getTrendingTv().then((response) => {
+      trendingTv.fetch().then((response) => {
         navigate('/listDetails', { state: { data: response?.data?.trendingTV, title: title } });
       });
     } else if (title === 'Most Popular TV Shows') {
-      getPopularTv().then((response) => {
+      popularTv.fetch().then((response) => {
         navigate('/listDetails', { state: { data: response?.data?.tvPopular, title: title } });
       });
     } else if (title === 'Browse TV Shows By Genre') {
-      getTopMovie().then((response) => {
+      topMovies.fetch().then((response) => {
         navigate('/listDetails', { state: { data: response?.data?.topMovies, title: title } });
       });
     }
   };
-  const queries = [
-    { loading: topMovieLoading, error: topMovieError },
-    { loading: upcomingsMoviesLoading, error: upcomingsMoviesError },
-    { loading: trendingMoviesLoading, error: trendingMoviesError },
-    { loading: popularMoviesLoading, error: popularMoviesError },
-    { loading: topTvLoading, error: topTvError },
-    { loading: tvAiringLoading, error: tvAiringError },
-    { loading: popularTvLoading, error: popularTvError },
-    { loading: trendingTvLoading, error: trendingTvError },
-  ];
-
-  for (const { loading, error } of queries) {
-    if (loading) return <p className='text-white'>Trending Loading...</p>;
-    if (error) return <p className='text-white'>Error: {error.message}</p>;
-  }
 
   return (
     <div
@@ -214,6 +318,6 @@ const Menu: React.FC<MenuProps> = ({ showMenu, setShowMenu }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Menu;

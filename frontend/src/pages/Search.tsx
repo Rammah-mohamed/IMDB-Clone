@@ -1,107 +1,149 @@
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import { Celebrity, Movie, Multi, TV } from '../types/media';
+import { useLazyQuery } from '@apollo/client';
+import { SEARCH_CELEBRITY, SEARCH_MEDIA, SEARCH_MOVIES, SEARCH_TV } from '../graphql/queries';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { SEARCH_CELEBRITY, SEARCH_MEDIA, SEARCH_MOVIES, SEARCH_TV } from '../graphql/queries';
-import { useLazyQuery } from '@apollo/client';
-import { useEffect, useState } from 'react';
-import { Celebrity, Movie, Multi, TV } from '../types/media';
+
+// Lazy load the components
+const Navbar = React.lazy(() => import('../components/Navbar'));
+
+//Types for each query's return value
+interface QueryResult {
+  fetch: (variables?: Record<string, any>) => Promise<any>;
+  loading: boolean;
+  error: any;
+  data: any;
+}
+
+// Type for the accumulator object (queries)
+interface Queries {
+  [key: string]: QueryResult;
+}
+
+// GraphQL queries
+const QUERY_CONFIG = {
+  searchMedia: SEARCH_MEDIA,
+  searchMovie: SEARCH_MOVIES,
+  searchTV: SEARCH_TV,
+  searchCelebrity: SEARCH_CELEBRITY,
+};
+
+// TMDB API image URL
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const Search = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Values from location state
+  const state = location?.state;
+  const query = state.query;
+  const filter = state.filter;
+
+  // Initialize state hooks
   const [multi, setMulti] = useState<Multi[] | null>(null);
   const [movies, setMovies] = useState<Movie[] | null>(null);
   const [tv, setTv] = useState<TV[] | null>(null);
   const [celebrity, setCelebrity] = useState<Celebrity[] | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const query = location.state.query;
-  const filter = location.state.filter;
-  const [searchMedia, { loading: searchMediaLoading, error: searchMediaError }] =
-    useLazyQuery(SEARCH_MEDIA);
-  const [searchMovie, { loading: searchMovieLoading, error: searchMovieError }] =
-    useLazyQuery(SEARCH_MOVIES);
-  const [searchTV, { loading: searchTVLoading, error: searchTVError }] = useLazyQuery(SEARCH_TV);
-  const [searchCelebrity, { loading: searchCelebrityLoading, error: searchCelebrityError }] =
-    useLazyQuery(SEARCH_CELEBRITY);
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
+  // Custom hook to Handle GraphQl Queries
+  const useSearchQueries = useCallback(() => {
+    const queries: Queries = Object.entries(QUERY_CONFIG).reduce((acc, [key, query]) => {
+      const [fetch, { loading, error, data }] = useLazyQuery(query);
+      acc[key] = {
+        fetch: async (variables?: Record<string, any>) => {
+          const result = await fetch({ variables });
+          return result;
+        },
+        loading,
+        error,
+        data,
+      };
+      return acc;
+    }, {} as Queries);
+
+    return queries;
+  }, [QUERY_CONFIG]);
+
+  const { searchMedia, searchMovie, searchTV, searchCelebrity } = useSearchQueries();
+
+  // Fetching data depending on filter text
   useEffect(() => {
-    if (query) {
-      if (filter === 'All') {
-        searchMedia({ variables: { query: query } }).then((response) => {
-          setMulti(null);
-          setMulti(response?.data?.searchMulti);
-        });
-      } else if (filter === 'Movies') {
-        searchMovie({ variables: { query: query } }).then((response) => {
-          setMulti(null);
-          setMovies(response?.data?.searchMovies);
-        });
-      } else if (filter === 'TV Shows') {
-        searchTV({ variables: { query: query } }).then((response) => {
-          setMulti(null);
-          setTv(response?.data?.searchTV);
-        });
-      } else if (filter === 'Celebs') {
-        searchCelebrity({ variables: { query: query } }).then((response) => {
-          setMulti(null);
-          setCelebrity(response?.data?.searchCelebrity);
-        });
-      } else if (filter === 'Advanced Search') {
+    const fetchSearchResults = async () => {
+      if (!query) return;
+
+      // Reset the states
+      setMulti(null);
+      setMovies(null);
+      setTv(null);
+      setCelebrity(null);
+
+      try {
+        let response;
+
+        switch (filter) {
+          case 'All':
+            response = await searchMedia.fetch({ query });
+            setMulti(response?.data?.searchMulti);
+            break;
+
+          case 'Movies':
+            response = await searchMovie.fetch({ query });
+            setMovies(response?.data?.searchMovies);
+            break;
+
+          case 'TV Shows':
+            response = await searchTV.fetch({ query });
+            setTv(response?.data?.searchTV);
+            break;
+
+          case 'Celebs':
+            response = await searchCelebrity.fetch({ query });
+            setCelebrity(response?.data?.searchCelebrity);
+            break;
+
+          default:
+            console.warn(`Unknown filter type: ${filter}`);
+        }
+      } catch (error) {
+        console.error('Error fetching search results:', error);
       }
-    }
+    };
+
+    fetchSearchResults();
   }, [query, filter]);
 
-  const isMovies = (): boolean => {
-    if (filter === 'Movies' || filter === 'All') {
-      const isMovies = multi?.filter((m) => m?.media_type === 'movie');
-      if (isMovies?.length !== 0) {
-        return true;
-      } else return false;
+  //Chech the type of the media
+  const hasMediaType = (type: string): boolean => {
+    const normalizedFilter =
+      filter === 'Movies'
+        ? 'movie'
+        : filter === 'TV Shows'
+        ? 'tv'
+        : filter === 'Celebs'
+        ? 'person'
+        : 'All';
+
+    if (normalizedFilter === 'All' || normalizedFilter === type) {
+      return multi?.some((m) => m?.media_type === type) ?? false;
     }
+
     return false;
   };
 
-  const isTv = (): boolean => {
-    if (filter === 'TV Shows' || filter === 'All') {
-      const isTv = multi?.filter((m) => m?.media_type === 'tv');
-      if (isTv?.length !== 0) {
-        return true;
-      } else return false;
-    }
-    return false;
-  };
+  const isMovies = (): boolean => hasMediaType('movie');
+  const isTv = (): boolean => hasMediaType('tv');
+  const isClebs = (): boolean => hasMediaType('person');
 
-  const isClebs = (): boolean => {
-    if (filter === 'Celebs' || filter === 'All') {
-      const isCelebs = multi?.filter((m) => m?.media_type === 'person');
-      if (isCelebs?.length !== 0) {
-        return true;
-      } else return false;
-    }
-    return false;
-  };
-
+  // Handle navigation
   const handleNavigate = (mediaType: string | null, data: Movie | TV | Celebrity | Multi): void => {
-    if (mediaType) {
-      navigate('/celebrityDetails', { state: data });
-    } else {
-      navigate('/mediaDetail', { state: data });
-    }
+    const route = mediaType === 'person' ? '/celebrityDetails' : '/mediaDetail';
+    navigate(route, { state: data });
   };
 
-  const queries = [
-    { loading: searchMediaLoading, error: searchMediaError },
-    { loading: searchMovieLoading, error: searchMovieError },
-    { loading: searchTVLoading, error: searchTVError },
-    { loading: searchCelebrityLoading, error: searchCelebrityError },
-  ];
-
-  for (const { loading, error } of queries) {
-    if (loading) return <p className='text-white'>Trending Loading...</p>;
-    if (error) return <p className='text-white'>Error: {error.message}</p>;
-  }
   return (
     <div className='flex flex-col'>
       <Navbar />
@@ -109,7 +151,7 @@ const Search = () => {
         <div className='flex flex-3 flex-col'>
           <h1 className='text-5xl'>Search {query}</h1>
           <div className='flex flex-3 flex-col gap-8'>
-            {isMovies() && (
+            {(isMovies() || movies) && (
               <div className='flex flex-col gap-4 mt-4 p-3 border-2 border-gray-100 shadow-md'>
                 <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>Movies</h1>
                 {(multi?.filter((m) => m?.media_type === 'movie') || movies)
@@ -130,6 +172,7 @@ const Search = () => {
                             <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                             <img
                               src={TMDB_URL + m?.poster_path}
+                              loading='lazy'
                               alt='poster'
                               className='object-cover w-full h-full'
                             />
@@ -159,7 +202,7 @@ const Search = () => {
                   ))}
               </div>
             )}
-            {isTv() && (
+            {(isTv() || tv) && (
               <div className='flex flex-col gap-4 mt-4 p-3 border-2 border-gray-100 shadow-md'>
                 <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>TV Shows</h1>
                 {(multi?.filter((s) => s?.media_type === 'tv') || tv)?.slice(0, 4)?.map((m) => (
@@ -178,6 +221,7 @@ const Search = () => {
                           <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                           <img
                             src={TMDB_URL + m?.poster_path}
+                            loading='lazy'
                             alt='poster'
                             className='object-cover w-full h-full'
                           />
@@ -207,7 +251,7 @@ const Search = () => {
                 ))}
               </div>
             )}
-            {isClebs() && (
+            {(isClebs() || celebrity) && (
               <div className='flex flex-col gap-4 mt-4 p-3 border-2 border-gray-100 shadow-md'>
                 <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
                   Celebrities
@@ -218,7 +262,7 @@ const Search = () => {
                     <div
                       className='flex flex-1 flex-col gap-6 cursor-pointer'
                       key={m.id}
-                      onClick={() => handleNavigate('Celebrity', m)}
+                      onClick={() => handleNavigate('person', m)}
                     >
                       <div className='flex items-center'>
                         <div className='flex flex-1 flex-row items-center gap-3'>
@@ -226,6 +270,7 @@ const Search = () => {
                             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                             <img
                               src={TMDB_URL + m?.profile_path}
+                              loading='lazy'
                               alt='poster'
                               className='object-cover w-full h-full'
                             />

@@ -1,53 +1,68 @@
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { GET_POPULAR_CELEBRITY } from '../graphql/queries';
-import { useQuery } from '@apollo/client';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
+import { GET_POPULAR_CELEBRITY } from '../graphql/queries';
 import { Celebrity } from '../types/media';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { debounce } from 'lodash';
+
+// TMDB API image URL
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const PopularCelebrity = () => {
-  const [index, setIndex] = useState<number>(0);
-  const [width, setWidth] = useState<number>(0);
-  const widthRef = useRef<HTMLDivElement>(null);
-  const {
-    loading: CelebrityLoading,
-    error: CelebrityError,
-    data: CelebrityData,
-  } = useQuery(GET_POPULAR_CELEBRITY);
-  const popularCelebrity: Celebrity[] = CelebrityData?.popularCelebrity;
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
   const navigate = useNavigate();
 
-  const handleRight = (celebrity: Celebrity[]): void => {
-    setIndex((prev) => (prev !== celebrity.length - 1 ? prev + 1 : 0));
+  // Initialize state hooks
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
+  // Initialize Ref hooks
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Handle GraphQL query
+  const {
+    loading: isLoading,
+    error: isError,
+    data: celebrityData,
+  } = useQuery(GET_POPULAR_CELEBRITY);
+  const popularCelebrities: Celebrity[] = celebrityData?.popularCelebrity ?? [];
+
+  // Handlers to update the index
+  const handleNext = (): void => {
+    setCurrentIndex((prev) => (prev + 1) % popularCelebrities.length);
   };
 
-  const handleLeft = (celebrity: Celebrity[]): void => {
-    setIndex((prev) => (prev !== 0 ? prev - 1 : celebrity.length - 1));
+  const handlePrev = (): void => {
+    setCurrentIndex((prev) => (prev === 0 ? popularCelebrities.length - 1 : prev - 1));
   };
 
-  const handleResize = (): void => {
-    if (widthRef.current) {
-      setWidth(widthRef.current.getBoundingClientRect().width);
+  // Handle Container width for smooth navigation between items
+  const updateContainerWidth = (): void => {
+    if (containerRef.current) {
+      setContainerWidth(containerRef.current.getBoundingClientRect().width);
     }
   };
+
+  const debouncedResizeHandler = debounce(updateContainerWidth, 200);
 
   useEffect(() => {
-    if (widthRef.current && popularCelebrity) {
-      setWidth(widthRef.current.getBoundingClientRect().width);
-      window.addEventListener('resize', handleResize);
-    }
+    updateContainerWidth();
+    window.addEventListener('resize', debouncedResizeHandler);
 
-    return (): void => window.removeEventListener('resize', handleResize);
-  }, [popularCelebrity]);
+    return () => window.removeEventListener('resize', debouncedResizeHandler);
+  }, [popularCelebrities]);
 
-  const handleClick = (celebrity: Celebrity): void => {
+  // Navigate to celebrity details page
+  const handleCelebrityClick = (celebrity: Celebrity): void => {
     navigate('/celebrityDetails', { state: celebrity });
   };
 
-  if (CelebrityLoading) return <p className='text-white'>Trending Loading...</p>;
-  if (CelebrityError) return <p className='text-white'>Error: {CelebrityError.message}</p>;
+  if (isLoading)
+    return (
+      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+    );
+  if (isError) return <p className='text-white text-sm'>Error: {isError.message}</p>;
   return (
     <div className='container py-8'>
       <div className='group flex items-center gap-2 text-2xl text-white p-3 mb-4 border-l-4 border-primary cursor-pointer'>
@@ -58,32 +73,35 @@ const PopularCelebrity = () => {
         <button
           className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
           style={{ transform: 'translateY(-50%)' }}
-          onClick={() => handleLeft(popularCelebrity)}
+          onClick={handlePrev}
         >
           <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <button
           className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
           style={{ transform: 'translateY(-50%)' }}
-          onClick={() => handleRight(popularCelebrity)}
+          onClick={handleNext}
         >
           <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <div
           className='flex items-center gap-4 transition-transform duration-500 cursor-pointer'
-          style={{ transform: `translateX(${-(width * index + 16 * (index + 1))}px` }}
+          style={{
+            transform: `translateX(${-(containerWidth * currentIndex + 16 * (currentIndex + 1))}px`,
+          }}
         >
-          {popularCelebrity.map((p) => (
+          {popularCelebrities.map((p) => (
             <div
               className='group/icon relative flex flex-col gap-2'
               key={p.id}
-              ref={widthRef}
-              onClick={() => handleClick(p)}
+              ref={containerRef}
+              onClick={() => handleCelebrityClick(p)}
             >
               <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <div className='w-44 h-44'>
                 <img
                   src={TMDB_URL + p.profile_path}
+                  loading='lazy'
                   alt='Person Image'
                   className='object-cover w-full h-full rounded-full'
                 />

@@ -1,16 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Review } from '../types/media';
-import Navbar from '../components/Navbar';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import StarIcon from '@mui/icons-material/Star';
+import React from 'react';
+
+// Lazy load the components
+const Navbar = React.lazy(() => import('../components/Navbar'));
+
+// TMDB API image URL
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const Critics = () => {
+  // Values from location state
   const location = useLocation();
-  const mediaName: string = location.state.mediaName;
-  const poster: string = location.state.poster;
-  const review: Review[] = location.state.review;
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+  const state = location?.state;
+  const mediaName: string = state.mediaName;
+  const poster: string = state.poster;
+  const review: Review[] = state.review;
+
   return (
     <div className='flex flex-col'>
       <Navbar />
@@ -23,6 +31,7 @@ const Critics = () => {
           <div className='w-28 h-44 rounded-lg overflow-hidden'>
             <img
               src={TMDB_URL + poster}
+              loading='lazy'
               alt='Celebrity Image'
               className='object-cover w-full h-full'
             />
@@ -45,7 +54,11 @@ const Critics = () => {
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <div className='flex items-center gap-3'>
                 <div className='w-14 h-14 rounded-full overflow-hidden'>
-                  <img src={TMDB_URL + r?.author_details?.avatar_path} alt='Critic Image' />
+                  <img
+                    src={TMDB_URL + r?.author_details?.avatar_path}
+                    loading='lazy'
+                    alt='Critic Image'
+                  />
                 </div>
                 <div className='flex flex-col'>
                   <h2 className='text-black font-medium'>{r?.author}</h2>

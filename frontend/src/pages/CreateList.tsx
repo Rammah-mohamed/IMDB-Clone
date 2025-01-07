@@ -1,14 +1,18 @@
-import { useState } from 'react';
-import Navbar from '../components/Navbar';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
+import axios from 'axios';
 
+// Lazy load the components
+const Navbar = React.lazy(() => import('../components/Navbar'));
+
+// Type for list
 type List = {
   listName: string;
   description: string;
 };
 
+// Type for count
 type Count = {
   listNameChars: number;
   descriptionChars: number;
@@ -16,17 +20,24 @@ type Count = {
 
 const CreateList = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Initialize state hooks
   const [count, setCount] = useState<Count>({ listNameChars: 0, descriptionChars: 0 });
   const [list, setList] = useState<List>({ listName: '', description: '' });
   const [validate, setValidate] = useState<string>('');
-  const navigate = useNavigate();
 
-  const handleName = (e: React.ChangeEvent) => {
-    const { value } = e.target as HTMLInputElement;
+  // Handle list name
+  const handleName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+
+    // Update both listName and listNameChars together to avoid multiple state updates
     setList((prev) => ({
       ...prev,
       listName: value,
     }));
+
+    // Ensure count update only if value length is <= 255
     if (value.length <= 255) {
       setCount((prev) => ({
         ...prev,
@@ -35,12 +46,17 @@ const CreateList = () => {
     }
   };
 
-  const handledescription = (e: React.ChangeEvent) => {
-    const { value } = e.target as HTMLInputElement;
+  // Handle list description
+  const handleDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { value } = e.target;
+
+    // Update description in the list state
     setList((prev) => ({
       ...prev,
       description: value,
     }));
+
+    // Only update descriptionChars count if value length is <= 10000
     if (value.length <= 10000) {
       setCount((prev) => ({
         ...prev,
@@ -49,30 +65,37 @@ const CreateList = () => {
     }
   };
 
+  // Handle Create list
   const handleCreate = async () => {
-    if (user) {
-      if (list.listName.trim() === '') {
-        setValidate('Enter a title');
-      } else {
-        try {
-          const response = await axios.post(
-            `http://localhost:3000/lists`,
-            {
-              name: list.listName.trim(),
-              description: list.description.trim(),
-              movies: [],
-            },
-            {
-              withCredentials: true,
-            }
-          );
-          console.log(response.data);
-          navigate('/userLists');
-        } catch (error: any) {
-          console.error(error.response.data);
+    if (!user) {
+      return navigate('/sign');
+    }
+
+    const { listName, description } = list;
+
+    if (listName.trim() === '') {
+      return setValidate('Enter a title');
+    }
+
+    try {
+      const response = await axios.post(
+        'http://localhost:3000/lists',
+        {
+          name: listName.trim(),
+          description: description.trim(),
+          movies: [],
+        },
+        {
+          withCredentials: true,
         }
-      }
-    } else navigate('/sign');
+      );
+
+      console.log(response.data);
+      navigate('/userLists');
+    } catch (error: any) {
+      const errorMessage = error?.response?.data || 'An error occurred';
+      console.error(errorMessage);
+    }
   };
 
   return (
@@ -101,7 +124,7 @@ const CreateList = () => {
           <div className='flex flex-col gap-1'>
             <textarea
               value={list.description}
-              onChange={handledescription}
+              onChange={handleDescription}
               placeholder='Enter the name of your list'
               className='p-2 w-full h-20 border-gray-300 border-2 rounded-lg focus-within:outline-none'
               required

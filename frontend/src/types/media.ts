@@ -26,7 +26,7 @@ export type Media = {
   overview: string;
   poster_path: string;
   backdrop_path: string;
-  genre_ids?: number[];
+  genre_ids: number[];
   release_date?: string;
   first_air_date?: string;
   media_type: string;
@@ -197,7 +197,7 @@ export type Crew = {
 
 export type CastState = {
   id: number;
-  type: 'Movie' | 'TV';
+  type: string;
   star: Cast[] | null;
   crew: Crew[] | null;
 };
@@ -226,4 +226,5 @@ export type List = {
   name: string;
   description?: string;
   movies: Media[];
+  isChecked?: boolean;
 };

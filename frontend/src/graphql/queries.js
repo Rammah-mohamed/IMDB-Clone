@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 
 export const GET_TRENDING = gql`
-  query ($time: String = null) {
+  query ($time: String) {
     trendingAll(time: $time) {
       name
       title
@@ -21,7 +21,7 @@ export const GET_TRENDING = gql`
 `;
 
 export const SEARCH_MEDIA = gql`
-  query ($query: String!, $page: String = null, $lang: String = null) {
+  query ($query: String!, $page: String, $lang: String) {
     searchMulti(query: $query, page: $page, lang: $lang) {
       name
       title
@@ -58,8 +58,168 @@ export const SEARCH_MEDIA = gql`
   }
 `;
 
+export const GET_LIST_MEDIA = gql`
+  query ($page: Int, $time: String) {
+    trendingAll(time: $time) {
+      name
+      title
+      id
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      media_type
+      genre_ids
+      first_air_date
+    }
+    upcomingMovies(page: $page) {
+      title
+      id
+      overview
+      genre_ids
+      vote_average
+      vote_count
+      release_date
+      poster_path
+      backdrop_path
+      popularity
+    }
+    popularMovies(page: $page) {
+      id
+      title
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      release_date
+      popularity
+      genre_ids
+    }
+    tvAiring(page: $page) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+    tvPopular(page: $page) {
+      id
+      name
+      overview
+      poster_path
+      backdrop_path
+      vote_average
+      vote_count
+      popularity
+      genre_ids
+      first_air_date
+    }
+  }
+`;
+
+export const GET_MEDIA = gql`
+  query ($id: Int!) {
+    movieVideos(id: $id) {
+      key
+      name
+      type
+    }
+
+    moviesCast(id: $id) {
+      id
+      name
+      gender
+      popularity
+      known_for_department
+      profile_path
+      popularity
+      character
+      order
+    }
+
+    moviesCrew(id: $id) {
+      id
+      name
+      job
+      gender
+      profile_path
+    }
+
+    movieImages(id: $id) {
+      file_path
+      width
+      height
+    }
+
+    movieReview(id: $id) {
+      author
+      author_details {
+        avatar_path
+        rating
+      }
+      content
+      created_at
+      updated_at
+      url
+    }
+
+    tvVideos(id: $id) {
+      key
+      name
+      type
+    }
+
+    tvCast(id: $id) {
+      id
+      name
+      gender
+      popularity
+      known_for_department
+      profile_path
+      popularity
+      character
+      order
+    }
+
+    moviesCrew(id: $id) {
+      id
+      name
+      job
+      gender
+      profile_path
+    }
+
+    tvImages(id: $id) {
+      file_path
+      width
+      height
+    }
+
+    tvReview(id: $id) {
+      author
+      author_details {
+        avatar_path
+        rating
+      }
+      content
+      created_at
+      updated_at
+      url
+    }
+  }
+`;
+
 export const GET_UPCOMING_MOVIES = gql`
-  query ($page: Int = null) {
+  query ($page: Int) {
     upcomingMovies(page: $page) {
       title
       id
@@ -76,7 +236,7 @@ export const GET_UPCOMING_MOVIES = gql`
 `;
 
 export const GET_POPULAR_MOVIES = gql`
-  query ($page: Int = null) {
+  query ($page: Int) {
     popularMovies(page: $page) {
       id
       title
@@ -93,7 +253,7 @@ export const GET_POPULAR_MOVIES = gql`
 `;
 
 export const GET_TRENDING_MOVIES = gql`
-  query ($time: String = null) {
+  query ($time: String) {
     trendingMovies(time: $time) {
       id
       title
@@ -110,7 +270,7 @@ export const GET_TRENDING_MOVIES = gql`
 `;
 
 export const GET_TOP_MOVIES = gql`
-  query ($page: Int = null) {
+  query ($page: Int) {
     topMovies(page: $page) {
       id
       title
@@ -127,8 +287,8 @@ export const GET_TOP_MOVIES = gql`
 `;
 
 export const GET_SIMILAR_MOVIES = gql`
-  query ($id: Int!, $page: String = null) {
-    movieSimilar(id: $id, page: $page) {
+  query ($id: Int!) {
+    movieSimilar(id: $id) {
       id
       title
       overview
@@ -144,8 +304,8 @@ export const GET_SIMILAR_MOVIES = gql`
 `;
 
 export const GET_RECOMMEND_MOVIES = gql`
-  query ($id: Int!, $page: String = null) {
-    moviesRecommend(id: $id, page: $page) {
+  query ($id: Int!) {
+    moviesRecommend(id: $id) {
       id
       title
       overview
@@ -161,7 +321,7 @@ export const GET_RECOMMEND_MOVIES = gql`
 `;
 
 export const SEARCH_MOVIES = gql`
-  query ($query: String!, $page: String = null, $lang: String = null, $year: String = null) {
+  query ($query: String!, $page: String, $lang: String, $year: String) {
     searchMovies(query: $query, page: $page, lang: $lang, year: $year) {
       id
       title
@@ -183,15 +343,6 @@ export const GET_MOVIE_TRAILER = gql`
       key
       name
       type
-    }
-  }
-`;
-
-export const GET_MOVIE_GENRES = gql`
-  query {
-    movieGenres {
-      id
-      name
     }
   }
 `;
@@ -274,7 +425,7 @@ export const GET_MOVIE_DETAILS = gql`
 `;
 
 export const GET_TV_AIRING = gql`
-  query ($page: Int = null) {
+  query ($page: Int) {
     tvAiring(page: $page) {
       id
       name
@@ -291,7 +442,7 @@ export const GET_TV_AIRING = gql`
 `;
 
 export const GET_TRENDING_TV = gql`
-  query ($time: String = null) {
+  query ($time: String) {
     trendingTV(time: $time) {
       id
       name
@@ -308,7 +459,7 @@ export const GET_TRENDING_TV = gql`
 `;
 
 export const GET_TV_POPULAR = gql`
-  query ($page: Int = null) {
+  query ($page: Int) {
     tvPopular(page: $page) {
       id
       name
@@ -325,7 +476,7 @@ export const GET_TV_POPULAR = gql`
 `;
 
 export const GET_TOP_TV = gql`
-  query ($page: Int = null) {
+  query ($page: Int) {
     topTv(page: $page) {
       id
       name
@@ -342,8 +493,8 @@ export const GET_TOP_TV = gql`
 `;
 
 export const GET_TV_SIMILAR = gql`
-  query ($id: Int!, $page: Int = null) {
-    tvSimilar(id: $id, page: $page) {
+  query ($id: Int!) {
+    tvSimilar(id: $id) {
       id
       name
       overview
@@ -358,8 +509,8 @@ export const GET_TV_SIMILAR = gql`
   }
 `;
 export const GET_TV_RECOMMEND = gql`
-  query ($id: Int!, $page: Int = null) {
-    tvRecommed(id: $id, page: $page) {
+  query ($id: Int!) {
+    tvRecommend(id: $id) {
       id
       name
       overview
@@ -451,7 +602,7 @@ export const GET_SEASON_DETAILS = gql`
 `;
 
 export const SEARCH_TV = gql`
-  query ($query: String!, $page: String = null, $lang: String = null, $year: String = null) {
+  query ($query: String!, $page: String, $lang: String, $year: String) {
     searchTV(query: $query, page: $page, lang: $lang, year: $year) {
       id
       name
@@ -473,15 +624,6 @@ export const GET_TV_TRAILER = gql`
       key
       name
       type
-    }
-  }
-`;
-
-export const GET_TV_GENRES = gql`
-  query {
-    tvGenres {
-      id
-      name
     }
   }
 `;
@@ -540,6 +682,19 @@ export const GET_TV_REVIEW = gql`
   }
 `;
 
+export const GET_GENRES = gql`
+  query {
+    movieGenres {
+      id
+      name
+    }
+    tvGenres {
+      id
+      name
+    }
+  }
+`;
+
 export const GET_POPULAR_CELEBRITY = gql`
   query {
     popularCelebrity {
@@ -568,7 +723,7 @@ export const GET_POPULAR_CELEBRITY = gql`
   }
 `;
 
-export const GET_CELEBRITY_DETAILS = gql`
+export const GET_CELEBRITY = gql`
   query ($id: Int!) {
     celebrityDetail(id: $id) {
       id
@@ -578,11 +733,6 @@ export const GET_CELEBRITY_DETAILS = gql`
       deathday
       place_of_birth
     }
-  }
-`;
-
-export const GET_CELEBRITY_IMAGES = gql`
-  query ($id: Int!) {
     celebrityImages(id: $id) {
       width
       height
@@ -592,7 +742,7 @@ export const GET_CELEBRITY_IMAGES = gql`
 `;
 
 export const SEARCH_CELEBRITY = gql`
-  query ($query: String!, $page: String = null, $lang: String = null) {
+  query ($query: String!, $page: String, $lang: String) {
     searchCelebrity(query: $query, page: $page, lang: $lang) {
       id
       name

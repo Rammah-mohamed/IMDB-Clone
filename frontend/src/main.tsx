@@ -6,6 +6,7 @@ import { AuthProvider } from './context/authContext.tsx';
 import client from './graphql/ApolloClient';
 import App from './App.tsx';
 import './index.css';
+import { reportWebVitals } from './reportWebVitals';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,3 +19,6 @@ createRoot(document.getElementById('root')!).render(
     </ApolloProvider>
   </StrictMode>
 );
+
+// Measure and log web vitals
+reportWebVitals();

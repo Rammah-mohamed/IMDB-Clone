@@ -1,4 +1,24 @@
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import axios from 'axios';
+import ReactPlayer from 'react-player';
+import { Image, VideoLibrary } from '@mui/icons-material';
+import StarIcon from '@mui/icons-material/Star';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import CloseIcon from '@mui/icons-material/Close';
+import ViewCompactIcon from '@mui/icons-material/ViewCompact';
+import CheckIcon from '@mui/icons-material/Check';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+
+// Import types
 import {
   Cast,
   CastState,
@@ -14,47 +34,50 @@ import {
   Season_Details,
   Trailer,
 } from '../types/media';
-import Navbar from './Navbar';
-import StarIcon from '@mui/icons-material/Star';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import CloseIcon from '@mui/icons-material/Close';
-import ViewCompactIcon from '@mui/icons-material/ViewCompact';
-import CheckIcon from '@mui/icons-material/Check';
-import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
-import { Image, VideoLibrary } from '@mui/icons-material';
-import { useLazyQuery, useQuery } from '@apollo/client';
+
+// Import GraphQl queries
 import {
-  GET_MOVIE_CAST,
-  GET_MOVIE_CREW,
-  GET_MOVIE_DETAILS,
-  GET_MOVIE_GENRES,
-  GET_MOVIE_IMAGES,
-  GET_MOVIE_REVIEW,
-  GET_MOVIE_TRAILER,
+  GET_GENRES,
+  GET_MEDIA,
   GET_SEASON_DETAILS,
-  GET_TV_CAST,
-  GET_TV_CREW,
   GET_TV_Details,
-  GET_TV_GENRES,
-  GET_TV_IMAGES,
-  GET_TV_REVIEW,
-  GET_TV_TRAILER,
   SEARCH_CELEBRITY,
 } from '../graphql/queries';
-import { useEffect, useState } from 'react';
-import ReactPlayer from 'react-player';
-import MediaList from './MediaList';
-import { useAuth } from '../context/authContext';
-import axios from 'axios';
+
+// Lazy load the components
+const Navbar = React.lazy(() => import('./Navbar'));
+const MediaList = React.lazy(() => import('./MediaList'));
+
+//Types for each query's return value
+interface QueryResult {
+  fetch: (variables?: Record<string, any>) => Promise<any>;
+  loading: boolean;
+  error: any;
+  data: any;
+}
+
+// Type for the accumulator object (queries)
+interface Queries {
+  [key: string]: QueryResult;
+}
+
+// GraphQL queries
+const QUERY_CONFIG = {
+  tvDetails: GET_TV_Details,
+  seasonDetails: GET_SEASON_DETAILS,
+  searchCelebrity: SEARCH_CELEBRITY,
+};
+
+// TMDB API image URL / Youtube video URL
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
 
 const MediaDetail = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Initialize state hooks
   const [lists, setLists] = useState<List[]>();
   const [isShowList, setIsShowList] = useState<boolean>(false);
   const [genres, setGenres] = useState<string[]>([]);
@@ -65,192 +88,249 @@ const MediaDetail = () => {
   const [cast, setCast] = useState<CastState>();
   const [show, setShow] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  const location = useLocation();
+
+  // Persist the data across tab refreshed
   const [data, setData] = useState<Details>(() => {
-    return location?.state;
+    if (location.state) return location?.state;
+    const savedData = localStorage.getItem('details');
+    return savedData ? JSON.parse(savedData) : {};
   });
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (data) {
+      localStorage.setItem('details', JSON.stringify(data));
+    }
+  }, [data]);
+
+  // Handle GraphQL query
   const {
-    loading: movieTrailerLoading,
-    error: movieTrailerError,
-    data: movieTrailerData,
-  } = useQuery(GET_MOVIE_TRAILER, { variables: { id: data?.id } });
+    data: mediaData,
+    loading: mediaLoading,
+    error: mediaError,
+  } = useQuery(GET_MEDIA, { variables: { id: data?.id }, fetchPolicy: 'cache-first' });
+
   const {
-    loading: movieCastLoading,
-    error: movieCastError,
-    data: movieCastData,
-  } = useQuery(GET_MOVIE_CAST, { variables: { id: data?.id } });
-  const {
-    loading: movieCrewLoading,
-    error: movieCrewError,
-    data: movieCrewData,
-  } = useQuery(GET_MOVIE_CREW, { variables: { id: data?.id } });
-  const {
-    loading: movieImagesLoading,
-    error: movieImagesError,
-    data: movieImagesData,
-  } = useQuery(GET_MOVIE_IMAGES, { variables: { id: data?.id } });
-  const {
-    loading: movieReviewLoading,
-    error: movieReviewError,
-    data: movieReviewData,
-  } = useQuery(GET_MOVIE_REVIEW, { variables: { id: data?.id } });
-  const {
-    loading: tvTrailerLoading,
-    error: tvTrailerError,
-    data: tvTrailerData,
-  } = useQuery(GET_TV_TRAILER, { variables: { id: data?.id } });
-  const {
-    loading: tvCastLoading,
-    error: tvCastError,
-    data: tvCastData,
-  } = useQuery(GET_TV_CAST, { variables: { id: data?.id } });
-  const {
-    loading: tvCrewLoading,
-    error: tvCrewError,
-    data: tvCrewData,
-  } = useQuery(GET_TV_CREW, { variables: { id: data?.id } });
-  const {
-    loading: tvImagesLoading,
-    error: tvImagesError,
-    data: tvImagesData,
-  } = useQuery(GET_TV_IMAGES, { variables: { id: data?.id } });
-  const {
-    loading: tvReviewLoading,
-    error: tvReviewError,
-    data: tvReviewData,
-  } = useQuery(GET_TV_REVIEW, { variables: { id: data?.id } });
-  const [getMovieDetails, { loading: moviesDetailsLoading, error: moviesDetailsError }] =
-    useLazyQuery(GET_MOVIE_DETAILS);
-  const [getTvDetails, { loading: tvDetailsLoading, error: tvDetailsError }] =
-    useLazyQuery(GET_TV_Details);
-  const [getSeasonDetails, { loading: seasonDetailsLoading, error: seasonDetailsError }] =
-    useLazyQuery(GET_SEASON_DETAILS);
-  const [SearchCelebrity, { loading: celebrityLoading, error: celebrityError }] =
-    useLazyQuery(SEARCH_CELEBRITY);
-  const {
-    loading: tvGenresLoading,
-    error: tvGenresError,
-    data: tvGenresData,
-  } = useQuery(GET_TV_GENRES);
-  const {
-    loading: movieGenresLoading,
-    error: movieGenresError,
-    data: movieGenresData,
-  } = useQuery(GET_MOVIE_GENRES);
-  const movieGenres: Genre[] = movieGenresData?.movieGenres;
-  const tvGenres: Genre[] = tvGenresData?.tvGenres;
-  const movieVideos: Trailer[] = movieTrailerData?.movieVideos;
-  const movieCast: Cast[] = movieCastData?.moviesCast;
-  const movieCrew: Crew[] = movieCrewData?.moviesCrew;
-  const movieReview: Review[] = movieReviewData?.movieReview;
-  const movieImages: Photo[] = movieImagesData?.movieImages;
-  const tvVideos: Trailer[] = tvTrailerData?.tvVideos;
-  const tvCast: Cast[] = tvCastData?.tvCast;
-  const tvCrew: Crew[] = tvCrewData?.tvCrew;
-  const tvImages: Photo[] = tvImagesData?.tvImages;
-  const tvReview: Review[] = tvReviewData?.tvReview;
-  const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
-  const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
-  let trailerCount: number = 0;
+    data: genresData,
+    loading: genresLoading,
+    error: genresError,
+  } = useQuery(GET_GENRES, {
+    fetchPolicy: 'cache-first',
+  });
+
+  // Query Data
+  const movieGenres: Genre[] = genresData?.movieGenres;
+  const tvGenres: Genre[] = genresData?.tvGenres;
+  const movieVideos: Trailer[] = mediaData?.movieVideos;
+  const movieCast: Cast[] = mediaData?.moviesCast;
+  const movieCrew: Crew[] = mediaData?.moviesCrew;
+  const movieReview: Review[] = mediaData?.movieReview;
+  const movieImages: Photo[] = mediaData?.movieImages;
+  const tvVideos: Trailer[] = mediaData?.tvVideos;
+  const tvCast: Cast[] = mediaData?.tvCast;
+  const tvCrew: Crew[] = mediaData?.tvCrew;
+  const tvImages: Photo[] = mediaData?.tvImages;
+  const tvReview: Review[] = mediaData?.tvReview;
+
+  // Custom hook to Handle GraphQl Queries
+  const useMediaDetailsQueries = useCallback(() => {
+    const queries: Queries = Object.entries(QUERY_CONFIG).reduce((acc, [key, query]) => {
+      const [fetch, { loading, error, data }] = useLazyQuery(query);
+      acc[key] = {
+        fetch: async (variables?: Record<string, any>) => {
+          const result = await fetch({ variables });
+          return result;
+        },
+        loading,
+        error,
+        data,
+      };
+      return acc;
+    }, {} as Queries);
+
+    return queries;
+  }, [QUERY_CONFIG]);
+
+  const { tvDetails, seasonDetails, searchCelebrity } = useMediaDetailsQueries();
+
   let castCount: number = 0;
   let genreCount: number = 0;
 
-  const handleMediaDetails = (id: number, mediaType: string): void => {
-    if (mediaType === 'movie') {
-      getMovieDetails({ variables: { id: id } }).then((response) => {
-        const result: Details = response?.data?.movieDetail;
-        // console.log(response?.data?.movieDetail);
-        setData(result);
-      });
-    } else if (mediaType === 'tv') {
-      getTvDetails({ variables: { id: id } }).then((response) => {
+  // Fetch media data depending on it's type
+  const handleMediaDetails = async (id: number, mediaType: string): Promise<void> => {
+    try {
+      if (mediaType === 'tv') {
+        const response = await tvDetails.fetch({ id });
         const result: Details = response?.data?.tvDetail;
-        // console.log(response?.data?.tvDetail);
-        setData(result);
-        result.seasons.map((s) => {
-          getSeasonDetails({ variables: { id: result.id, number: s.season_number } }).then(
-            (response) => {
-              const data: Season_Details = response.data?.seasonDetail;
-              setSeason((prev) => (prev.some((s) => s.id === data.id) ? prev : [...prev, data]));
-            }
+
+        // Fetch season details for all seasons
+        if (result) {
+          const seasonPromises = result.seasons.map((season) =>
+            seasonDetails.fetch({ id: result.id, number: season.season_number })
           );
-        });
-      });
+
+          // Resolve all promises and update state
+          const seasonResponses = await Promise.all(seasonPromises);
+          const seasonDetailsData = seasonResponses
+            .map((response) => response.data?.seasonDetail)
+            .filter((data): data is Season_Details => !!data); // Type guard for non-null values
+
+          setSeason((prev) => [
+            ...prev,
+            ...seasonDetailsData.filter((newSeason) => !prev.some((s) => s.id === newSeason.id)),
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching media details:', error);
     }
   };
 
-  useEffect(() => {
-    data && handleMediaDetails(data?.id, data.media_type);
-  }, [data?.id, data?.media_type]);
+  const memoizedHandleMediaDetails = useCallback((id: number, mediaType: string) => {
+    handleMediaDetails(id, mediaType);
+  }, []);
 
   useEffect(() => {
-    setSeason((prev) =>
-      prev.sort((a, b) => a.season_number - b.season_number).filter((s) => s.season_number !== 0)
-    );
-  }, [season.length]);
+    if (data?.id && data.media_type === 'tv') {
+      memoizedHandleMediaDetails(data.id, data.media_type);
+    }
+  }, [data?.id, data?.media_type, memoizedHandleMediaDetails]);
 
-  useEffect(() => {
-    season?.map((s) =>
-      s?.episodes.map((e) =>
-        setEpisodes((prev) => (prev.some((ep) => ep.id === e.id) ? prev : [...prev, e]))
-      )
-    );
-    setEpisodes((prev) =>
-      prev.sort((a, b) => a.season_number - b.season_number).filter((s) => s.season_number !== 0)
-    );
-  }, [season.length]);
-
-  useEffect(() => {
-    setTopRatedEpisodes(
-      episodes
-        ?.sort((a, b) => +b.vote_average - +a.vote_average)
-        .filter((e) => Number(e?.vote_average) >= 8.0)
-    );
-  }, [episodes]);
-
-  const handleCritics = (): void => {
-    navigate('/critics', {
-      state: {
-        mediaName: data?.title || data?.name,
-        poster: data?.poster_path,
-        review: movieReview || tvReview,
-      },
-    });
-  };
-
+  // Handle media trailer
   const handleTrailer = (mediaType: string): void => {
-    if (movieVideos && mediaType === 'movie') {
-      setTrailer(movieVideos?.filter((t: Trailer) => t.type === 'Trailer')[0]);
-    } else if (tvVideos && mediaType === 'tv') {
-      setTrailer(tvVideos?.filter((t: Trailer) => t.type === 'Trailer')[0]);
+    let trailer: Trailer | undefined;
+    const movieType = mediaType || data.__typename.slice(0, 5).toLocaleLowerCase();
+    const tvType = mediaType || data.__typename.slice(0, 2).toLocaleLowerCase();
+    if (movieType === 'movie' && movieVideos.length !== 0) {
+      trailer = movieVideos.find((t: Trailer) => t.type === 'Trailer');
+    } else if (tvType === 'tv' && tvVideos.length !== 0) {
+      trailer = tvVideos.find((t: Trailer) => t.type === 'Trailer');
+    }
+
+    if (trailer) {
+      setTrailer(trailer);
     }
   };
 
   useEffect(() => {
-    if (data && trailerCount === 0) {
-      handleTrailer(data?.media_type);
+    if ((data?.media_type || data.__typename) && !mediaLoading) {
+      handleTrailer(data.media_type);
     }
-    trailerCount++;
-  }, [data, movieVideos, tvVideos]);
+  }, [data?.media_type, movieVideos, tvVideos, mediaLoading]);
 
+  // Handle video page
   const handleVideo = (videoData: Trailer): void => {
+    const { key: videoID, name } = videoData || {};
+    const relatedVideos = movieVideos || tvVideos || [];
+
     navigate('/videos', {
       state: {
-        videoID: videoData?.key,
-        name: videoData?.name,
-        related: movieVideos || tvVideos,
+        data,
+        videoID: videoID,
+        name: name,
+        related: relatedVideos,
       },
     });
+
+    // Smoothly scroll to the top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handelPhoto = (Photos: Photo[]): void => {
-    data &&
-      navigate('/media', {
-        state: { photos: Photos, name: data?.name || data?.title, poster: data?.poster_path },
-      });
-    window.scrollTo({ top: 0 });
+  // Handle media page (videos / photos)
+  const handlePhoto = (photos: Photo[]): void => {
+    if (!data) return;
+
+    const { name, title, poster_path } = data;
+
+    navigate('/media', {
+      state: {
+        photos,
+        name: name || title,
+        poster: poster_path,
+      },
+    });
+
+    // Smoothly scroll to the top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleVideoMedia = (): void => {
+    if (!data || !(movieVideos?.length !== 0 || tvVideos?.length !== 0 || season?.length !== 0))
+      return;
+
+    const { name, title, poster_path } = data;
+
+    navigate('/media', {
+      state: {
+        videos: movieVideos || tvVideos,
+        mediaName: name || title,
+        mediaImage: poster_path,
+      },
+    });
+
+    // Smoothly scroll to the top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle media critics reviews page
+  const handleCritics = (): void => {
+    const { title, name, poster_path } = data || {};
+    const mediaName = title ?? name;
+    const poster = poster_path;
+    const review = movieReview || tvReview;
+
+    navigate('/critics', {
+      state: {
+        mediaName,
+        poster,
+        review,
+      },
+    });
+
+    // Smoothly scroll to the top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Sort and filter seasons
+  useEffect(() => {
+    setSeason((prev) => {
+      const sortedAndFiltered = prev
+        .filter((s) => s.season_number !== 0)
+        .sort((a, b) => a.season_number - b.season_number);
+
+      // Only update state if the new array is different
+      return JSON.stringify(prev) === JSON.stringify(sortedAndFiltered) ? prev : sortedAndFiltered;
+    });
+  }, [season]);
+
+  // Add unique episodes and sort them
+  useEffect(() => {
+    const allEpisodes = season.flatMap((s) => s.episodes);
+    setEpisodes((prev) => {
+      const uniqueEpisodes = [
+        ...prev,
+        ...allEpisodes.filter((e) => !prev.some((ep) => ep.id === e.id)),
+      ];
+
+      const sortedAndFiltered = uniqueEpisodes
+        .filter((e) => e.season_number !== 0)
+        .sort((a, b) => a.season_number - b.season_number);
+
+      // Only update state if the new array is different
+      return JSON.stringify(prev) === JSON.stringify(sortedAndFiltered) ? prev : sortedAndFiltered;
+    });
+  }, [season]);
+
+  // Compute top-rated episodes
+  useEffect(() => {
+    const topRated = episodes
+      .filter((e) => +e.vote_average >= 8.0)
+      .sort((a, b) => +b.vote_average - +a.vote_average);
+
+    // Only update state if the new array is different
+    setTopRatedEpisodes((prev) =>
+      JSON.stringify(prev) === JSON.stringify(topRated) ? prev : topRated
+    );
+  }, [episodes]);
 
   //Get media genre from genre IDs
   const getGenras = (mediaType: string, array: number[]): void => {
@@ -272,109 +352,98 @@ const MediaDetail = () => {
     genreCount++;
   }, [movieGenres, tvGenres]);
 
-  const handleVideoMedia = (): void => {
-    if (data && (movieVideos || tvVideos || season)) {
-      navigate('/media', {
-        state: {
-          videos: movieVideos || tvVideos,
-          mediaName: data?.name || data?.title,
-          mediaImage: data?.poster_path,
-          season: season,
-          episodes: episodes,
-          topRatedEpisodes: topRatedEpisodes,
-        },
-      });
-      window.scrollTo({ top: 0 });
-    }
-  };
-
+  // Handle media seasons details page
   const handleSeason = (): void => {
-    console.log(season.length);
-    console.log(data.number_of_seasons);
-    if (data && season.length === data.number_of_seasons) {
-      navigate('/media', {
-        state: {
-          mediaName: data?.name,
-          mediaImage: data?.poster_path,
-          season: season,
-          episodes: episodes,
-          topRatedEpisodes: topRatedEpisodes,
-        },
-      });
-      window.scrollTo({ top: 0 });
-    }
-  };
+    if (!data || !season) return;
 
-  const handleMovie = (id: number): void => {
-    setCast({
-      id: id,
-      type: 'Movie',
-      star: movieCast?.slice(0, 30),
-      crew: movieCrew?.slice(0, 20),
+    const { name, poster_path } = data;
+
+    navigate('/media', {
+      state: {
+        mediaName: name,
+        mediaImage: poster_path,
+        season: season,
+        episodes: episodes,
+        topRatedEpisodes: topRatedEpisodes,
+      },
     });
+
+    // Smoothly scroll to the top of the page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleTv = (id: number): void => {
+  // handle media cast
+  const handleCast = (
+    id: number,
+    type: 'Movie' | 'TV',
+    cast: any[] = [],
+    crew: any[] = []
+  ): void => {
     setCast({
-      id: id,
-      type: 'TV',
-      star: tvCast?.slice(0, 30),
-      crew: tvCrew?.slice(0, 20),
+      id,
+      type,
+      star: cast.slice(0, 30), // Limit stars to the top 30
+      crew: crew.slice(0, 20), // Limit crew to the top 20
     });
   };
 
   useEffect(() => {
-    if (((movieCast && movieCrew) || (tvCast && tvCrew)) && castCount === 0) {
-      if (data?.media_type === 'movie' && data?.id) {
-        handleMovie(data?.id);
-      } else if (data?.media_type === 'tv' && data?.id) {
-        handleTv(data?.id);
+    if (castCount === 0 && data?.id && data?.media_type) {
+      if (data.media_type === 'movie') {
+        handleCast(data.id, 'Movie', movieCast, movieCrew);
+      } else if (data.media_type === 'tv') {
+        handleCast(data.id, 'TV', tvCast, tvCrew);
       }
 
-      castCount++;
+      castCount++; // Ensure this effect runs only once
     }
-  }, [(movieCast && movieCrew) || (tvCast && tvCrew)]);
+  }, [movieCast, movieCrew, tvCast, tvCrew, data?.id, data?.media_type]);
 
-  const handleDirector = (crew: Crew[]): string | undefined => {
-    const director = crew?.find((c) => c?.job === 'Director');
-    if (director) {
-      return director?.name;
-    }
-  };
-  // Check if there is a Director exist on the Crew array
-  const isDirector = (castState: CastState): boolean => {
-    if (castState?.crew) {
-      const result = castState.crew?.filter((c: Crew) => c.job === 'Director');
-      if (result.length !== 0) {
-        return true;
-      } else return false;
-    } else return false;
-  };
+  // Functions to get the name of the Director / Writer from the crew
+  const getDirectorName = (crew: Crew[]): string | undefined =>
+    crew?.find((c) => c.job === 'Director')?.name;
 
-  const handleWriter = (crew: Crew[]): string | undefined => {
-    const Writer = crew?.find((c) => c?.job === 'Writer');
-    if (Writer) {
-      return Writer?.name;
-    }
-  };
-  // Check if there is a Writer exist on the Crew array
-  const isWriter = (castState: CastState): boolean => {
-    if (castState?.crew) {
-      const result = castState.crew?.filter((c: Crew) => c.job === 'Writer');
-      if (result.length !== 0) {
-        return true;
-      } else return false;
-    } else return false;
-  };
+  const getWriterName = (crew: Crew[]): string | undefined =>
+    crew?.find((c) => c.job === 'Writer')?.name;
+
+  // Check if a Director / Writer exists
+  const hasDirector = (castState: CastState): boolean =>
+    castState?.crew?.some((c: Crew) => c.job === 'Director') ?? false;
+
+  const hasWriter = (castState: CastState): boolean =>
+    castState?.crew?.some((c: Crew) => c.job === 'Writer') ?? false;
 
   const handleCelebrity = (name: string, id: number): void => {
-    SearchCelebrity({ variables: { query: name } }).then((response) => {
+    searchCelebrity.fetch({ query: name }).then((response) => {
       const data: Celebrity[] = response?.data?.searchCelebrity;
       const celebrity: Celebrity | undefined = data?.find((c) => c?.id === id);
       navigate('/celebrityDetails', { state: celebrity });
     });
   };
 
+  // Handle next navigation
+  function handleNext(e: React.MouseEvent): void {
+    e.stopPropagation();
+
+    setCurrentIndex((prevIndex) => {
+      const totalImages = movieImages?.length || tvImages?.length || 0;
+      if (prevIndex === null) return 0; // Default to the first index if `prevIndex` is null
+      return (prevIndex + 1) % totalImages; // Loop back to the start when reaching the end
+    });
+  }
+
+  // Handle Previous navigation
+  function handlePrev(e: React.MouseEvent): void {
+    e.stopPropagation();
+
+    setCurrentIndex((prevIndex) => {
+      const totalImages = movieImages?.length || tvImages?.length || 0;
+      if (prevIndex === null) return totalImages - 1; // Default to the last index if `prevIndex` is null
+      return (prevIndex - 1 + totalImages) % totalImages; // Loop back to the end when reaching the start
+    });
+  }
+
+  // handle show for images gallery popups
   const handleShow = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShow(false);
@@ -386,184 +455,165 @@ const MediaDetail = () => {
     setCurrentIndex(index);
   };
 
-  function handleNext(e: React.MouseEvent) {
-    e.stopPropagation();
-    setCurrentIndex((prevIndex) =>
-      prevIndex === (movieImages?.length || tvImages?.length) - 1
-        ? 0
-        : prevIndex !== null
-        ? prevIndex + 1
-        : null
-    );
-  }
+  // Handle current image that displayed
+  const currentImage =
+    currentIndex !== null && (movieImages || tvImages)
+      ? (movieImages || tvImages)[currentIndex]
+      : null;
 
-  function handlePrev(e: React.MouseEvent) {
+  // Handle adding media to a certain list
+  const handleAddToList = async (
+    e: React.MouseEvent,
+    data: Media | Details,
+    list?: List
+  ): Promise<void> => {
     e.stopPropagation();
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0
-        ? (movieImages?.length || tvImages?.length) - 1
-        : prevIndex !== null
-        ? prevIndex - 1
-        : null
-    );
-  }
 
-  const currentImage = currentIndex !== null ? (movieImages || tvImages)[currentIndex] : null;
+    if (!user) {
+      navigate('/sign');
+      return;
+    }
 
-  const handleAddToList = async (e: React.MouseEvent, data: Media, list?: List) => {
-    e.stopPropagation();
-    const currentList = lists?.find((l) => l?.name === list?.name);
+    const listName = list?.name || 'Your_Watchlist';
+    const currentList = lists?.find((l) => l?.name === listName);
     const isExist = currentList?.movies?.some((m) => m.id === data.id);
+    const isDefaultWatchlist = listName === 'Your Watchlist' || list?.name === undefined;
+
     try {
-      if (user && (data.isAdded || isExist)) {
-        const deleteResponse = await axios.delete(
-          `http://localhost:3000/lists/${list?.name || 'Your_Watchlist'}/${data?.id}`,
-          {
-            withCredentials: true,
-          }
-        );
-        console.log(deleteResponse.data);
-        const response = await axios.get(`http://localhost:3000/lists`, {
+      if (data.isAdded || isExist) {
+        await axios.delete(`http://localhost:3000/lists/${listName}/${data.id}`, {
           withCredentials: true,
         });
-        console.log(response.data);
-        setLists(response.data);
-        (list?.name === undefined || list.name === 'Your Watchlist') &&
-          setData((prev) => ({ ...prev, isAdded: false }));
-      } else if (user && (!data.isAdded || !isExist)) {
-        const updateResponse = await axios.put(
-          `http://localhost:3000/lists/${list?.name || 'Your_Watchlist'}/${data?.id}`,
+        console.log(`Removed ${data.id} from ${listName}`);
+      } else {
+        await axios.put(
+          `http://localhost:3000/lists/${listName}/${data.id}`,
           {
             ...data,
-            isAdded: list?.name === 'Your Watchlist' || list?.name === undefined ? true : false,
+            isAdded: isDefaultWatchlist,
           },
           {
             withCredentials: true,
           }
         );
-        console.log(updateResponse.data);
-        const response = await axios.get(`http://localhost:3000/lists`, {
-          withCredentials: true,
-        });
-        console.log(response.data);
-        setLists(response.data);
-        (list === undefined || list.name === 'Your Watchlist') &&
-          setData((prev) => ({ ...prev, isAdded: true }));
+        console.log(`Added ${data.id} to ${listName}`);
       }
-    } catch (error: any) {
-      console.error(error.response.data);
-    }
-    if (!user) {
-      navigate('/sign');
-    }
-  };
 
-  const handleList = async (list: List) => {
-    try {
-      const getResponse = await axios.get(
-        `http://localhost:3000/lists/${
-          list.name === 'Your Watchlist' ? 'Your_Watchlist' : list.name
-        }`,
-        {
-          withCredentials: true,
-        }
-      );
-
-      const media = getResponse?.data?.movies;
-      navigate('/listDetails', {
-        state: { title: list.name, discription: list.description, data: media },
-      });
-    } catch (error: any) {
-      console.error(error.response.data);
-    }
-  };
-
-  const handleCreate = () => {
-    if (user) {
-      navigate('/createList');
-    } else navigate('/sign');
-  };
-
-  const handleWatchlist = async () => {
-    try {
-      const getResponse = await axios.get(`http://localhost:3000/lists/Watchlist`, {
+      // Refresh lists
+      const response = await axios.get(`http://localhost:3000/lists`, {
         withCredentials: true,
       });
+      setLists(response.data);
 
-      const media = getResponse?.data?.movies;
+      // Update `isAdded` state if it's the default watchlist
+      if (isDefaultWatchlist) {
+        setData((prev) => ({ ...prev, isAdded: !(data.isAdded || isExist) }));
+      }
+    } catch (error: any) {
+      console.error(error.response?.data || 'An error occurred');
+    }
+  };
+
+  // Navigate to a certain list
+  const handleList = async (list: List): Promise<void> => {
+    const listName = list.name === 'Your Watchlist' ? 'Your_Watchlist' : list.name;
+
+    try {
+      const { data } = await axios.get(`http://localhost:3000/lists/${listName}`, {
+        withCredentials: true,
+      });
+      const media = data?.movies;
+
+      // Navigate to the list details page
+      navigate('/listDetails', {
+        state: {
+          title: list.name,
+          description: list.description,
+          data: media,
+        },
+      });
+    } catch (error: any) {
+      console.error(error.response?.data || 'Failed to fetch the list details.');
+    }
+  };
+
+  // Navigate to watchlist
+  const handleWatchlist = async (): Promise<void> => {
+    try {
+      const { data } = await axios.get('http://localhost:3000/lists/Watchlist', {
+        withCredentials: true,
+      });
+      const media = data?.movies;
+
+      // Navigate based on user's authentication status
       if (user) {
         navigate('/listDetails', {
           state: { data: media },
         });
-      } else navigate('/sign');
+      } else {
+        navigate('/sign');
+      }
     } catch (error: any) {
-      console.error(error.response.data);
+      console.error(error.response?.data || 'Failed to fetch the watchlist.');
     }
+  };
+
+  // Create a new list
+  const handleCreate = (): void => {
+    user ? navigate('/createList') : navigate('/sign');
   };
 
   //Get user lists
   useEffect(() => {
-    const getLists = async () => {
+    const getLists = async (): Promise<void> => {
       try {
-        const response = await axios.get(`http://localhost:3000/lists`, {
+        const { data } = await axios.get('http://localhost:3000/lists', {
           withCredentials: true,
         });
-        console.log(response.data);
-        setLists(response.data);
+        setLists(data);
       } catch (error: any) {
-        console.error(error.response.data);
+        console.error(error.response?.data || 'Failed to fetch lists.');
       }
     };
+
     if (user) {
       getLists();
     }
-  }, []);
+  }, [user]);
 
-  //Sync the media to the watchlist state
+  //Sync the media to the user's watchlist
   useEffect(() => {
-    const getWatchlist = async () => {
+    const getWatchlist = async (): Promise<void> => {
       try {
-        const response = await axios.get(`http://localhost:3000/lists/Your_Watchlist`, {
+        const { data } = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
           withCredentials: true,
         });
-        const isExist = response?.data?.movies?.find((m: Media) => m.id === data.id);
-        if (!isExist) {
-          setData((prev) => ({ ...prev, isAdded: false }));
-        } else setData((prev) => ({ ...prev, isAdded: true }));
+        const isExist = data?.movies?.some((m: Media) => m.id === data.id);
+        setData((prev) => ({
+          ...prev,
+          isAdded: isExist,
+        }));
       } catch (error: any) {
-        console.error(error.response.data);
+        console.error(error.response?.data || 'Failed to fetch watchlist.');
       }
     };
+
     if (user) {
       getWatchlist();
     }
-  }, []);
+  }, [user, data?.id]);
 
-  const queries = [
-    { loading: movieTrailerLoading, error: movieTrailerError },
-    { loading: movieGenresLoading, error: movieGenresError },
-    { loading: movieCastLoading, error: movieCastError },
-    { loading: movieCrewLoading, error: movieCrewError },
-    { loading: movieImagesLoading, error: movieImagesError },
-    { loading: movieReviewLoading, error: movieReviewError },
-    { loading: moviesDetailsLoading, error: moviesDetailsError },
-    { loading: tvTrailerLoading, error: tvTrailerError },
-    { loading: tvDetailsLoading, error: tvDetailsError },
-    { loading: seasonDetailsLoading, error: seasonDetailsError },
-    { loading: tvGenresLoading, error: tvGenresError },
-    { loading: tvCastLoading, error: tvCastError },
-    { loading: tvCrewLoading, error: tvCrewError },
-    { loading: tvImagesLoading, error: tvImagesError },
-    { loading: tvReviewLoading, error: tvReviewError },
-    { loading: celebrityLoading, error: celebrityError },
-  ];
-
-  for (const { loading, error } of queries) {
-    if (loading) return <p className='text-white'>Trending Loading...</p>;
-    if (error) return <p className='text-white'>Error: {error.message}</p>;
+  // Query loading handling
+  if (mediaLoading || genresLoading) {
+    return (
+      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+    );
   }
-  console.log(episodes);
-  console.log(data);
+
+  // Query error handling
+  if (mediaError || genresError) {
+    return <p className='text-white text-sm'>{mediaError?.message || genresError?.message}</p>;
+  }
   return (
     <div>
       {isShowList && (
@@ -580,7 +630,7 @@ const MediaDetail = () => {
                 <img
                   src={TMDB_URL + data?.poster_path}
                   alt='Celebrity poster'
-                  loading='eager'
+                  loading='lazy'
                   className='object-cover w-full h-full'
                 />
               </div>
@@ -677,7 +727,7 @@ const MediaDetail = () => {
             <img
               src={TMDB_URL + data?.poster_path}
               alt='Celebrity poster'
-              loading='eager'
+              loading='lazy'
               className='object-cover w-full h-full'
             />
           </div>
@@ -704,7 +754,7 @@ const MediaDetail = () => {
           <div className='flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
             <div
               className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
-              onClick={() => handelPhoto(movieImages || tvImages)}
+              onClick={() => handlePhoto(movieImages || tvImages)}
             >
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <Image style={{ fontSize: '2.5rem' }} />
@@ -734,19 +784,19 @@ const MediaDetail = () => {
             </div>
             <p className='text-gray-250 text-lg pt-3 font-medium border-t-2'>{data?.overview}</p>
             <div className='flex flex-col gap-3 pt-3 border-t-2'>
-              {cast && isDirector(cast) && (
+              {cast && hasDirector(cast) && (
                 <div className='flex items-center gap-2'>
                   <span className='text-2xl text-white font-semibold'>Director</span>
                   <span className='text-lg text-secondary'>
-                    {cast?.crew && handleDirector(cast?.crew)}
+                    {cast?.crew && getDirectorName(cast?.crew)}
                   </span>
                 </div>
               )}
-              {cast && isWriter(cast) && (
+              {cast && hasWriter(cast) && (
                 <div className='flex items-center gap-2'>
                   <span className='text-2xl text-white font-semibold'>Director</span>
                   <span className='text-lg text-secondary'>
-                    {cast?.crew && handleWriter(cast?.crew)}
+                    {cast?.crew && getWriterName(cast?.crew)}
                   </span>
                 </div>
               )}
@@ -798,7 +848,7 @@ const MediaDetail = () => {
           </div>
         </div>
       </div>
-      {season && (
+      {season.length !== 0 && (
         <div className='container flex gap-6 py-10 bg-white'>
           <div className='flex flex-col gap-4 flex-3'>
             <div
@@ -857,7 +907,7 @@ const MediaDetail = () => {
           </div>
         </div>
       )}
-      {movieVideos && movieVideos?.length !== 0 && tvVideos && tvVideos?.length !== 0 && (
+      {((movieVideos && movieVideos?.length !== 0) || (tvVideos && tvVideos?.length !== 0)) && (
         <div className='container flex gap-6 py-10 bg-white'>
           <div className='flex flex-col gap-4 flex-3'>
             <div
@@ -917,7 +967,7 @@ const MediaDetail = () => {
           <div className='flex flex-3 flex-col gap-4'>
             <div
               className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
-              onClick={() => handelPhoto(movieImages || tvImages)}
+              onClick={() => handlePhoto(movieImages || tvImages)}
             >
               <h1>Photos</h1>
               <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
@@ -964,7 +1014,7 @@ const MediaDetail = () => {
                         </div>
                         <div
                           className='flex items-center gap-2'
-                          onClick={() => handelPhoto(movieImages || tvImages)}
+                          onClick={() => handlePhoto(movieImages || tvImages)}
                         >
                           <p className='text-lg text-primary'>
                             {index + 1} Of {movieImages?.length || tvImages?.length}
@@ -983,6 +1033,7 @@ const MediaDetail = () => {
                       >
                         <img
                           src={TMDB_URL + currentImage?.file_path}
+                          loading='lazy'
                           alt='Celebrity Image'
                           className='object-cover w-full h-full'
                         />
@@ -998,6 +1049,7 @@ const MediaDetail = () => {
 
                   <img
                     src={TMDB_URL + p?.file_path}
+                    loading='lazy'
                     alt='Celebrity Image'
                     className='object-cover w-full h-full'
                   />
@@ -1034,6 +1086,7 @@ const MediaDetail = () => {
                 <div className='w-32 h-32 rounded-full overflow-hidden'>
                   <img
                     src={TMDB_URL + c?.profile_path}
+                    loading='lazy'
                     alt='Celebrity Profile Image'
                     className='object-cover w-full h-full'
                   />

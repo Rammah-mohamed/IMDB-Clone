@@ -1,16 +1,18 @@
-import axios from 'axios';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../context/authContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
+// Type of user menu
 type menuProps = {
   showUserMenu: boolean;
   setshowUserMenu: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+// Menu text
 const text: string[] = ['your Watchlist', 'your Lists', 'Sign out'];
 
-const UserMenu: React.FC<menuProps> = ({ showUserMenu, setshowUserMenu }) => {
+const UserMenu: React.FC<menuProps> = React.memo(({ showUserMenu, setshowUserMenu }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const dropDownRef = useRef<HTMLDivElement>(null);
@@ -22,6 +24,7 @@ const UserMenu: React.FC<menuProps> = ({ showUserMenu, setshowUserMenu }) => {
     }
   };
 
+  // Navigate to a page depending on the text that has been clicked
   const handleClick = async (index: number) => {
     if (index === 0) {
       navigate('/listDetails');
@@ -29,13 +32,21 @@ const UserMenu: React.FC<menuProps> = ({ showUserMenu, setshowUserMenu }) => {
       navigate('/userLists');
     } else {
       try {
-        const response = await axios.post('http://localhost:3000/auth/logout');
+        const response = await axios.post(
+          'http://localhost:3000/auth/logout',
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+
         if (response.data === 'Logged out successfully.') {
+          localStorage.removeItem('user');
           logout();
-          navigate('/');
+          navigate(location.pathname); // Redirect to the current page
         }
       } catch (error: any) {
-        console.error(error.response.data);
+        console.error(error?.response?.data || 'An error occurred while logging out');
       }
     }
   };
@@ -65,6 +76,6 @@ const UserMenu: React.FC<menuProps> = ({ showUserMenu, setshowUserMenu }) => {
       ))}
     </div>
   );
-};
+});
 
 export default UserMenu;

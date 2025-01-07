@@ -1,9 +1,10 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/authContext';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { List } from '../types/media';
+import axios from 'axios';
 
+// Type for user
 type User = {
   username?: string;
   email: string;
@@ -11,16 +12,19 @@ type User = {
 };
 
 const Sign: React.FC = () => {
-  const [user, setUser] = useState<User>({ username: '', email: '', password: '' });
-  const [error, setError] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const create = location.state;
 
+  // Initialize state
+  const [user, setUser] = useState<User>({ username: '', email: '', password: '' });
+  const [error, setError] = useState(null);
+
   const handleLogging = async () => {
     try {
       let response;
+      // Register or login based on the 'create' flag
       if (create) {
         response = await axios.post('http://localhost:3000/auth/register', {
           username: user.username,
@@ -37,16 +41,28 @@ const Sign: React.FC = () => {
           { withCredentials: true }
         );
       }
+
       if (
         response.data.message === 'Logged in successfully.' ||
         response.data.message === 'User registered successfully.'
       ) {
+        // Save user data to localStorage for persistence
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            username: response.data.username,
+            email: response.data.email,
+          })
+        );
+
         login(response.data.username);
+
+        // Get user lists and ensure 'Your Watchlist' exists
         const listResponse = await axios.get('http://localhost:3000/lists', {
           withCredentials: true,
         });
 
-        //Check is the user have Watchlist
+        // Check if "Your Watchlist" exists and create it if not
         const isExist = listResponse?.data?.some((l: List) => l.name === 'Your Watchlist');
         if (!isExist) {
           const createResponse = await axios.post(
@@ -59,14 +75,28 @@ const Sign: React.FC = () => {
           console.log(createResponse?.data);
         }
 
-        navigate('/', { state: { username: response.data.username, email: response.data.email } });
+        // Navigate to home with state
+        navigate(location.pathname === '/sign' ? '/' : location.pathname, {
+          state: { username: response.data.username, email: response.data.email },
+        });
       }
     } catch (error: any) {
-      console.error(error.response.data);
-      setError(error.response.data);
+      console.error(error?.response?.data || 'An error occurred during login/registration');
+      setError(error?.response?.data || 'An error occurred during login/registration');
     }
   };
 
+  // Check if user is authenticated on page load (after refresh)
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      // set state or use storedUser for re-authentication
+      login(parsedUser.username);
+    }
+  }, []);
+
+  // Handle Create
   const handleCreate = () => {
     setError(null);
     navigate('/sign', { state: 'create' });
