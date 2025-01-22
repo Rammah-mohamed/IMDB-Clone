@@ -6,6 +6,8 @@ import { SEARCH_CELEBRITY, SEARCH_MEDIA, SEARCH_MOVIES, SEARCH_TV } from '../gra
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
@@ -30,9 +32,6 @@ const QUERY_CONFIG = {
   searchTV: SEARCH_TV,
   searchCelebrity: SEARCH_CELEBRITY,
 };
-
-// TMDB API image URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const Search = () => {
   const navigate = useNavigate();
@@ -170,9 +169,8 @@ const Search = () => {
                           >
                             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                             <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
-                            <img
-                              src={TMDB_URL + m?.poster_path}
-                              loading='lazy'
+                            <LazyLoadImage
+                              src={getImageUrl(m?.poster_path, 'w154')}
                               alt='poster'
                               className='object-cover w-full h-full'
                             />
@@ -219,9 +217,8 @@ const Search = () => {
                         >
                           <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                           <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
-                          <img
-                            src={TMDB_URL + m?.poster_path}
-                            loading='lazy'
+                          <LazyLoadImage
+                            src={getImageUrl(m?.poster_path, 'w154')}
                             alt='poster'
                             className='object-cover w-full h-full'
                           />
@@ -268,9 +265,8 @@ const Search = () => {
                         <div className='flex flex-1 flex-row items-center gap-3'>
                           <div className='group relative w-20 h-20 overflow-hidden rounded-full cursor-pointer'>
                             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                            <img
-                              src={TMDB_URL + m?.profile_path}
-                              loading='lazy'
+                            <LazyLoadImage
+                              src={getImageUrl(m?.profile_path, 'w185')}
                               alt='poster'
                               className='object-cover w-full h-full'
                             />

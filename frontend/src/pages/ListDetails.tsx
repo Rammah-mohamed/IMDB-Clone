@@ -21,6 +21,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
@@ -56,9 +58,6 @@ const QUERY_CONFIG = {
   tvCrew: GET_TV_CREW,
 };
 
-// TMDB API image URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
-
 const ListDetails = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -66,19 +65,19 @@ const ListDetails = () => {
 
   // Values from location state
   const state = location?.state;
-  const data = state.data;
-  const title = state.title;
-  const lists: List[] = state.lists;
+  let data = state?.data;
+  let title = state?.title;
+  let lists: List[] = state?.lists;
 
   // Initialize state hooks
   const [cast, setCast] = useState<CastState[]>([]);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [orderText, setOrderText] = useState<string>('List Order');
   const [isReverse, setIsReverse] = useState<boolean>(false);
-  const [listTitle, setListTitle] = useState<string>(state.listTitle);
-  const [description, setDescription] = useState<string>(state.description);
+  const [listTitle, setListTitle] = useState<string>(state?.listTitle);
+  const [description, setDescription] = useState<string>(state?.description);
   const [listData, setListData] = useState<Media[]>(data);
-  const [isEdit, setIsEdit] = useState<boolean>(() => !!state.edit);
+  const [isEdit, setIsEdit] = useState<boolean>(() => !!state?.edit);
   const [isCopy, setIsCopy] = useState<boolean>(false);
   const [isMove, setIsMove] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +102,17 @@ const ListDetails = () => {
           isChecked: index === 0, // Set the first item as checked
         })) || []
   );
+
+  // Set the new values when location state changed
+  useEffect(() => {
+    data = state?.data;
+    title = state?.title;
+    lists = state?.lists;
+    setListData(data);
+    setListTitle(state?.listTitle);
+    setDescription(state?.description);
+    setIsEdit(!!state?.edit);
+  }, [location.state]);
 
   //Layout view state
   const [view, setView] = useState<View>({
@@ -586,7 +596,9 @@ const ListDetails = () => {
 
   if (isAnyLoading) {
     return (
-      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      <div className='relative flex items-center justify-center w-full min-h-screen'>
+        <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      </div>
     );
   }
 
@@ -603,7 +615,7 @@ const ListDetails = () => {
   }
 
   return (
-    <div className='relative'>
+    <div className='relative w-full min-h-screen'>
       <Navbar />
       {(isCopy || isMove) && (
         <div className='fixed top-0 left-0 w-screen h-screen bg-black-transparent flex items-center justify-center z-50'>
@@ -616,7 +628,7 @@ const ListDetails = () => {
             </p>
           )}
           <div
-            className='absolute top-1/2 left-1/2 flex flex-col gap-10 p-6 bg-gray-400 w-1/3 rounded-lg'
+            className='absolute top-1/2 left-1/2 flex flex-col gap-10 p-6 bg-gray-400 w-1/3 min-h-40 rounded-lg'
             style={{ transform: 'translate(-50%, -50%)' }}
           >
             <span
@@ -702,10 +714,12 @@ const ListDetails = () => {
           )}
         </div>
         <div className='flex flex-1 flex-col gap-4'>
-          <div className='cursor-pointer' onClick={() => setIsEdit((prev) => !prev)}>
-            <EditIcon style={{ fontSize: '1.5rem' }} className='text-white hover:text-gray-250' />
-            <span className='text-white text-lg ml-2 hover:underline'>Edit</span>
-          </div>
+          {checkStates?.length !== 0 && (
+            <div className='cursor-pointer' onClick={() => setIsEdit((prev) => !prev)}>
+              <EditIcon style={{ fontSize: '1.5rem' }} className='text-white hover:text-gray-250' />
+              <span className='text-white text-lg ml-2 hover:underline'>Edit</span>
+            </div>
+          )}
           <div className='relative group flex items-center gap-1 bg-primary p-3 font-medium rounded-3xl cursor-pointer'>
             <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
             <AddIcon />
@@ -851,11 +865,7 @@ const ListDetails = () => {
                     >
                       {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                         (el: Media, index: number) => (
-                          <Draggable
-                            key={el.id.toString()}
-                            draggableId={el.id.toString()}
-                            index={index}
-                          >
+                          <Draggable key={index} draggableId={el.id.toString()} index={index}>
                             {(provided) => (
                               <div
                                 ref={provided.innerRef}
@@ -908,10 +918,9 @@ const ListDetails = () => {
                                           style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
                                           onClick={(e) => handleAddTOWatchList(e, el)}
                                         />
-                                        <img
-                                          src={TMDB_URL + el?.poster_path}
+                                        <LazyLoadImage
+                                          src={getImageUrl(el?.poster_path, 'w154')}
                                           alt='poster'
-                                          loading='lazy'
                                           className='object-cover w-full h-full'
                                         />
                                       </div>
@@ -1013,7 +1022,7 @@ const ListDetails = () => {
               >
                 {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                   (el: Media, index: number) => (
-                    <div key={el.id} className='flex items-center gap-5'>
+                    <div key={index} className='flex items-center gap-5'>
                       {isEdit && (
                         <input
                           type='checkbox'
@@ -1051,10 +1060,9 @@ const ListDetails = () => {
                                 style={{ fontSize: view.grid ? '2.3rem' : '1.6rem' }}
                                 onClick={(e) => handleAddTOWatchList(e, el)}
                               />
-                              <img
-                                src={TMDB_URL + el?.poster_path}
+                              <LazyLoadImage
+                                src={getImageUrl(el?.poster_path, 'w154')}
                                 alt='poster'
-                                loading='lazy'
                                 className='object-cover w-full h-full'
                               />
                             </div>

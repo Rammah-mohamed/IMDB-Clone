@@ -18,6 +18,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Type for Media list props
 type ListProps = {
@@ -46,9 +48,6 @@ const QUERY_CONFIG = {
   tvRecommend: GET_TV_RECOMMEND,
   tvSimilar: GET_TV_SIMILAR,
 };
-
-// TMDB API image URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => {
   const { user } = useAuth();
@@ -108,6 +107,21 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
     // Handle direct mappings
     if (mediaMappings[title]) {
       setData(mediaMappings[title]);
+      return;
+    }
+
+    // Fetch user's watchlist
+    if (user && title === 'From your watchlist') {
+      try {
+        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
+          withCredentials: true,
+        });
+        setData(response.data?.movies || []);
+      } catch (error: any) {
+        console.error(
+          error.response ? `Server Error: ${error.response.data}` : `Error: ${error.message}`
+        );
+      }
       return;
     }
 
@@ -279,15 +293,18 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
   if (listError) return <div className='text-white text-sm'>Error: {listError.message}</div>;
   return (
     data.length !== 0 && (
-      <div className='container flex flex-col gap-3 py-3'>
+      <div
+        className='container flex flex-col gap-3 py-3 overflow-hidden'
+        style={{ height: '38rem' }}
+      >
         <h1
           className={`${
             mediaType ? 'text-4xl text-black' : 'text-2xl text-white'
-          } font-semibold pl-3 mt-10 border-l-4 border-primary`}
+          } w-full h-10 font-semibold pl-3 mt-10 border-l-4 border-primary`}
         >
           {title}
         </h1>
-        <div className='relative group overflow-hidden'>
+        <div className='w-full h-full relative group overflow-hidden'>
           {height !== 0 && (
             <>
               <button
@@ -311,17 +328,17 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
             </>
           )}
           <div
-            className='flex items-center gap-4 transition-transform duration-500'
+            className='flex items-center gap-4 h-full transition-transform duration-500'
             style={{
               transform: `translateX(${-(width * index + 16 * index)}px)`,
             }}
           >
             {data?.length !== 0 &&
-              data?.map((m: Media) => (
+              data?.map((m: Media, idx) => (
                 <div
                   key={m?.id}
                   ref={containerRef}
-                  className='flex flex-col cursor-pointer'
+                  className='flex flex-col h-full cursor-pointer'
                   onClick={(e): void => handleDetails(e, m)}
                 >
                   <div
@@ -339,10 +356,10 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                       style={{ fontSize: '2.5rem' }}
                       onClick={(e) => handleAddToWatchList(e, m)}
                     />
-                    <img
-                      src={TMDB_URL + m?.poster_path}
+                    <LazyLoadImage
+                      src={getImageUrl(m?.poster_path, 'w342')}
                       alt='poster'
-                      loading='lazy'
+                      loading={idx <= 5 ? 'eager' : 'lazy'}
                       className='object-cover w-full h-full'
                     />
                   </div>

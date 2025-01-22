@@ -17,7 +17,7 @@ import {
   GET_TV_AIRING,
   GET_TV_POPULAR,
   GET_UPCOMING_MOVIES,
-} from '../graphql/queries';
+} from '../graphql/queries.js';
 
 // Types for each query's return value
 interface QueryResult {
@@ -72,7 +72,6 @@ const movies: string[] = [
   'Trending Movies',
   'Upcoming Movies',
   'Most Popular Movies',
-  'Browse Movies By Genre',
 ];
 
 // Menu shows text
@@ -81,7 +80,6 @@ const shows: string[] = [
   "What's on TV & Streaming",
   'Trending TV Shows',
   'Most Popular TV Shows',
-  'Browse TV Shows By Genre',
 ];
 
 // Menu trailer text
@@ -174,95 +172,68 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
   };
 
   // Fetch 100 Media (Movie/TV)
-  const fetchAllMedia = async (mediaType: string, title: string): Promise<void> => {
-    const totalItems: number = 100;
-    const itemsPerPage: number = 20;
-    const totalPages: number = Math.ceil(totalItems / itemsPerPage);
-    const promises: Promise<TopMoviesResponse | TopTvResponse>[] = [];
-
-    if (mediaType === 'movie') {
-      for (let page = 1; page <= totalPages; page++) {
-        promises.push(topMovies.fetch({ page }));
-      }
-    } else if (mediaType === 'tv') {
-      for (let page = 1; page <= totalPages; page++) {
-        promises.push(topTv.fetch({ page }));
-      }
-    }
+  const fetchAllMedia = async (mediaType: 'movie' | 'tv'): Promise<any[]> => {
+    const totalItems = 100;
+    const itemsPerPage = 20;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const fetchFunction = mediaType === 'movie' ? topMovies.fetch : topTv.fetch;
 
     try {
+      const promises = Array.from({ length: totalPages }, (_, i) => fetchFunction({ page: i + 1 }));
       const responses = await Promise.all(promises);
-      let allMovies: Movie[], allTv: TV[];
-      if (mediaType === 'movie') {
-        allMovies = responses.flatMap((response) => response?.data?.topMovies || []);
-        if (allMovies) {
-          const topHundred = allMovies?.slice(0, 250);
 
-          navigate('/listDetails', {
-            state: { data: topHundred, title: title },
-          });
-        }
-      } else if (mediaType === 'tv') {
-        allTv = responses.flatMap((response) => response?.data?.topTv || []);
-        if (allTv) {
-          const topHundred = allTv?.slice(0, 250);
+      const allMedia = responses.flatMap((response) =>
+        mediaType === 'movie' ? response?.data?.topMovies : response?.data?.topTv || []
+      );
 
-          navigate('/listDetails', {
-            state: { data: topHundred, title: title },
-          });
-        }
-        navigate('/listDetails', {
-          state: { data: allTv?.slice(0, 250), title: title },
-        });
-      }
+      return allMedia.slice(0, totalItems); // Return top 100 media
     } catch (error) {
-      console.error('Failed to fetch movies:', error);
+      console.error(`Failed to fetch ${mediaType}s:`, error);
+      return [];
     }
   };
 
   // Fetch media depending on menu title
-  const handleList = (title: string): void => {
+  const handleList = async (title: string): Promise<void> => {
     if (title === 'Top 100 Movies') {
-      fetchAllMedia('movie', title);
+      const data = await fetchAllMedia('movie');
+      navigate('/listDetails', {
+        state: { data, title, key: Date.now() },
+      });
     } else if (title === 'Trending Movies') {
-      trendingMovies.fetch().then((response) => {
-        navigate('/listDetails', {
-          state: { data: response?.data?.trendingMovies, title: title },
-        });
+      const response = await trendingMovies.fetch();
+      navigate('/listDetails', {
+        state: { data: response?.data?.trendingMovies, title: title, key: Date.now() },
       });
     } else if (title === 'Upcoming Movies') {
-      upcomingMovies.fetch().then((response) => {
-        navigate('/listDetails', {
-          state: { data: response?.data?.upcomingMovies, title: title },
-        });
+      const response = await upcomingMovies.fetch();
+      navigate('/listDetails', {
+        state: { data: response?.data?.upcomingMovies, title: title, key: Date.now() },
       });
     } else if (title === 'Most Popular Movies') {
-      popularMovies.fetch().then((response) => {
-        navigate('/listDetails', {
-          state: { data: response?.data?.popularMovies, title: title },
-        });
-      });
-    } else if (title === 'Browse Movies By Genre') {
-      topMovies.fetch().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.topMovies, title: title } });
+      const response = await popularMovies.fetch();
+      navigate('/listDetails', {
+        state: { data: response?.data?.popularMovies, title: title, key: Date.now() },
       });
     } else if (title === 'Top 100 TV Shows') {
-      fetchAllMedia('tv', title);
+      const data = await fetchAllMedia('tv');
+      navigate('/listDetails', {
+        state: { data, title, key: Date.now() },
+      });
     } else if (title === "What's on TV & Streaming") {
-      tvAiring.fetch().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.tvAiring, title: title } });
+      const response = await tvAiring.fetch();
+      navigate('/listDetails', {
+        state: { data: response?.data?.tvAiring, title: title, key: Date.now() },
       });
     } else if (title === 'Trending TV Shows') {
-      trendingTv.fetch().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.trendingTV, title: title } });
+      const response = await trendingTv.fetch();
+      navigate('/listDetails', {
+        state: { data: response?.data?.trendingTV, title: title, key: Date.now() },
       });
     } else if (title === 'Most Popular TV Shows') {
-      popularTv.fetch().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.tvPopular, title: title } });
-      });
-    } else if (title === 'Browse TV Shows By Genre') {
-      topMovies.fetch().then((response) => {
-        navigate('/listDetails', { state: { data: response?.data?.topMovies, title: title } });
+      const response = await popularTv.fetch();
+      navigate('/listDetails', {
+        state: { data: response?.data?.tvPopular, title: title, key: Date.now() },
       });
     }
   };

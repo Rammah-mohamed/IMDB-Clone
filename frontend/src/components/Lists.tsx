@@ -58,9 +58,9 @@ const Lists: React.FC<ListsProps> = React.memo(
     const content = relatedVideos || data || titles;
 
     return (
-      <div className='container pb-6'>
+      <div className='container pb-6 h-90'>
         <h1 className='text-3xl text-primary pl-5 mb-6'>{title}</h1>
-        <div className='group relative overflow-hidden'>
+        <div className='group relative w-full h-full overflow-hidden'>
           {/* Left Arrow */}
           <button
             className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
@@ -82,7 +82,7 @@ const Lists: React.FC<ListsProps> = React.memo(
           {/* List container */}
           <div
             ref={containerRef}
-            className='flex gap-1 transition-transform duration-1000 ease-in-out'
+            className='flex gap-1 h-full transition-transform duration-1000 ease-in-out'
             style={{
               transform: `translateX(${-index * itemWidth}px)`,
             }}

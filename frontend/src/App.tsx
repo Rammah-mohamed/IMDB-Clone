@@ -1,5 +1,6 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { useAuth } from './context/authContext';
 
 // Lazy load for Routes
 const Home = React.lazy(() => import('./pages/Home'));
@@ -15,11 +16,44 @@ const MediaDetail = React.lazy(() => import('./components/MediaDetail'));
 const Critics = React.lazy(() => import('./pages/Critics'));
 
 const App = () => {
+  const { login } = useAuth();
+
+  // Preconnect Graphql / Transform images servers URLs
+  useEffect(() => {
+    const transformImageLink = document.createElement('link');
+    const graphqlLink = document.createElement('link');
+    const mongoDblLink = document.createElement('link');
+
+    transformImageLink.rel = 'preconnect';
+    graphqlLink.rel = 'preconnect';
+    mongoDblLink.rel = 'preconnect';
+
+    transformImageLink.href = 'http://localhost:3100';
+    mongoDblLink.href = 'http://localhost:3000/';
+    graphqlLink.href = 'http://localhost:4000/graphql';
+
+    document.head.appendChild(transformImageLink);
+    document.head.appendChild(mongoDblLink);
+    document.head.appendChild(graphqlLink);
+  }, []);
+
+  // Check if user is authenticated on page load (after refresh)
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      // set state or use storedUser for re-authentication
+      login(parsedUser.username);
+    }
+  }, []);
+
   return (
     <div className='font-roboto'>
       <Suspense
         fallback={
-          <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+          <div className='w-full min-h-screen flex items-center justify-center'>
+            <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+          </div>
         }
       >
         <Routes>

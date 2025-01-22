@@ -4,7 +4,7 @@ export const reportWebVitals = (metric) => {
   console.log(metric); // Log or send the metric to your analytics server
 
   // Send to your local server
-  fetch('http://localhost:5000/log-web-vitals', {
+  fetch('http://localhost:/log-web-vitals', {
     method: 'POST',
     body: JSON.stringify(metric),
     headers: { 'Content-Type': 'application/json' },

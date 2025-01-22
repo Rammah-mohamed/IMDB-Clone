@@ -24,6 +24,8 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import CloseIcon from '@mui/icons-material/Close';
 import ViewCompactIcon from '@mui/icons-material/ViewCompact';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Lazy load the component
 const Navbar = React.lazy(() => import('../components/Navbar'));
@@ -51,8 +53,7 @@ const QUERY_CONFIG = {
   tvCrew: GET_TV_CREW,
 };
 
-// TMDB API image URL / YouTube video URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+// YouTube video URL
 const YOUTUBE_URL = 'https://www.youtube.com/watch?v=';
 
 const CelebrityDetails = () => {
@@ -161,23 +162,28 @@ const CelebrityDetails = () => {
 
   // Handle image modal
   const handleImageModal = (index: number) => {
+    console.log('T');
     setShowImageModal(true);
     setCurrentImageIndex(index);
   };
 
-  const handleNextImage = () => {
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('T');
     setCurrentImageIndex((prevIndex) =>
       prevIndex === celebrityImages.length - 1 ? 0 : (prevIndex ?? 0) + 1
     );
   };
 
-  const handlePrevImage = () => {
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentImageIndex((prevIndex) =>
       prevIndex === 0 ? celebrityImages.length - 1 : (prevIndex ?? 1) - 1
     );
   };
 
-  const closeImageModal = () => {
+  const closeImageModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setShowImageModal(false);
     setCurrentImageIndex(0);
   };
@@ -264,8 +270,8 @@ const CelebrityDetails = () => {
         <div className='flex gap-2' style={{ height: '30rem' }}>
           <div className='relative group flex-1 rounded-lg cursor-pointer overflow-hidden'>
             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-            <img
-              src={TMDB_URL + celebrityInfo?.profile_path}
+            <LazyLoadImage
+              src={getImageUrl(celebrityInfo?.profile_path, 'w342')}
               alt='Celebrity poster'
               loading='lazy'
               className='object-cover w-full h-full'
@@ -402,8 +408,8 @@ const CelebrityDetails = () => {
                         height: '85vh',
                       }}
                     >
-                      <img
-                        src={TMDB_URL + currentImage?.file_path}
+                      <LazyLoadImage
+                        src={getImageUrl(currentImage?.file_path, 'w780')}
                         loading='lazy'
                         alt='Celebrity Image'
                         className='object-cover w-full h-full'
@@ -418,8 +424,8 @@ const CelebrityDetails = () => {
                   </span>
                 )}
 
-                <img
-                  src={TMDB_URL + p?.file_path}
+                <LazyLoadImage
+                  src={getImageUrl(p?.file_path, 'w342')}
                   loading='lazy'
                   alt='Celebrity Image'
                   className='object-cover w-full h-full'
@@ -454,8 +460,8 @@ const CelebrityDetails = () => {
                   >
                     <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                     <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
-                    <img
-                      src={TMDB_URL + m?.poster_path}
+                    <LazyLoadImage
+                      src={getImageUrl(m?.poster_path, 'w154')}
                       loading='lazy'
                       alt='poster'
                       className='object-cover w-full h-full'

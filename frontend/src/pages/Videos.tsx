@@ -8,14 +8,15 @@ import ReactPlayer from 'react-player';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import getImageUrl from '../utils/getImages';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
 const Lists = React.lazy(() => import('../components/Lists'));
 
-// TMDB API URL for images and YouTube video URL
+// YouTube video URL
 const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
 
 const Videos = () => {
   const location = useLocation();
@@ -181,8 +182,8 @@ const Videos = () => {
                 className='absolute top-0 left-0 bg-black-transparent '
                 style={{ fontSize: '1.5rem' }}
               />
-              <img
-                src={TMDB_URL + (data?.poster_path || videoData?.poster_path)}
+              <LazyLoadImage
+                src={getImageUrl(data?.poster_path || videoData?.poster_path, 'w154')}
                 loading='lazy'
                 alt={
                   data?.media_type === 'movie' || (videoData && videoData?.media_type === 'movie')

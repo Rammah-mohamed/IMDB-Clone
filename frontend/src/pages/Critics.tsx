@@ -4,6 +4,8 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import StarIcon from '@mui/icons-material/Star';
 import React from 'react';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
@@ -29,8 +31,8 @@ const Critics = () => {
         </div>
         <div className='flex gap-3'>
           <div className='w-28 h-44 rounded-lg overflow-hidden'>
-            <img
-              src={TMDB_URL + poster}
+            <LazyLoadImage
+              src={getImageUrl(poster, 'w154')}
               loading='lazy'
               alt='Celebrity Image'
               className='object-cover w-full h-full'
@@ -54,8 +56,8 @@ const Critics = () => {
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <div className='flex items-center gap-3'>
                 <div className='w-14 h-14 rounded-full overflow-hidden'>
-                  <img
-                    src={TMDB_URL + r?.author_details?.avatar_path}
+                  <LazyLoadImage
+                    src={TMDB_URL + getImageUrl(r?.author_details?.avatar_path, 'w45')}
                     loading='lazy'
                     alt='Critic Image'
                   />

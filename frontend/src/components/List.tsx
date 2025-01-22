@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Media, Movie, TV } from '../types/media';
 import { useQuery } from '@apollo/client';
 import { GET_LIST_MEDIA } from '../graphql/queries';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import ListIcon from '@mui/icons-material/List';
 
@@ -19,7 +20,7 @@ type ListProps = {
 };
 
 // TMDB API base image URL (static)
-const TMDB_URL = 'https://image.tmdb.org/t/p/original';
+const TMDB_URL = 'https://image.tmdb.org/t/p/';
 
 const List: React.FC<ListProps> = React.memo(
   ({ title, listFor, containerRef, setWidth, info, trending, videoID, poster }) => {
@@ -43,7 +44,7 @@ const List: React.FC<ListProps> = React.memo(
     // Determine the list data based on the `title` prop
     const listData = React.useMemo(() => {
       switch (title) {
-        case 'Upcomings Movies':
+        case 'Upcoming Movies':
           return upcomings;
         case 'Popular Movies':
           return popularMovies;
@@ -56,11 +57,16 @@ const List: React.FC<ListProps> = React.memo(
       }
     }, [title, upcomings, popularMovies, tvAirings, tvPopular]);
 
+    // Get the transformed Images (webp)
+    const getImageUrl = (path: string) => {
+      return `http://localhost:3100/image?url=${encodeURIComponent(path)}&format=webp`;
+    };
+
     // Memoize the image URL
     const imageURL = React.useMemo(() => {
-      if (poster) return `${TMDB_URL}${poster}`;
-      const source = listData[1]?.backdrop_path || info?.backdrop_path;
-      return source ? `${TMDB_URL}${source}` : '';
+      if (poster) return `${TMDB_URL + 'w780'}${poster}`;
+      const source = listData[0]?.backdrop_path || info?.backdrop_path;
+      return source ? `${TMDB_URL + 'w780'}${source}` : '';
     }, [poster, listData, info]);
 
     // Handle container resizing
@@ -98,10 +104,9 @@ const List: React.FC<ListProps> = React.memo(
 
     const handleList = () => {
       navigate('/listDetails', { state: { data: listData, title } });
+      window.scrollTo({ top: 0 });
     };
 
-    // console.log(info);
-    // console.log(videoID);
     const handleClick = () => {
       listFor ? handleList() : handleTrailer();
     };
@@ -117,14 +122,14 @@ const List: React.FC<ListProps> = React.memo(
     return (
       <div
         ref={containerRef}
-        className='pl-4 cursor-pointer'
+        className='h-full pl-4 cursor-pointer'
         style={{ flex: '0 0 33%' }}
         onClick={handleClick}
       >
-        <div className='group/icon relative mb-3 rounded-2xl overflow-hidden'>
+        <div className='group/icon relative w-full h-full mb-3 rounded-2xl overflow-hidden'>
           <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-          <img
-            src={imageURL}
+          <LazyLoadImage
+            src={getImageUrl(imageURL)}
             alt='List Image'
             loading='lazy'
             className='object-cover w-full h-full'

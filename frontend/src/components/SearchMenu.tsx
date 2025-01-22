@@ -79,7 +79,7 @@ const SearchMenu: React.FC<SeachMenuProps> = React.memo(
         {(menuFor === 'Navbar' ? searchText : orderText)?.map((el: string, index: number) => (
           <div
             key={index}
-            className={`group flex items-center gap-3 px-4 py-3 ${
+            className={`group flex items-center gap-3 w-full h-full px-4 py-3 ${
               menuFor === 'Navbar' && 'hover:bg-gray-300'
             } ${menuFor === 'List' && 'hover:bg-secondary'}`}
             onClick={handleClick}

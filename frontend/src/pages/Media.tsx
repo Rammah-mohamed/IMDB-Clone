@@ -9,6 +9,8 @@ import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
@@ -21,8 +23,7 @@ type Active = {
 // Menu text
 const seasonMenu = ['Seasons', 'Years', 'Top-rated'];
 
-// TMDB API image / YouTube video URLs
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+// YouTube video URLs
 const YOUTUBE_URL = 'https://www.youtube.com/watch?v=';
 
 const Media = () => {
@@ -153,15 +154,15 @@ const Media = () => {
           </div>
           <div className='flex gap-3'>
             <div className='w-28 h-44 rounded-lg overflow-hidden'>
-              <img
-                src={
-                  TMDB_URL +
-                  (poster
+              <LazyLoadImage
+                src={getImageUrl(
+                  poster
                     ? poster
                     : photos
                     ? photos[0]?.file_path
-                    : celebrityImage?.file_path || mediaImage)
-                }
+                    : celebrityImage?.file_path || mediaImage,
+                  'w185'
+                )}
                 loading='lazy'
                 alt='Celebrity Image'
                 className='object-cover w-full h-full'
@@ -270,9 +271,8 @@ const Media = () => {
                   )?.map((e) => (
                     <div key={e.id} className='flex gap-4'>
                       <div className='flex-1 w-60 h-32 rounded-lg rounded-tl-none overflow-hidden'>
-                        <img
-                          src={TMDB_URL + e.still_path}
-                          loading='lazy'
+                        <LazyLoadImage
+                          src={getImageUrl(e?.still_path, 'w185')}
                           alt='episode poster'
                           className='w-full h-full object-cover'
                         />
@@ -355,8 +355,8 @@ const Media = () => {
                           height: '85vh',
                         }}
                       >
-                        <img
-                          src={TMDB_URL + currentImage?.file_path}
+                        <LazyLoadImage
+                          src={getImageUrl(currentImage?.file_path, 'w780')}
                           loading='lazy'
                           alt='Celebrity Image'
                           className='object-cover w-full h-full'
@@ -364,8 +364,8 @@ const Media = () => {
                       </div>
                     </div>
                   )}
-                  <img
-                    src={TMDB_URL + p?.file_path}
+                  <LazyLoadImage
+                    src={getImageUrl(p?.file_path, 'w342')}
                     loading='lazy'
                     alt='Celebrity Image'
                     className='object-cover w-full h-full'

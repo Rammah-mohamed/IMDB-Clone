@@ -6,9 +6,10 @@ import { Celebrity } from '../types/media';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { debounce } from 'lodash';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 // TMDB API image URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+const TMDB_URL: string = 'https://image.tmdb.org/t/p/';
 
 const PopularCelebrity = () => {
   const navigate = useNavigate();
@@ -26,7 +27,13 @@ const PopularCelebrity = () => {
     error: isError,
     data: celebrityData,
   } = useQuery(GET_POPULAR_CELEBRITY);
-  const popularCelebrities: Celebrity[] = celebrityData?.popularCelebrity ?? [];
+  const popularCelebrities: Celebrity[] = celebrityData?.popularCelebrity;
+
+  // Get the transformed Images (webp)
+  const getImageUrl = (path: string, quality: string) => {
+    const originalUrl = `${TMDB_URL}${quality}${path}`;
+    return `http://localhost:3100/image?url=${encodeURIComponent(originalUrl)}&format=webp`;
+  };
 
   // Handlers to update the index
   const handleNext = (): void => {
@@ -60,12 +67,14 @@ const PopularCelebrity = () => {
 
   if (isLoading)
     return (
-      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      <div className='container flex items-center justify-center py-8 h-96 mb-10 overflow-hidden'>
+        <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      </div>
     );
   if (isError) return <p className='text-white text-sm'>Error: {isError.message}</p>;
   return (
-    <div className='container py-8'>
-      <div className='group flex items-center gap-2 text-2xl text-white p-3 mb-4 border-l-4 border-primary cursor-pointer'>
+    <div className='container py-8 h-96 mb-10 overflow-hidden'>
+      <div className='group flex items-center gap-2 w-full h-14 text-2xl text-white p-3 mb-4 border-l-4 border-primary cursor-pointer'>
         <h1>Most popular celebrities</h1>
         <ArrowForwardIosIcon className='group-hover:text-primary' />
       </div>
@@ -85,24 +94,24 @@ const PopularCelebrity = () => {
           <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <div
-          className='flex items-center gap-4 transition-transform duration-500 cursor-pointer'
+          className='flex items-center gap-4 h-full transition-transform duration-500 cursor-pointer'
           style={{
             transform: `translateX(${-(containerWidth * currentIndex + 16 * (currentIndex + 1))}px`,
           }}
         >
-          {popularCelebrities.map((p) => (
+          {popularCelebrities.map((p, index) => (
             <div
-              className='group/icon relative flex flex-col gap-2'
+              className='group/icon relative flex flex-col gap-2 h-full w-48'
               key={p.id}
               ref={containerRef}
               onClick={() => handleCelebrityClick(p)}
             >
               <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <div className='w-44 h-44'>
-                <img
-                  src={TMDB_URL + p.profile_path}
-                  loading='lazy'
+                <LazyLoadImage
+                  src={getImageUrl(p?.profile_path, 'w185')}
                   alt='Person Image'
+                  loading={index <= 6 ? 'eager' : 'lazy'}
                   className='object-cover w-full h-full rounded-full'
                 />
               </div>

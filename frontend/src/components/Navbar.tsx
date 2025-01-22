@@ -7,6 +7,7 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import axios from 'axios';
 
 // lazy load the components
 const Menu = React.lazy(() => import('./Menu'));
@@ -17,6 +18,7 @@ const Navbar: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState<string>('');
+  const [mediaLength, setmediaLength] = useState<number | null>(null);
   const [focus, setFocus] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
@@ -29,6 +31,26 @@ const Navbar: React.FC = () => {
       setShowUserMenu((prev) => !prev);
     } else navigate('/sign');
   };
+
+  // Fetch user's watchlist
+  useEffect(() => {
+    if (!user) return;
+
+    const getUserMedia = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
+          withCredentials: true,
+        });
+        setmediaLength(response.data?.movies?.length || null);
+      } catch (error: any) {
+        console.error(
+          error.response ? `Server Error: ${error.response.data}` : `Error: ${error.message}`
+        );
+      }
+    };
+
+    getUserMedia();
+  }, [user]);
 
   // Navigate to the search page when pressing Enter key and the input it's valid
   useEffect(() => {
@@ -43,19 +65,25 @@ const Navbar: React.FC = () => {
   }, [focus, query, searchText]);
 
   return (
-    <div className='container bg-black-100'>
+    <div className='container bg-black-100 h-16'>
       <Suspense
         fallback={
           <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
         }
       >
-        <div className='relative flex items-center justify-between py-2 font-bold'>
+        <div className='relative flex items-center justify-between gap-2 w-full h-full py-4 font-bold'>
           <Link to={'/'} className='group relative'>
-            <h1 className=' bg-primary py-0.5 px-1.5 text-xl font-black rounded'>IMDB</h1>
+            <h1
+              data-testid='imdb-logo'
+              className=' bg-primary py-0.5 px-1.5 text-xl font-black rounded'
+            >
+              IMDB
+            </h1>
             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
           </Link>
           <div
-            className='flex items-center gap-1 py-1 px-3 text-white text-sm cursor-pointer rounded hover:bg-gray'
+            data-testid='menuBtn'
+            className='flex items-center gap-1 w-max h-full py-1 px-3 text-white text-sm cursor-pointer rounded hover:bg-gray'
             onClick={(): void => setShowMenu(true)}
           >
             <MenuIcon />
@@ -63,12 +91,12 @@ const Navbar: React.FC = () => {
             <Menu showMenu={showMenu} setShowMenu={setShowMenu} />
           </div>
           <div
-            className='relative flex items-center w-3/5'
+            className='relative flex items-center w-3/5 h-full'
             onFocus={() => setFocus(true)}
             onBlur={() => setFocus(false)}
           >
             <div
-              className='relative flex items-center justify-center h-full w-fit py-1.5 pl-2 pr-0.5 bg-white font-semibold text-sm cursor-pointer select-none rounded hover:bg-gray-200 border-r border-r-gray-300 border-br-none border-tr-none'
+              className='relative flex items-center justify-center h-full w-max py-1.5 pl-2 pr-0.5 bg-white font-semibold text-sm cursor-pointer select-none rounded hover:bg-gray-200 border-r border-r-gray-300 border-br-none border-tr-none'
               onClick={(): void => setShowSearch((prev) => !prev)}
             >
               <span className='text-md'>{searchText}</span>
@@ -97,18 +125,26 @@ const Navbar: React.FC = () => {
           </p>
           <Link
             to={user ? '/listDetails' : '/sign'}
-            className='flex items-center gap-1 py-1 px-3 text-white text-sm rounded hover:bg-gray'
+            className='flex items-center gap-1 w-max h-full py-1 px-3 text-white text-sm rounded hover:bg-gray'
           >
             <LibraryAddIcon />
-            <span>Watchlist</span>
+            <div className='flex items-center gap-2'>
+              <span>Watchlist</span>{' '}
+              {user && (
+                <span className='text-black text-sm bg-primary rounded-lg py-0.5 px-2'>
+                  {mediaLength}
+                </span>
+              )}
+            </div>
           </Link>
           <button
+            data-testid='btn'
             className='relative py-1 px-3 text-white text-sm rounded hover:bg-gray'
             style={{ marginLeft: '-0.5rem' }}
             onClick={handleLog}
           >
             {user ? (
-              <div className='flex items-center gap-1'>
+              <div className='flex items-center gap-1 w-full h-full'>
                 <AccountCircleIcon className='text-white' />
                 <span>{user}</span>
                 <UserMenu showUserMenu={showUserMenu} setshowUserMenu={setShowUserMenu} />

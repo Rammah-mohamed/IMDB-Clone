@@ -68,7 +68,7 @@ const UserMenu: React.FC<menuProps> = React.memo(({ showUserMenu, setshowUserMen
       {text.map((el: string, index: number) => (
         <div
           key={index}
-          className='group flex items-center gap-3 px-4 py-3 hover:bg-gray-300'
+          className='group flex items-center gap-3 w-full h-full px-4 py-3 hover:bg-gray-300'
           onClick={() => handleClick(index)}
         >
           <span className='text-base text-gray-200 group-hover:text-white'>{el}</span>

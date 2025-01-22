@@ -43,6 +43,8 @@ import {
   GET_TV_Details,
   SEARCH_CELEBRITY,
 } from '../graphql/queries';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('./Navbar'));
@@ -68,8 +70,7 @@ const QUERY_CONFIG = {
   searchCelebrity: SEARCH_CELEBRITY,
 };
 
-// TMDB API image URL / Youtube video URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/original';
+// Youtube video URL
 const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
 
 const MediaDetail = () => {
@@ -627,10 +628,10 @@ const MediaDetail = () => {
             <div className='flex items-center gap-3 p-6'>
               <div className='relative group w-16 h-20 rounded-lg overflow-hidden'>
                 <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                <img
-                  src={TMDB_URL + data?.poster_path}
+                <LazyLoadImage
+                  src={getImageUrl(data?.poster_path, 'w92')}
                   alt='Celebrity poster'
-                  loading='lazy'
+                  loading='eager'
                   className='object-cover w-full h-full'
                 />
               </div>
@@ -724,8 +725,8 @@ const MediaDetail = () => {
               style={{ fontSize: '2.5rem' }}
               onClick={(e) => handleAddToList(e, data)}
             />
-            <img
-              src={TMDB_URL + data?.poster_path}
+            <LazyLoadImage
+              src={getImageUrl(data?.poster_path, 'w342')}
               alt='Celebrity poster'
               loading='lazy'
               className='object-cover w-full h-full'
@@ -1031,8 +1032,8 @@ const MediaDetail = () => {
                           height: '85vh',
                         }}
                       >
-                        <img
-                          src={TMDB_URL + currentImage?.file_path}
+                        <LazyLoadImage
+                          src={getImageUrl(currentImage?.file_path, 'w780')}
                           loading='lazy'
                           alt='Celebrity Image'
                           className='object-cover w-full h-full'
@@ -1047,8 +1048,8 @@ const MediaDetail = () => {
                     </span>
                   )}
 
-                  <img
-                    src={TMDB_URL + p?.file_path}
+                  <LazyLoadImage
+                    src={getImageUrl(p?.file_path, 'w342')}
                     loading='lazy'
                     alt='Celebrity Image'
                     className='object-cover w-full h-full'
@@ -1084,8 +1085,8 @@ const MediaDetail = () => {
                 onClick={(): void => handleCelebrity(c?.name, c?.id)}
               >
                 <div className='w-32 h-32 rounded-full overflow-hidden'>
-                  <img
-                    src={TMDB_URL + c?.profile_path}
+                  <LazyLoadImage
+                    src={getImageUrl(c?.profile_path, 'w154')}
                     loading='lazy'
                     alt='Celebrity Profile Image'
                     className='object-cover w-full h-full'

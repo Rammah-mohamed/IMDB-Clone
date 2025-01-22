@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/authContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { List } from '../types/media';
@@ -85,16 +85,6 @@ const Sign: React.FC = () => {
       setError(error?.response?.data || 'An error occurred during login/registration');
     }
   };
-
-  // Check if user is authenticated on page load (after refresh)
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      // set state or use storedUser for re-authentication
-      login(parsedUser.username);
-    }
-  }, []);
 
   // Handle Create
   const handleCreate = () => {
