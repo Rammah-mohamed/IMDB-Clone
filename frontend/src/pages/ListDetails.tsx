@@ -828,6 +828,7 @@ const ListDetails = () => {
                 {!isEdit && (
                   <>
                     <ListIcon
+                      data-testid='details'
                       style={{ fontSize: '2.5rem' }}
                       className={`detailsView ${
                         view.details && 'text-secondary'
@@ -835,6 +836,7 @@ const ListDetails = () => {
                       onClick={(e) => handleView(e)}
                     />
                     <AppsIcon
+                      data-testid='grid'
                       style={{ fontSize: '2.5rem' }}
                       className={`gridView ${
                         view.grid && 'text-secondary'
@@ -842,6 +844,7 @@ const ListDetails = () => {
                       onClick={(e) => handleView(e)}
                     />
                     <MenuIcon
+                      data-testid='compact'
                       style={{ fontSize: '2.5rem' }}
                       className={`compactView ${
                         view.compact && 'text-secondary'
@@ -910,6 +913,7 @@ const ListDetails = () => {
                                       >
                                         <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                                         <AddIcon
+                                          data-testid='watchlist'
                                           className={`absolute top-0 left-0 ${
                                             user && el?.isAdded
                                               ? 'bg-primary text-black-100'
@@ -1052,6 +1056,7 @@ const ListDetails = () => {
                             >
                               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                               <AddIcon
+                                data-testid='watchlist'
                                 className={`absolute top-0 left-0 ${
                                   user && el?.isAdded
                                     ? 'bg-primary text-black-100'

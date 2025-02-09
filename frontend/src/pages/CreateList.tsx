@@ -125,7 +125,7 @@ const CreateList = () => {
             <textarea
               value={list.description}
               onChange={handleDescription}
-              placeholder='Enter the name of your list'
+              placeholder='Enter a description'
               className='p-2 w-full h-20 border-gray-300 border-2 rounded-lg focus-within:outline-none'
               required
             />
@@ -134,6 +134,7 @@ const CreateList = () => {
             </p>
           </div>
           <button
+            type='submit'
             className='text-white px-4 py-2 text-base font-semibold rounded-3xl bg-secondary w-fit'
             onClick={handleCreate}
           >

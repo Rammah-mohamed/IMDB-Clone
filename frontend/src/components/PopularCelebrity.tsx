@@ -67,7 +67,10 @@ const PopularCelebrity = () => {
 
   if (isLoading)
     return (
-      <div className='container flex items-center justify-center py-8 h-96 mb-10 overflow-hidden'>
+      <div
+        role='status'
+        className='container flex items-center justify-center py-8 h-96 mb-10 overflow-hidden'
+      >
         <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
       </div>
     );
@@ -80,6 +83,7 @@ const PopularCelebrity = () => {
       </div>
       <div className='group relative p-4 overflow-hidden'>
         <button
+          data-testid='prevBtn'
           className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
           style={{ transform: 'translateY(-50%)' }}
           onClick={handlePrev}
@@ -87,6 +91,7 @@ const PopularCelebrity = () => {
           <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <button
+          data-testid='nextBtn'
           className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
           style={{ transform: 'translateY(-50%)' }}
           onClick={handleNext}

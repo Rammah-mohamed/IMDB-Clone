@@ -70,18 +70,21 @@ const SearchMenu: React.FC<SeachMenuProps> = React.memo(
     return (
       <div
         ref={dropDownRef}
+        data-testid='search-menu'
+        role='menu'
+        style={{ display: `${showSearch ? 'block' : 'none'}` }}
         className={`absolute flex flex-col gap-2 left-0 bottom-0 ${
           menuFor === 'Navbar' ? 'bg-gray-400' : 'bg-white border-2 border-gray-250 shadow-xl'
-        } translate-y-full z-30 overflow-hidden transition-all duration-300 ease-in-out ${
-          showSearch ? 'w-max h-max' : 'border-0 w-0 h-0'
-        }`}
+        } translate-y-full z-30 overflow-hidden transition-all duration-300 ease-in-out`}
       >
         {(menuFor === 'Navbar' ? searchText : orderText)?.map((el: string, index: number) => (
           <div
             key={index}
             className={`group flex items-center gap-3 w-full h-full px-4 py-3 ${
-              menuFor === 'Navbar' && 'hover:bg-gray-300'
-            } ${menuFor === 'List' && 'hover:bg-secondary'}`}
+              showSearch ? 'block' : 'hidden'
+            } ${menuFor === 'Navbar' && 'hover:bg-gray-300'} ${
+              menuFor === 'List' && 'hover:bg-secondary'
+            }`}
             onClick={handleClick}
           >
             {menuFor === 'Navbar' && icons[index]}

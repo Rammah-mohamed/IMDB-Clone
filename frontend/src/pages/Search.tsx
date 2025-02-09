@@ -3,11 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Celebrity, Movie, Multi, TV } from '../types/media';
 import { useLazyQuery } from '@apollo/client';
 import { SEARCH_CELEBRITY, SEARCH_MEDIA, SEARCH_MOVIES, SEARCH_TV } from '../graphql/queries';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import getImageUrl from '../utils/getImages';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));

@@ -63,6 +63,7 @@ const Lists: React.FC<ListsProps> = React.memo(
         <div className='group relative w-full h-full overflow-hidden'>
           {/* Left Arrow */}
           <button
+            data-testid='prevBtn'
             className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
             style={{ transform: 'translateY(-50%)' }}
             onClick={() => handleLeft(content.length)}
@@ -72,6 +73,7 @@ const Lists: React.FC<ListsProps> = React.memo(
 
           {/* Right Arrow */}
           <button
+            data-testid='nextBtn'
             className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
             style={{ transform: 'translateY(-50%)' }}
             onClick={() => handleRight(content.length)}

@@ -108,6 +108,7 @@ const Feature = () => {
   if (trendingLoading)
     return (
       <div
+        data-testid='status'
         className='container flex items-center justify-center'
         style={{
           height: 'calc(98vh - 72px)',
@@ -131,6 +132,7 @@ const Feature = () => {
         style={{ height: '90%' }}
       >
         <button
+          data-testid='prevBtn'
           className='absolute top-1/2 left-0 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
           style={{ top: height !== 0 ? `${height / 2}px` : '50%', transform: 'translateY(-100%)' }}
           onClick={handleLeft}
@@ -138,6 +140,7 @@ const Feature = () => {
           <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
         </button>
         <button
+          data-testid='nextBtn'
           ref={iconRef}
           className='absolute top-1/2 right-0 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
           style={{ top: height !== 0 ? `${height / 2}px` : '50%', transform: 'translateY(-100%)' }}

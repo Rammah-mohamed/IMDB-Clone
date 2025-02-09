@@ -236,7 +236,10 @@ const CelebrityDetails = () => {
 
   if (isLoading) {
     return (
-      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      <div
+        role='status'
+        className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'
+      ></div>
     );
   }
 
@@ -386,7 +389,7 @@ const CelebrityDetails = () => {
                         className='flex items-center gap-2 cursor-pointer'
                         onClick={closeImageModal}
                       >
-                        <CloseIcon style={{ fontSize: '1.5rem' }} />
+                        <CloseIcon data-testid='close' style={{ fontSize: '1.5rem' }} />
                         <span className='text-lg'>Close</span>
                       </div>
                       <div
@@ -477,8 +480,8 @@ const CelebrityDetails = () => {
                       <p className='flex-1'>
                         {Number(m?.vote_average ?? 0).toFixed(2)}
                         <span className='flex-1 pl-2 text-gray font-semibold'>
-                          {m?.vote_count.toString().length > 3
-                            ? '(' + m?.vote_count.toString().slice(0, 1) + 'K)'
+                          {m?.vote_count?.toString().length > 3
+                            ? '(' + m?.vote_count?.toString().slice(0, 1) + 'K)'
                             : '(' + m?.vote_count + ')'}
                         </span>
                       </p>

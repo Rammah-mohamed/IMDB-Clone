@@ -30,6 +30,7 @@ const UserLists = () => {
         const { data } = await axios.get(`http://localhost:3000/lists`, {
           withCredentials: true,
         });
+
         setLists(data);
       } catch (error: any) {
         console.error(error?.response?.data || 'An error occurred');

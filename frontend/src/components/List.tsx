@@ -114,7 +114,10 @@ const List: React.FC<ListProps> = React.memo(
     // Loading and error states
     if (listLoading)
       return (
-        <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+        <div
+          role='status'
+          className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'
+        ></div>
       );
 
     if (listError) return <div className='text-white text-sm'>Error: {listError.message}</div>;

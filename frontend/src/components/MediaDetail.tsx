@@ -607,13 +607,20 @@ const MediaDetail = () => {
   // Query loading handling
   if (mediaLoading || genresLoading) {
     return (
-      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      <div
+        role='status'
+        className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'
+      ></div>
     );
   }
 
   // Query error handling
   if (mediaError || genresError) {
-    return <p className='text-white text-sm'>{mediaError?.message || genresError?.message}</p>;
+    return (
+      <p data-testid='error' className='text-white text-sm'>
+        {mediaError?.message || genresError?.message}
+      </p>
+    );
   }
   return (
     <div>
@@ -754,6 +761,7 @@ const MediaDetail = () => {
           </div>
           <div className='flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
             <div
+              data-testid='photo'
               className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
               onClick={() => handlePhoto(movieImages || tvImages)}
             >
@@ -762,6 +770,7 @@ const MediaDetail = () => {
               <span>{movieImages?.length || tvImages?.length} Images</span>
             </div>
             <div
+              data-testid='video'
               className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
               onClick={() => handleVideoMedia()}
             >
@@ -838,6 +847,7 @@ const MediaDetail = () => {
               />
             </div>
             <button
+              data-testid='critic'
               className='text-secondary font-medium cursor-pointer hover:underline'
               onClick={handleCritics}
             >

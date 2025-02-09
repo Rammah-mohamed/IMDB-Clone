@@ -91,9 +91,9 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
   // Handle GraphQl Queries
   const useMovieAndTvQueries = useCallback(() => {
     const queries: Queries = Object.entries(QUERY_CONFIG).reduce((acc, [key, query]) => {
-      const [fetch, { loading, error, data }] = useLazyQuery<TopMoviesResponse | TopTvResponse>(
-        query
-      );
+      const [fetch, { loading = false, error = null, data = null }] = useLazyQuery<
+        TopMoviesResponse | TopTvResponse
+      >(query);
       acc[key] = {
         fetch: async (variables?: Record<string, any>) => {
           const result = await fetch({ variables });
@@ -134,7 +134,10 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
 
   if (isAnyLoading) {
     return (
-      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      <div
+        data-testid='status'
+        className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'
+      ></div>
     );
   }
 
@@ -152,10 +155,10 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
 
   if (anyErrors.length > 0) {
     return (
-      <ul className='flex flex-col'>
+      <ul data-testid='error' className='flex flex-col'>
         {anyErrors.map((e, index) => (
           <li key={index} className='text-white'>
-            {e}
+            Error: {e.message}
           </li>
         ))}
       </ul>
@@ -240,15 +243,18 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
 
   return (
     <div
-      className={`container flex flex-col gap-10 fixed top-0 left-0 w-screen px-72 bg-gray-400 z-40 overflow-hidden transition-all duration-300 ease-in-out ${
-        showMenu ? 'h-screen pt-10 pb-10' : 'h-0'
-      }`}
+      style={{ display: `${showMenu ? 'block' : 'none'}` }}
+      className='container flex flex-col gap-10 fixed top-0 left-0 w-screen px-72 bg-gray-400 z-40 overflow-hidden transition-all duration-300 ease-in-out'
     >
       <div className='flex items-center justify-between'>
         <Link to={'/'}>
           <h1 className=' bg-primary py-1.5 px-2.5 text-3xl text-black font-black rounded'>IMDB</h1>
         </Link>
-        <button className='bg-primary text-black rounded-full p-2' onClick={handleClick}>
+        <button
+          data-testid='close'
+          className='bg-primary text-black rounded-full p-2'
+          onClick={handleClick}
+        >
           <CloseIcon style={{ fontSize: '2rem' }} />
         </button>
       </div>
@@ -258,7 +264,13 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
           <div className='flex flex-col gap-4 text-gray-200 text-base'>
             <h1 className='text-white text-2xl'>Movies</h1>
             {movies.map((m: string, index: number) => (
-              <Link key={index} to={''} className='hover:underline' onClick={() => handleList(m)}>
+              <Link
+                data-testid={`menuLink${index}`}
+                key={index}
+                to={''}
+                className='hover:underline'
+                onClick={() => handleList(m)}
+              >
                 {m}
               </Link>
             ))}

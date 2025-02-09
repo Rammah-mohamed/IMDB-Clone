@@ -287,7 +287,10 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
   // Loading and error states
   if (listLoading)
     return (
-      <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
+      <div
+        role='status'
+        className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'
+      ></div>
     );
 
   if (listError) return <div className='text-white text-sm'>Error: {listError.message}</div>;
@@ -348,6 +351,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                   >
                     <span className='group-hover/item:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                     <AddIcon
+                      data-testid='addBtn'
                       className={`absolute top-0 left-0 ${
                         user && m?.isAdded
                           ? 'bg-primary text-black-100'

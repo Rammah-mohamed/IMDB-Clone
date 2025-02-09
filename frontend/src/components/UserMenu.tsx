@@ -61,12 +61,12 @@ const UserMenu: React.FC<menuProps> = React.memo(({ showUserMenu, setshowUserMen
   return (
     <div
       ref={dropDownRef}
-      className={`absolute flex flex-col gap-2 left-0 bottom-0 bg-gray-400 translate-y-full z-40 overflow-hidden transition-all duration-300 ease-in-out  ${
-        showUserMenu ? 'w-max h-max' : 'border-0 w-0 h-0'
-      }`}
+      style={{ display: showUserMenu ? 'block' : 'none' }}
+      className='absolute flex flex-col gap-2 left-0 bottom-0 bg-gray-400 translate-y-full z-40 overflow-hidden transition-all duration-300 ease-in-out'
     >
       {text.map((el: string, index: number) => (
         <div
+          role='button'
           key={index}
           className='group flex items-center gap-3 w-full h-full px-4 py-3 hover:bg-gray-300'
           onClick={() => handleClick(index)}

@@ -312,6 +312,7 @@ const Media = () => {
             {photos &&
               photos?.map((p: Photo, index: number) => (
                 <div
+                  data-testid='image'
                   key={index}
                   className='group relative w-52 h-64 rounded-lg cursor-pointer overflow-hidden'
                   onClick={(): void => handleClickImage(index)}
@@ -320,12 +321,14 @@ const Media = () => {
                   {show && currentImage && currentIndex === index && (
                     <div className='flex flex-col items-center gap-4 fixed left-0 top-0 w-screen h-screen p-6 bg-black z-30'>
                       <button
+                        data-testid='prevBtn'
                         className='absolute top-1/2 left-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
                         onClick={(e): void => handlePrev(e)}
                       >
                         <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
                       </button>
                       <button
+                        data-testid='nextBtn'
                         className='absolute top-1/2 right-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
                         onClick={(e): void => handleNext(e)}
                       >
@@ -375,6 +378,7 @@ const Media = () => {
             {videos &&
               videos?.map((v) => (
                 <div
+                  data-testid='video'
                   key={v?.key}
                   className='group/trailer relative h-64 rounded-lg cursor-pointer overflow-hidden'
                   style={{ width: '27rem' }}
