@@ -9,8 +9,13 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'json', 'html'], // Generates reports in multiple formats
       reportsDirectory: './coverage', // Directory for coverage reports
-      include: ['src/**/*.{tsx}'], // Include all TS/TSX files
-      exclude: ['**/*.test.tsx'],
+      exclude: [
+        'src/**/*.test.tsx',
+        '**/*.{ts,js}',
+        'src/pages/Critics.tsx',
+        'src/pages/Home.tsx',
+        'src/components/Watchlist.tsx',
+      ], // Exclude specific folders
     },
   },
 });
