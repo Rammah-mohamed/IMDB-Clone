@@ -94,6 +94,24 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
   const { recommendMovies, similarMovies, tvRecommend, tvSimilar } =
     useRecommendAndSimilarQueries();
 
+  // Fetch user Watchlist
+  const fetchWatchlist = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`http://localhost:3000/lists/Your_Watchlist`, {
+        withCredentials: true,
+      });
+      setData(data?.movies || []);
+    } catch (error: any) {
+      console.error(error?.response?.data || 'An error occurred while fetching the list');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user && title === 'From your watchlist') {
+      fetchWatchlist();
+    }
+  }, [user, fetchWatchlist]);
+
   // Handle list Data
   const handleData = async (title: string): Promise<void> => {
     const mediaMappings: { [key: string]: any } = {
@@ -107,21 +125,6 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
     // Handle direct mappings
     if (mediaMappings[title]) {
       setData(mediaMappings[title]);
-      return;
-    }
-
-    // Fetch user's watchlist
-    if (user && title === 'From your watchlist') {
-      try {
-        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
-        setData(response.data?.movies || []);
-      } catch (error: any) {
-        console.error(
-          error.response ? `Server Error: ${error.response.data}` : `Error: ${error.message}`
-        );
-      }
       return;
     }
 
