@@ -174,7 +174,7 @@ const Videos = () => {
             playing={false}
           />
         </div>
-        <div className='flex-1 flex flex-col gap-6 p-5 mb-4 bg-black-100 rounded-2xl'>
+        <div className='max-lg:hidden flex-1 flex flex-col gap-6 p-5 mb-4 bg-black-100 rounded-2xl'>
           <div className='relative flex gap-2 pb-6 border-b-2 border-gray-300'>
             <div className='group relative w-24 h-36 overflow-hidden rounded-xl cursor-pointer'>
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>

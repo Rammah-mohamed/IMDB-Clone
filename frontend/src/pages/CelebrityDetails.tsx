@@ -255,22 +255,25 @@ const CelebrityDetails = () => {
   return (
     <div>
       <Navbar />
-      <div className='container flex flex-col gap-3 bg-gray-400 pt-10'>
-        <div className='flex justify-between'>
+      <div className='flex flex-col gap-3 bg-gray-400 pt-10 max-lg:p-4'>
+        <div className='container flex justify-between'>
           <div className='flex flex-col gap-2'>
-            <h1 className='text-5xl text-white'>{celebrityInfo?.name}</h1>
+            <h1 className='text-5xl max-lg:text-3xl text-white'>{celebrityInfo?.name}</h1>
             <span className='text text-gray-200'>{celebrityInfo?.known_for_department}</span>
           </div>
           <div className='flex items-center gap-2'>
             <div className='p-1 border-2 border-green rounded-full'>
               <TrendingUpIcon className='text-green' style={{ fontSize: '1.4rem' }} />
             </div>
-            <span className='text-lg font-semibold text-gray-200'>
+            <span className='text-lg max-lg:text-base font-semibold text-gray-200'>
               {celebrityInfo?.popularity?.toFixed(0)}
             </span>
           </div>
         </div>
-        <div className='flex gap-2' style={{ height: '30rem' }}>
+        <div
+          className='container flex gap-2'
+          style={{ height: window.innerWidth <= 1024 ? '30rem' : '20rem' }}
+        >
           <div className='relative group flex-1 rounded-lg cursor-pointer overflow-hidden'>
             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
             <LazyLoadImage
@@ -281,15 +284,15 @@ const CelebrityDetails = () => {
             />
           </div>
           <div
-            className='group/trailer relative flex-2.5 rounded-lg cursor-pointer overflow-hidden'
+            className='group/trailer relative flex-2.5 max-lg:flex-2 rounded-lg cursor-pointer overflow-hidden'
             onClick={(): void => handleVideo(trailers[0])}
           >
             <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-            <div className='flex items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20'>
+            <div className='flex items-end gap-3 max-lg:gap-2 absolute top-0 left-0 w-full h-full p-4 max-lg:p-3 bg-overlay z-20'>
               <PlayCircleOutlineIcon style={{ fontSize: '4.5rem', color: 'white' }} />
               <div className='flex flex-col gap-1'>
-                <span className='text-white text-3xl'>Play Trailer</span>
-                <span className='text-gray-200 text-xl'>{trailers[0]?.name}</span>
+                <span className='text-white text-3xl max-lg:text-2xl'>Play Trailer</span>
+                <span className='text-gray-200 text-xl max-lg:text-lg'>{trailers[0]?.name}</span>
               </div>
             </div>
             <ReactPlayer
@@ -302,7 +305,7 @@ const CelebrityDetails = () => {
           </div>
           <div className='flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
             <div
-              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
+              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg max-lg:text-base font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
               onClick={() => handelPhoto(celebrityImages)}
             >
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
@@ -310,7 +313,7 @@ const CelebrityDetails = () => {
               <span>{celebrityImages.length} Images</span>
             </div>
             <div
-              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
+              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg max-lg:text-base font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
               onClick={() => handelVideoMedia(trailers)}
             >
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
@@ -319,9 +322,9 @@ const CelebrityDetails = () => {
             </div>
           </div>
         </div>
-        <div className='flex gap-8 p-4'>
+        <div className='flex gap-8 p-4 max-lg:gap-6 max-lg:p-3'>
           <div
-            className='flex-2 text-white text-lg text-justify cursor-pointer'
+            className='flex-2 text-white text-lg max-lg:text-base text-justify cursor-pointer'
             onClick={() => setIsDetails((prev) => !prev)}
           >
             {isDetails ? celebrityData?.biography : celebrityData?.biography.slice(0, 250) + ' ...'}
@@ -345,17 +348,19 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
-      <div className='container flex gap-6 pt-20 bg-white'>
-        <div className='flex flex-3 flex-col gap-4'>
+      <div className='container flex gap-6 pt-20 max-lg:gap-4 max-lg:p-14 bg-white'>
+        <div className='flex flex-3 flex-col gap-4 max-lg:gap-3'>
           <div
-            className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
+            className='group/icon flex items-center max-lg:justify-center gap-2 w-fit text-4xl font-semibold pl-3 max-lg:pl-2 border-l-4 border-primary cursor-pointer'
             onClick={() => handelPhoto(celebrityImages)}
           >
             <h1>Photos</h1>
             <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
-            <span className='text-gray-350 text-lg'>{celebrityImages?.length}</span>
+            <span className='text-gray-350 text-lg max-lg:text-base'>
+              {celebrityImages?.length}
+            </span>
           </div>
-          <div className='flex flex-wrap gap-3'>
+          <div className='flex flex-wrap max-lg:justify-center gap-3 max-lg:gap-2'>
             {celebrityImages?.map((p: Photo, index: number) => (
               <div
                 key={index}
@@ -365,13 +370,13 @@ const CelebrityDetails = () => {
                     : index < 8
                     ? 'block'
                     : 'hidden'
-                } group relative w-52 h-64 rounded-lg cursor-pointer overflow-hidden`}
+                } group relative w-52 h-64 max-lg:w-44 max-lg:h-52 rounded-lg cursor-pointer overflow-hidden`}
                 onClick={(): void => handleImageModal(index)}
               >
                 <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-30'></span>
 
                 {showImageModal && currentImage && currentImageIndex === index && (
-                  <div className='flex flex-col items-center gap-4 fixed left-0 top-0 w-screen h-screen p-6 bg-black z-30'>
+                  <div className='flex flex-col items-center gap-4 max-lg:gap-3 fixed left-0 top-0 w-screen h-screen p-6 max-lg:p-4 bg-black z-30'>
                     <button
                       className='absolute top-1/2 left-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
                       onClick={handlePrevImage}
@@ -384,19 +389,19 @@ const CelebrityDetails = () => {
                     >
                       <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
                     </button>
-                    <div className='flex w-full px-28 items-center justify-between text-white'>
+                    <div className='flex w-full px-28 max-lg:px-20 items-center justify-between text-white'>
                       <div
                         className='flex items-center gap-2 cursor-pointer'
                         onClick={closeImageModal}
                       >
                         <CloseIcon data-testid='close' style={{ fontSize: '1.5rem' }} />
-                        <span className='text-lg'>Close</span>
+                        <span className='text-lg max-lg:text-base'>Close</span>
                       </div>
                       <div
                         className='flex items-center gap-2'
                         onClick={() => handelPhoto(celebrityImages)}
                       >
-                        <p className='text-lg text-primary'>
+                        <p className='text-lg max-lg:text-base text-primary'>
                           {index + 1} Of {celebrityImages.length}
                         </p>
                         <ViewCompactIcon style={{ fontSize: '2rem', color: 'white' }} />
@@ -437,10 +442,12 @@ const CelebrityDetails = () => {
             ))}
           </div>
         </div>
-        <div className='flex flex-1 flex-col gap-4'>
-          <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4 max-lg:gap-3'>
+          <h1 className='text-3xl max-lg:text-2xl font-semibold pl-3 border-l-4 border-primary'>
+            More to explore
+          </h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
-            <h2 className='text-2xl font-medium'>Feedback</h2>
+            <h2 className='text-2xl max-lg:text-xl font-medium'>Feedback</h2>
             <p className='text-secondary hover:underline cursor-pointer'>
               Tell us what you think about this feature.
             </p>
@@ -448,19 +455,18 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
-      <div className='container pt-10'>
-        <h1 className='text-4xl font-semibold pl-3 border-l-4 border-primary'>Known For</h1>
+      <div className='container pt-10 max-lg:p-6'>
+        <h1 className='text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4 border-primary'>
+          Known For
+        </h1>
       </div>
-      <div className='container flex gap-6 bg-white'>
-        <div className='flex flex-3 flex-col gap-10 p-6 mt-4 border-2 border-gray-100 shadow-md'>
+      <div className='container flex gap-6 max-lg:gap-4 bg-white'>
+        <div className='flex flex-3 flex-col gap-10 p-6 max-lg:gap-6 max-lg:p-5 mt-4 border-2 border-gray-100 shadow-md'>
           {celebrityInfo?.known_for?.map((m, index) => (
             <div className='flex flex-1 flex-col gap-2 cursor-pointer' key={index}>
               <div className='flex items-center'>
-                <div className='flex flex-1  flex-row items-center gap-3'>
-                  <div
-                    className='group relative w-24 h-32
-                overflow-hidden rounded-xl cursor-pointer'
-                  >
+                <div className='flex flex-1  flex-row items-center gap-3 max-lg:gap-2'>
+                  <div className='group relative w-24 h-32 max-lg:w-20 max-lg:h-28 overflow-hidden rounded-xl cursor-pointer'>
                     <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                     <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                     <LazyLoadImage
@@ -471,11 +477,13 @@ const CelebrityDetails = () => {
                     />
                   </div>
                   <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                    <h1 className='flex-2 text-lg font-bold'>{m?.title || m?.name}</h1>
+                    <h1 className='flex-2 text-lg max-lg:text-base font-bold'>
+                      {m?.title || m?.name}
+                    </h1>
                     <div className='flex-1 text-black-100'>
                       <span>{m?.release_date || m.first_air_date}</span>
                     </div>
-                    <div className='flex text-black-100'>
+                    <div className='flex text-black-100 max-lg:tex-sm'>
                       <StarIcon className='text-primary' />
                       <p className='flex-1'>
                         {Number(m?.vote_average ?? 0).toFixed(2)}
@@ -490,9 +498,9 @@ const CelebrityDetails = () => {
                 </div>
                 <ErrorOutlineIcon className='text-secondary' />
               </div>
-              <p className='font-semibold'>{m?.overview}</p>
+              <p className='font-semibold text-sm'>{m?.overview}</p>
 
-              <div className='flex items-center gap-5 text-base font-medium'>
+              <div className='flex items-center gap-5 text-base max-lg:gap-3 max-lg:text-sm font-medium'>
                 {hasDirector(sortedCast, index) && (
                   <div key={index} className='flex gap-3'>
                     <span>Director</span>
@@ -502,7 +510,7 @@ const CelebrityDetails = () => {
                   </div>
                 )}
 
-                <div className='flex gap-3'>
+                <div className='flex gap-3 max-lg:gap-2'>
                   {sortedCast[index]?.star?.length !== 0 && (
                     <>
                       <span>Stars</span>
@@ -518,7 +526,7 @@ const CelebrityDetails = () => {
             </div>
           ))}
         </div>
-        <div className='flex flex-1 flex-col gap-4'>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
           <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
             <h2 className='text-2xl font-medium'>Feedback</h2>
@@ -529,21 +537,21 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
-      <div className='container flex gap-6 pt-20 pb-10 bg-white'>
-        <div className='flex flex-col gap-4 flex-3'>
+      <div className='container flex gap-6 pt-20 pb-10 max-lg:gap-4 max-lg:pt-14 px-14 max-lg:pb-6 bg-white'>
+        <div className='flex flex-col gap-4 flex-3 max-lg:gap-3 max-lg:flex-2'>
           <div
             className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
             onClick={() => handelVideoMedia(trailers)}
           >
             <h1>Videos</h1>
             <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
-            <span className='text-gray-350 text-lg'>{trailers?.length}</span>
+            <span className='text-gray-350 text-lg max-lg:text-base'>{trailers?.length}</span>
           </div>
-          <div className='flex flex-wrap items-center gap-6'>
+          <div className='flex flex-wrap max-lg:justify-center items-center gap-6 max-lg:gap-4'>
             {trailers?.map((v, index) => (
               <div
                 key={index}
-                className='group/trailer relative h-64 rounded-lg cursor-pointer overflow-hidden'
+                className='group/trailer relative h-64 max-lg:h-52 rounded-lg cursor-pointer overflow-hidden'
                 style={{ width: '27rem' }}
                 onClick={(): void => handleVideo(v)}
               >
@@ -551,8 +559,10 @@ const CelebrityDetails = () => {
                 <div className='flex items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20'>
                   <PlayCircleOutlineIcon style={{ fontSize: '4.5rem', color: 'white' }} />
                   <div className='flex flex-col gap-1'>
-                    <span className='text-white text-3xl'>Play Trailer</span>
-                    <span className='text-gray-200 text-xl'>{trailers[0]?.name}</span>
+                    <span className='text-white text-3xl max-lg:text-xl'>Play Trailer</span>
+                    <span className='text-gray-200 text-xl max-lg:text-lg'>
+                      {trailers[0]?.name}
+                    </span>
                   </div>
                 </div>
                 <ReactPlayer
@@ -566,7 +576,7 @@ const CelebrityDetails = () => {
             ))}
           </div>
         </div>
-        <div className='flex flex-1 flex-col gap-4'>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
           <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
             <h2 className='text-2xl font-medium'>Feedback</h2>

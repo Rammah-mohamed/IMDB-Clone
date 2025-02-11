@@ -185,10 +185,10 @@ const Feature = () => {
               ></span>
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <div className='flex flex-1 shrink-0 basis-60 items-center justify-center gap-2'>
-                <div className='relative w-40 h-60 rounded-xl overflow-hidden'>
+                <div className='relative max-lg:w-32 max-lg:h-52 w-40 h-60 rounded-xl overflow-hidden'>
                   <AddIcon
-                    className='absolute top-0 left-0 bg-black-transparent text-white'
-                    style={{ fontSize: '2.5rem' }}
+                    className='absolute max-lg:text-2xl top-0 left-0 bg-black-transparent text-white'
+                    style={{ fontSize: window.innerWidth <= 1024 ? '2.5rem' : '1rem' }}
                   />
                   {index === 0 ? (
                     <img
@@ -211,8 +211,10 @@ const Feature = () => {
                   style={{ fontSize: '6rem' }}
                 />
                 <div className='flex-1 shrink-0 basis-40 flex flex-col justify-end gap-1 text-white z-10'>
-                  <span className='text-3xl'>{e.name || e.title}</span>
-                  <p className='text-lg text-gray-300'>{e.overview.slice(0, 180) + '...'}</p>
+                  <span className='text-3xl max-lg:text-2xl'>{e.name || e.title}</span>
+                  <p className='text-lg text-gray-300 max-lg:text-base'>
+                    {e.overview.slice(0, 130) + '...'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -221,7 +223,7 @@ const Feature = () => {
       </div>
 
       <div
-        className='flex-1 shrink-0 basis-60 flex flex-col gap-5 w-full py-5 px-3 cursor-pointer'
+        className='max-lg:hidden flex-1 shrink-0 basis-60 flex flex-col gap-5 w-full py-5 px-3 cursor-pointer'
         style={{ height: '90%' }}
       >
         <h1 className='text-2xl font-bold text-primary'>Up Next</h1>

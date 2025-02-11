@@ -65,13 +65,13 @@ const Navbar: React.FC = () => {
   }, [focus, query, searchText]);
 
   return (
-    <div className='container bg-black-100 h-16'>
+    <div className='bg-black-100 max-lg:hidden h-16'>
       <Suspense
         fallback={
           <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
         }
       >
-        <div className='relative flex items-center justify-between gap-2 w-full h-full py-4 font-bold'>
+        <div className='container  relative flex items-center justify-between gap-2 w-full h-full py-4 font-bold'>
           <Link to={'/'} className='group relative'>
             <h1
               data-testid='imdb-logo'

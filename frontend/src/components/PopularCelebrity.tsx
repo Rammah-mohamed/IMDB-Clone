@@ -77,7 +77,7 @@ const PopularCelebrity = () => {
   if (isError) return <p className='text-white text-sm'>Error: {isError.message}</p>;
   return (
     <div className='container py-8 h-96 mb-10 overflow-hidden'>
-      <div className='group flex items-center gap-2 w-full h-14 text-2xl text-white p-3 mb-4 border-l-4 border-primary cursor-pointer'>
+      <div className='group flex items-center gap-2 w-full h-14 text-2xl max-lg:text-xl text-white p-3 mb-4 border-l-4 border-primary cursor-pointer'>
         <h1>Most popular celebrities</h1>
         <ArrowForwardIosIcon className='group-hover:text-primary' />
       </div>
@@ -112,7 +112,7 @@ const PopularCelebrity = () => {
               onClick={() => handleCelebrityClick(p)}
             >
               <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-              <div className='w-44 h-44'>
+              <div className='w-44 h-44 max-lg:w-36 max-lg:h-36'>
                 <LazyLoadImage
                   src={getImageUrl(p?.profile_path, 'w185')}
                   alt='Person Image'
@@ -120,7 +120,9 @@ const PopularCelebrity = () => {
                   className='object-cover w-full h-full rounded-full'
                 />
               </div>
-              <h1 className=' text-white text-xl text-center font-semibold'>{p.name}</h1>
+              <h1 className=' text-white text-xl max-lg:text-lg text-center font-semibold'>
+                {p.name}
+              </h1>
             </div>
           ))}
         </div>

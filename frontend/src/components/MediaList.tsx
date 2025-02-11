@@ -305,7 +305,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
       >
         <h1
           className={`${
-            mediaType ? 'text-4xl text-black' : 'text-2xl text-white'
+            mediaType ? 'text-4xl max-lg:text-3xl text-black' : 'text-2xl max-lg:text-xl text-white'
           } w-full h-10 font-semibold pl-3 mt-10 border-l-4 border-primary`}
         >
           {title}
@@ -371,7 +371,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                     />
                   </div>
                   <div
-                    className={`flex flex-1 flex-col gap-3 p-4 ${
+                    className={`flex flex-1 flex-col gap-3 p-4 max-lg:gap-2 max-lg:p-3 ${
                       mediaType ? 'text-black bg-gray-200' : 'text-white bg-black-100'
                     } rounded-xl rounded-t-none overflow-hidden`}
                   >
@@ -382,7 +382,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                       </div>
                       <StarOutlineIcon />
                     </div>
-                    <h1 className='text-base min-h-12'>{m?.title || m?.name}</h1>
+                    <h1 className='text-base min-h-12 max-lg:min-h-10'>{m?.title || m?.name}</h1>
                     <button
                       className={`flex items-center justify-center gap-2 p-1 text-secondary ${
                         mediaType ? 'bg-gray-250' : 'bg-gray-400'

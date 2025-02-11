@@ -685,8 +685,8 @@ const ListDetails = () => {
           </div>
         </div>
       )}
-      <div className='container flex items-center justify-between gap-4 bg-gray-400 py-12'>
-        <div className='flex flex-4 flex-col gap-3'>
+      <div className=' flex items-center justify-between gap-4 bg-gray-400 py-12'>
+        <div className='container flex flex-4 flex-col gap-3'>
           {listTitle ? (
             <input
               type='text'
@@ -695,7 +695,9 @@ const ListDetails = () => {
               onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'title')}
             />
           ) : (
-            <h1 className='text-white text-5xl font-medium'>{title || 'Your Watchlist'}</h1>
+            <h1 className='text-white text-5xl max-lg:text-3xl font-medium'>
+              {title || 'Your Watchlist'}
+            </h1>
           )}
           {listTitle ? (
             <input
@@ -706,14 +708,14 @@ const ListDetails = () => {
               onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'description')}
             />
           ) : (
-            <p className='text-gray-200'>
+            <p className='text-gray-200 max-lg:text-sm'>
               Your Watchlist is the place to track the titles you want to watch. You can sort your
               Watchlist by the IMDb rating, popularity score and arrange your titles in the order
               you want to see them.
             </p>
           )}
         </div>
-        <div className='flex flex-1 flex-col gap-4'>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
           {checkStates?.length !== 0 && (
             <div className='cursor-pointer' onClick={() => setIsEdit((prev) => !prev)}>
               <EditIcon style={{ fontSize: '1.5rem' }} className='text-white hover:text-gray-250' />
@@ -864,7 +866,7 @@ const ListDetails = () => {
                       {...provided.droppableProps}
                       className={`flex ${
                         view.grid ? 'flex-row flex-wrap items-center justify-center' : 'flex-col'
-                      } gap-6 p-3 border-2 border-gray-250 rounded-sm`}
+                      } gap-6 p-3 max-lg:gap-4 max-lg:p-2 border-2 border-gray-250 rounded-sm`}
                     >
                       {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                         (el: Media, index: number) => (
@@ -873,7 +875,7 @@ const ListDetails = () => {
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                className='flex items-center gap-5'
+                                className='flex items-center gap-5 max-lg:gap-3'
                                 style={{ ...provided.draggableProps.style }}
                               >
                                 <div {...provided.dragHandleProps}>
@@ -907,7 +909,9 @@ const ListDetails = () => {
                                     >
                                       <div
                                         className={`group relative ${
-                                          view.grid ? 'w-48 h-72' : 'w-24 h-32'
+                                          view.grid
+                                            ? 'w-48 h-72 max-lg:w-40 max-lg:h-60'
+                                            : 'w-24 h-32 max-lg:w-20 max-lg:h-28'
                                         } overflow-hidden rounded-xl cursor-pointer`}
                                         onClick={(): void => handleDetails(el)}
                                       >
@@ -937,10 +941,10 @@ const ListDetails = () => {
                                         >
                                           {index + 1 + '- ' + (el?.title ?? el?.name)}
                                         </h1>
-                                        <div className='flex-1 text-black-100'>
+                                        <div className='flex-1 text-black-100 max-lg:text-sm'>
                                           <span>{el?.release_date}</span>
                                         </div>
-                                        <div className='flex text-black-100'>
+                                        <div className='flex text-black-100 max-lg:text-sm'>
                                           <StarIcon className='text-primary' />
                                           <p className='flex-1'>
                                             {Number(el?.vote_average ?? 0).toFixed(2)}
@@ -1026,7 +1030,7 @@ const ListDetails = () => {
               >
                 {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                   (el: Media, index: number) => (
-                    <div key={index} className='flex items-center gap-5'>
+                    <div key={index} className='flex items-center gap-5 max-lg:gap-3'>
                       {isEdit && (
                         <input
                           type='checkbox'
@@ -1050,7 +1054,9 @@ const ListDetails = () => {
                           >
                             <div
                               className={`group relative ${
-                                view.grid ? 'w-48 h-72' : 'w-24 h-32'
+                                view.grid
+                                  ? 'w-48 h-72 max-lg:w-40 max-lg:h-60'
+                                  : 'w-24 h-32 max-lg:w-20 max-lg:h-28'
                               } overflow-hidden rounded-xl cursor-pointer`}
                               onClick={(): void => handleDetails(el)}
                             >
@@ -1078,10 +1084,10 @@ const ListDetails = () => {
                               >
                                 {index + 1 + '- ' + (el?.title ?? el?.name)}
                               </h1>
-                              <div className='flex-1 text-black-100'>
+                              <div className='flex-1 text-black-100 max-lg:text-sm'>
                                 <span>{el?.release_date}</span>
                               </div>
-                              <div className='flex text-black-100'>
+                              <div className='flex text-black-100 max-lg:text-sm'>
                                 <StarIcon className='text-primary' />
                                 <p className='flex-1'>
                                   {Number(el?.vote_average ?? 0).toFixed(2)}
@@ -1148,7 +1154,7 @@ const ListDetails = () => {
             )}
           </div>
 
-          <div className='flex flex-1 flex-col gap-4'>
+          <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
             <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
               More to explore
             </h1>

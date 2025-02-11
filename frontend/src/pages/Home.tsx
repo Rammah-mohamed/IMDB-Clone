@@ -24,7 +24,9 @@ const Home: React.FC = () => {
         <Feature />
         <Lists title={'Featured today'} listFor='Feature' />
         <PopularCelebrity />
-        <h1 className='container text-4xl text-primary font-semibold'>What to Watch</h1>
+        <h1 className='container text-4xl max-lg:text-2xl text-primary font-semibold'>
+          What to Watch
+        </h1>
         <MediaList title='Trendings' />
         <MediaList title='Upcomings Movies' />
         <MediaList title='Popular Movies' />
