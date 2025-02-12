@@ -101,12 +101,14 @@ const CreateList = () => {
   return (
     <div>
       <Navbar />
-      <div className='container flex flex-col gap-1 bg-gray-400 pt-8 pb-8'>
-        <h1 className='text-white text-4xl font-medium mb-4'>Your Lists</h1>
-        <p className='text-gray-250'>List your movie, TV & celebrity picks.</p>
+      <div className='flex flex-col gap-1 bg-gray-400 pt-8 pb-8'>
+        <div className='container'>
+          <h1 className='text-white text-4xl font-medium mb-4'>Your Lists</h1>
+          <p className='text-gray-250'>List your movie, TV & celebrity picks.</p>
+        </div>
       </div>
       <div className='container flex gap-20 bg-white pt-6'>
-        <div className='flex flex-3 flex-col gap-4'>
+        <div className='flex flex-3 flex-col gap-4 max-md:gap-3'>
           <div className='flex flex-col gap-1'>
             <input
               type='text'
@@ -142,8 +144,10 @@ const CreateList = () => {
           </button>
         </div>
 
-        <div className='flex flex-1 flex-col gap-4'>
-          <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
+        <div className='flex flex-1 flex-col gap-4 max-lg:hidden'>
+          <h1 className='text-3xl max-md:text-2xl font-semibold pl-3 border-l-4 border-primary'>
+            More to explore
+          </h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
             <h2 className='text-2xl font-medium'>Feedback</h2>
             <p className='text-secondary hover:underline cursor-pointer'>

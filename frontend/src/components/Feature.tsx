@@ -16,6 +16,7 @@ const Feature = () => {
   // Initialize state hooks
   const [index, setIndex] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
 
   // Initialize Ref hooks
   const heightRef = useRef<HTMLDivElement>(null);
@@ -29,6 +30,18 @@ const Feature = () => {
     data: trendingData,
   } = useQuery(GET_TRENDING);
   const trending: Media[] = trendingData?.trendingAll;
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Preload critical images
   const preloadImages = useCallback(() => {
@@ -111,7 +124,7 @@ const Feature = () => {
         data-testid='status'
         className='container flex items-center justify-center'
         style={{
-          height: 'calc(98vh - 72px)',
+          height: containerWidth >= 1024 ? 'calc(98vh - 72px)' : '50vh',
         }}
       >
         <span className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></span>
@@ -123,7 +136,7 @@ const Feature = () => {
     <div
       className='container flex gap-2 pt-8'
       style={{
-        height: 'calc(98vh - 72px)',
+        height: containerWidth >= 1024 ? 'calc(98vh - 72px)' : '50vh',
       }}
     >
       <div
@@ -185,10 +198,10 @@ const Feature = () => {
               ></span>
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
               <div className='flex flex-1 shrink-0 basis-60 items-center justify-center gap-2'>
-                <div className='relative max-lg:w-32 max-lg:h-52 w-40 h-60 rounded-xl overflow-hidden'>
+                <div className='relative max-lg:w-36 max-lg:h-56 w-40 h-60 rounded-xl overflow-hidden'>
                   <AddIcon
                     className='absolute max-lg:text-2xl top-0 left-0 bg-black-transparent text-white'
-                    style={{ fontSize: window.innerWidth <= 1024 ? '2.5rem' : '1rem' }}
+                    style={{ fontSize: containerWidth ? '2.5rem' : '1rem' }}
                   />
                   {index === 0 ? (
                     <img
@@ -211,10 +224,8 @@ const Feature = () => {
                   style={{ fontSize: '6rem' }}
                 />
                 <div className='flex-1 shrink-0 basis-40 flex flex-col justify-end gap-1 text-white z-10'>
-                  <span className='text-3xl max-lg:text-2xl'>{e.name || e.title}</span>
-                  <p className='text-lg text-gray-300 max-lg:text-base'>
-                    {e.overview.slice(0, 130) + '...'}
-                  </p>
+                  <span className='text-3xl'>{e.name || e.title}</span>
+                  <p className='text-lg text-gray-300 '>{e.overview.slice(0, 130) + '...'}</p>
                 </div>
               </div>
             </div>

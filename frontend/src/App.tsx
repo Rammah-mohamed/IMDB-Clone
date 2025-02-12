@@ -12,7 +12,7 @@ const Videos = React.lazy(() => import('./pages/Videos'));
 const ListDetails = React.lazy(() => import('./pages/ListDetails'));
 const CelebrityDetails = React.lazy(() => import('./pages/CelebrityDetails'));
 const Media = React.lazy(() => import('./pages/Media'));
-const MediaDetail = React.lazy(() => import('./components/MediaDetail'));
+const MediaDetail = React.lazy(() => import('./pages/MediaDetail'));
 const Critics = React.lazy(() => import('./pages/Critics'));
 
 const App = () => {

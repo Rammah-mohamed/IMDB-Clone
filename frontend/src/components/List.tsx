@@ -150,7 +150,7 @@ const List: React.FC<ListProps> = React.memo(
           )}
         </div>
         <div>
-          <h1 className='text-2xl max-lg:text-xl text-white mb-3 hover:underline'>{title}</h1>
+          <h1 className='text-2xl max-md:text-xl text-white mb-3 hover:underline'>{title}</h1>
           {info && <p className='text-gray-300'>{info.overview?.slice(0, 70)}...</p>}
         </div>
       </div>

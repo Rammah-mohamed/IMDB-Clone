@@ -30,6 +30,7 @@ const Videos = () => {
   const videos: Trailer[] = state.related;
 
   // States
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
   const [videoData, setVideoData] = useState<Media | null>(() => {
     try {
       const savedData = localStorage.getItem('video');
@@ -67,6 +68,18 @@ const Videos = () => {
   const tvGenres: Genre[] = genresData?.tvGenres || [];
   const [movieTrailer, setMovieTrailer] = useState<Trailer[]>([]);
   const [tvTrailer, setTvTrailer] = useState<Trailer[]>([]);
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch media videos funtions with memoized debounced functions
   const fetchMovieTrailer = useCallback(
@@ -158,7 +171,10 @@ const Videos = () => {
   return (
     <div className='bg-black'>
       <Navbar />
-      <div className='container flex gap-2 pt-8 mb-10 text-white' style={{ height: '85vh' }}>
+      <div
+        className='container flex gap-2 pt-8 mb-10 text-white'
+        style={{ height: containerWidth >= 1024 ? '85vh' : '50vh' }}
+      >
         <div className='group relative flex-2 mb-4 rounded-2xl overflow-hidden'>
           <Link
             to={'/'}

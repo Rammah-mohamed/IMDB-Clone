@@ -47,8 +47,8 @@ import { LazyLoadImage } from 'react-lazy-load-image-component';
 import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
-const Navbar = React.lazy(() => import('./Navbar'));
-const MediaList = React.lazy(() => import('./MediaList'));
+const Navbar = React.lazy(() => import('../components/Navbar'));
+const MediaList = React.lazy(() => import('../components/MediaList'));
 
 //Types for each query's return value
 interface QueryResult {
@@ -79,6 +79,7 @@ const MediaDetail = () => {
   const location = useLocation();
 
   // Initialize state hooks
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
   const [lists, setLists] = useState<List[]>();
   const [isShowList, setIsShowList] = useState<boolean>(false);
   const [genres, setGenres] = useState<string[]>([]);
@@ -155,6 +156,18 @@ const MediaDetail = () => {
 
   let castCount: number = 0;
   let genreCount: number = 0;
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch media data depending on it's type
   const handleMediaDetails = async (id: number, mediaType: string): Promise<void> => {
@@ -689,25 +702,27 @@ const MediaDetail = () => {
         </div>
       )}
       <Navbar />
-      <div className='container flex flex-col gap-3 bg-gray-400 pt-10'>
-        <div className='flex justify-between'>
+      <div className=' flex flex-col gap-3 bg-gray-400 pt-10'>
+        <div className='container flex justify-between'>
           <div className='flex flex-col gap-2'>
-            <h1 className='text-5xl text-white'>{data?.name || data?.title}</h1>
-            <span className='text-lg font-medium text-gray-200'>
+            <h1 className='text-5xl max-lg:text-4xl max-md:text-2xl text-white'>
+              {data?.name || data?.title}
+            </h1>
+            <span className='text-lg max-md:text-base font-medium text-gray-200'>
               {data?.media_type?.toUpperCase()}
             </span>
           </div>
-          <div className='flex items-center gap-16'>
+          <div className='flex items-center gap-16 max-lg:gap-10 max-md:gap-7'>
             <div className='flex flex-col gap-2'>
               <h3 className='text-gray-250 font-medium'>IMDB Rating</h3>
-              <div className='flex items-center gap-3'>
+              <div className='flex items-center gap-3 max-md:gap-2'>
                 <StarIcon style={{ fontSize: '1.5rem' }} className='text-primary' />
                 <span className='text-lg font-semibold text-gray-200'>
                   {Number(data?.vote_average)?.toFixed(1)}/ 10
                 </span>
               </div>
             </div>
-            <div className='flex flex-col gap-2'>
+            <div className='max-lg:hidden flex flex-col gap-2'>
               <h3 className='text-gray-250 font-medium'>Popularity</h3>
               <div className='flex items-center gap-3'>
                 <div className='p-1 border-2 border-green rounded-full'>
@@ -720,7 +735,7 @@ const MediaDetail = () => {
             </div>
           </div>
         </div>
-        <div className='flex gap-2' style={{ height: '30rem' }}>
+        <div className='container flex gap-2' style={{ height: '30rem' }}>
           <div className='relative group flex-1 rounded-lg cursor-pointer overflow-hidden'>
             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
             <AddIcon
@@ -780,7 +795,7 @@ const MediaDetail = () => {
             </div>
           </div>
         </div>
-        <div className='flex items-center gap-10 pb-4'>
+        <div className='container flex items-center gap-10 pb-4'>
           <div className='flex flex-2 flex-col gap-6 p-4'>
             <div className='flex gap-3'>
               {genres?.map((g, index) => (
@@ -833,7 +848,7 @@ const MediaDetail = () => {
               </div>
             </div>
           </div>
-          <div className='flex flex-1 flex-col gap-4 p-4'>
+          <div className='max-lg:hidden flex flex-1 flex-col gap-4 p-4'>
             <div className='relative group flex items-center gap-3 bg-primary p-3 text-lg font-medium rounded-3xl cursor-pointer'>
               <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
               <div className='relative z-30' onClick={(e) => handleAddToList(e, data)}>
@@ -904,7 +919,7 @@ const MediaDetail = () => {
             </div>
           </div>
 
-          <div className='flex flex-1 flex-col gap-4'>
+          <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
             <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
               More to explore
             </h1>
@@ -936,7 +951,7 @@ const MediaDetail = () => {
                 <div
                   key={v?.key}
                   className='group/trailer relative h-64 rounded-lg cursor-pointer overflow-hidden'
-                  style={{ width: '27rem' }}
+                  style={{ width: containerWidth >= 1024 ? '27rem' : '22rem' }}
                   onClick={(): void => handleVideo(v)}
                 >
                   <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
@@ -959,7 +974,7 @@ const MediaDetail = () => {
             </div>
           </div>
 
-          <div className='flex flex-1 flex-col gap-4'>
+          <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
             <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
               More to explore
             </h1>
@@ -1069,7 +1084,7 @@ const MediaDetail = () => {
             </div>
           </div>
         )}
-        <div className='flex flex-1 flex-col gap-4'>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
           <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
             <h2 className='text-2xl font-medium'>Feedback</h2>
@@ -1110,7 +1125,7 @@ const MediaDetail = () => {
             ))}
           </div>
         </div>
-        <div className='flex flex-1 flex-col gap-4'>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
           <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
             <h2 className='text-2xl font-medium'>Feedback</h2>

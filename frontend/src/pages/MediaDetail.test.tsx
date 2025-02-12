@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import { AuthContext } from '../context/authContext';
-import MediaDetail from '../components/MediaDetail';
+import MediaDetail from './MediaDetail';
 import {
   GET_MEDIA,
   GET_GENRES,

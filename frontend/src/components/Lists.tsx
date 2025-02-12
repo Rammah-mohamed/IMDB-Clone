@@ -59,7 +59,7 @@ const Lists: React.FC<ListsProps> = React.memo(
 
     return (
       <div className='container pb-6 h-90'>
-        <h1 className='text-3xl max-lg:text-2x text-primary pl-5 mb-6'>{title}</h1>
+        <h1 className='text-3xl max-md:text-2xl text-primary pl-5 mb-6'>{title}</h1>
         <div className='group relative w-full h-full overflow-hidden'>
           {/* Left Arrow */}
           <button

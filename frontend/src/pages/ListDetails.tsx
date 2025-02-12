@@ -695,7 +695,7 @@ const ListDetails = () => {
               onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'title')}
             />
           ) : (
-            <h1 className='text-white text-5xl max-lg:text-3xl font-medium'>
+            <h1 className='text-white text-5xl max-md:text-3xl font-medium'>
               {title || 'Your Watchlist'}
             </h1>
           )}
@@ -708,7 +708,7 @@ const ListDetails = () => {
               onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'description')}
             />
           ) : (
-            <p className='text-gray-200 max-lg:text-sm'>
+            <p className='text-gray-200 max-md:text-sm'>
               Your Watchlist is the place to track the titles you want to watch. You can sort your
               Watchlist by the IMDb rating, popularity score and arrange your titles in the order
               you want to see them.
@@ -866,7 +866,7 @@ const ListDetails = () => {
                       {...provided.droppableProps}
                       className={`flex ${
                         view.grid ? 'flex-row flex-wrap items-center justify-center' : 'flex-col'
-                      } gap-6 p-3 max-lg:gap-4 max-lg:p-2 border-2 border-gray-250 rounded-sm`}
+                      } gap-6 p-3 max-md:gap-4 max-md:p-2 border-2 border-gray-250 rounded-sm`}
                     >
                       {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                         (el: Media, index: number) => (
@@ -875,7 +875,7 @@ const ListDetails = () => {
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                className='flex items-center gap-5 max-lg:gap-3'
+                                className='flex items-center gap-5 max-md:gap-3'
                                 style={{ ...provided.draggableProps.style }}
                               >
                                 <div {...provided.dragHandleProps}>
@@ -910,8 +910,8 @@ const ListDetails = () => {
                                       <div
                                         className={`group relative ${
                                           view.grid
-                                            ? 'w-48 h-72 max-lg:w-40 max-lg:h-60'
-                                            : 'w-24 h-32 max-lg:w-20 max-lg:h-28'
+                                            ? 'w-48 h-72 max-md:w-40 max-md:h-60'
+                                            : 'w-24 h-32 max-md:w-20 max-md:h-28'
                                         } overflow-hidden rounded-xl cursor-pointer`}
                                         onClick={(): void => handleDetails(el)}
                                       >
@@ -941,10 +941,10 @@ const ListDetails = () => {
                                         >
                                           {index + 1 + '- ' + (el?.title ?? el?.name)}
                                         </h1>
-                                        <div className='flex-1 text-black-100 max-lg:text-sm'>
+                                        <div className='flex-1 text-black-100 max-md:text-sm'>
                                           <span>{el?.release_date}</span>
                                         </div>
-                                        <div className='flex text-black-100 max-lg:text-sm'>
+                                        <div className='flex text-black-100 max-md:text-sm'>
                                           <StarIcon className='text-primary' />
                                           <p className='flex-1'>
                                             {Number(el?.vote_average ?? 0).toFixed(2)}
@@ -1030,7 +1030,7 @@ const ListDetails = () => {
               >
                 {(isReverse ? [...orderdList]?.reverse() : orderdList)?.map(
                   (el: Media, index: number) => (
-                    <div key={index} className='flex items-center gap-5 max-lg:gap-3'>
+                    <div key={index} className='flex items-center gap-5 max-md:gap-3'>
                       {isEdit && (
                         <input
                           type='checkbox'
@@ -1055,8 +1055,8 @@ const ListDetails = () => {
                             <div
                               className={`group relative ${
                                 view.grid
-                                  ? 'w-48 h-72 max-lg:w-40 max-lg:h-60'
-                                  : 'w-24 h-32 max-lg:w-20 max-lg:h-28'
+                                  ? 'w-48 h-72 max-md:w-40 max-md:h-60'
+                                  : 'w-24 h-32 max-md:w-20 max-md:h-28'
                               } overflow-hidden rounded-xl cursor-pointer`}
                               onClick={(): void => handleDetails(el)}
                             >
@@ -1084,10 +1084,10 @@ const ListDetails = () => {
                               >
                                 {index + 1 + '- ' + (el?.title ?? el?.name)}
                               </h1>
-                              <div className='flex-1 text-black-100 max-lg:text-sm'>
+                              <div className='flex-1 text-black-100 max-md:text-sm'>
                                 <span>{el?.release_date}</span>
                               </div>
-                              <div className='flex text-black-100 max-lg:text-sm'>
+                              <div className='flex text-black-100 max-md:text-sm'>
                                 <StarIcon className='text-primary' />
                                 <p className='flex-1'>
                                   {Number(el?.vote_average ?? 0).toFixed(2)}

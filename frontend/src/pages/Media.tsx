@@ -44,6 +44,7 @@ const Media = () => {
   const topRatedEpisodes: Episode[] = state.topRatedEpisodes;
 
   // Initialize state hooks
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
   const [show, setShow] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [currentSeason, setCurrentSeason] = useState<Season_Details>();
@@ -54,6 +55,18 @@ const Media = () => {
     season: 1,
     year: null,
   });
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle current season
   const handleCurrentSeason = (seasonNumber: number) => {
@@ -147,12 +160,12 @@ const Media = () => {
     <div>
       <Navbar />
       <div className='flex flex-col gap-3'>
-        <div className='container flex flex-col gap-4 bg-gray-400 py-10'>
-          <div className='flex gap-1 items-center text-white'>
+        <div className='flex flex-col gap-4 bg-gray-400 py-10'>
+          <div className='container flex gap-1 items-center text-white'>
             <ArrowBackIosIcon />
             <span>Back</span>
           </div>
-          <div className='flex gap-3'>
+          <div className='container flex gap-3'>
             <div className='w-28 h-44 rounded-lg overflow-hidden'>
               <LazyLoadImage
                 src={getImageUrl(
@@ -172,7 +185,7 @@ const Media = () => {
               <span className='text-xl text-gray-250 font-medium'>
                 {celebrityName || mediaName}
               </span>
-              <span className='text-6xl text-white font-semibold'>
+              <span className='text-6xl max-lg:text-4xl max-md:text-2xl text-white font-semibold'>
                 {(videos && 'Videos') || (season && 'Episode list') || 'Photos'}
               </span>
             </div>
@@ -308,7 +321,7 @@ const Media = () => {
               </>
             ))}
 
-          <div className='flex flex-3 flex-wrap gap-2 '>
+          <div className='flex flex-3 max-lg:flex-1 flex-wrap gap-3 '>
             {photos &&
               photos?.map((p: Photo, index: number) => (
                 <div
@@ -380,8 +393,8 @@ const Media = () => {
                 <div
                   data-testid='video'
                   key={v?.key}
-                  className='group/trailer relative h-64 rounded-lg cursor-pointer overflow-hidden'
-                  style={{ width: '27rem' }}
+                  className='group/trailer relative h-64 max-lg:h-56 rounded-lg cursor-pointer overflow-hidden'
+                  style={{ width: containerWidth >= 1024 ? '27rem' : '22.5rem' }}
                   onClick={(): void => handleVideo(v)}
                 >
                   <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
@@ -402,7 +415,7 @@ const Media = () => {
                 </div>
               ))}
           </div>
-          <div className='flex flex-1 flex-col gap-4'>
+          <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
             <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
               More to explore
             </h1>
