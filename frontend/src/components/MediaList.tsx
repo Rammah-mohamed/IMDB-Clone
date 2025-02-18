@@ -177,7 +177,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
   }
 
   useEffect(() => {
-    if (data.length !== 0) {
+    if (data?.length !== 0) {
       handleResize();
       const debouncedResize = debounce(handleResize, 200);
       window.addEventListener('resize', debouncedResize);
@@ -296,11 +296,14 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
       ></div>
     );
 
-  if (listError) return <div className='text-white text-sm'>Error: {listError.message}</div>;
+  if (listError) return <div className='text-white text-sm'>Error: {listError?.message}</div>;
   return (
-    data.length !== 0 && (
+    data &&
+    data?.length !== 0 && (
       <div
-        className='container flex flex-col gap-3 py-3 overflow-hidden'
+        className={`container flex flex-col gap-6 py-3 ${
+          title === 'Popular TV Shows' && 'pb-36'
+        } overflow-hidden`}
         style={{ height: '38rem' }}
       >
         <h1
@@ -372,7 +375,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                   </div>
                   <div
                     className={`flex flex-1 flex-col gap-3 p-4 max-md:gap-2 max-md:p-3 ${
-                      mediaType ? 'text-black bg-gray-200' : 'text-white bg-black-100'
+                      mediaType ? 'text-black bg-gray-250' : 'text-white bg-black-100'
                     } rounded-xl rounded-t-none overflow-hidden`}
                   >
                     <div className='flex items-center gap-2'>
@@ -385,7 +388,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                     <h1 className='text-base min-h-12 max-md:min-h-10'>{m?.title || m?.name}</h1>
                     <button
                       className={`flex items-center justify-center gap-2 p-1 text-secondary ${
-                        mediaType ? 'bg-gray-250' : 'bg-gray-400'
+                        mediaType ? 'bg-gray-light300' : 'bg-gray-400'
                       } rounded-2xl cursor-pointer`}
                     >
                       <AddIcon />

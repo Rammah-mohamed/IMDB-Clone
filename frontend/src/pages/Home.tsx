@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useAuth } from '../context/authContext';
 
 // Lazy load the components
@@ -8,9 +8,26 @@ const Lists = React.lazy(() => import('../components/Lists'));
 const PopularCelebrity = React.lazy(() => import('../components/PopularCelebrity'));
 const MediaList = React.lazy(() => import('../components/MediaList'));
 const Watchlist = React.lazy(() => import('../components/Watchlist'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
 
 const Home: React.FC = () => {
   const { user } = useAuth();
+
+  // Initialize state
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className='bg-black'>
       <Suspense
@@ -33,6 +50,7 @@ const Home: React.FC = () => {
         {user ? <MediaList title='From your watchlist' /> : <Watchlist />}
         <MediaList title='TV Airings' />
         <MediaList title='Popular TV Shows' />
+        {containerWidth <= 1024 && <MobileNavbar />}
       </Suspense>
     </div>
   );

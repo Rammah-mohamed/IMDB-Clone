@@ -98,10 +98,10 @@ const Sign: React.FC = () => {
         <Link to={'/'}>
           <h1 className='bg-primary py-1 px-2 text-4xl font-black rounded'>IMDB</h1>
         </Link>
-        <div className='flex flex-col justify-center gap-4 bg-gray-100 text-black w-96 p-4 border-2 border-gray-250 rounded-md'>
+        <div className='flex flex-col justify-center gap-4 bg-gray-100 text-black w-3/5 max-lg:w-4/5 p-4 border-2 border-gray-250 rounded-md'>
           <span className='text-3xl'>Sign in</span>
           {create && (
-            <div className='flex flex-col gap-2 text-sm font-semibold'>
+            <div className='flex flex-col gap-2 text-sm max-lg:text-lg font-semibold'>
               <label htmlFor='user'>UserName</label>
               <input
                 type='text'
@@ -113,7 +113,7 @@ const Sign: React.FC = () => {
               />
             </div>
           )}
-          <div className='flex flex-col gap-2 text-sm font-semibold'>
+          <div className='flex flex-col gap-2 text-sm max-lg:text-lg font-semibold'>
             <label htmlFor='mail'>Email or mobile phone number</label>
             <input
               type='mail'
@@ -121,10 +121,10 @@ const Sign: React.FC = () => {
               value={user.email}
               required
               onChange={(e) => setUser((prev) => ({ ...prev, email: e.target.value }))}
-              className='w-full h-10 p-1 border-2 border-gray-250 focus:outline-none focus:border-secondary'
+              className='w-full h-10 max-lg:h-16 py-1 px-2 max-lg:p-3 border-2 border-gray-250 focus:outline-none focus:border-secondary'
             />
           </div>
-          <div className='flex flex-col gap-2 text-sm font-semibold'>
+          <div className='flex flex-col gap-2 text-sm max-lg:text-lg font-semibold'>
             <label htmlFor='password'>Password</label>
             <input
               type='password'
@@ -132,15 +132,20 @@ const Sign: React.FC = () => {
               value={user.password}
               required
               onChange={(e) => setUser((prev) => ({ ...prev, password: e.target.value }))}
-              className='w-full h-10 p-1 border-2 border-gray-250 focus:outline-none focus:border-secondary'
+              className='w-full h-10 max-lg:h-16 p-3 border-2 border-gray-250 focus:outline-none focus:border-secondary'
             />
           </div>
-          <button className='bg-primary py-1 px-2 font-black rounded' onClick={handleLogging}>
+          <button
+            className='bg-primary py-1 px-2 max-lg:py-2 max-lg:px-3  font-black max-lg:text-xl rounded'
+            onClick={handleLogging}
+          >
             {create ? 'Create' : 'Sign in'}
           </button>
-          <span className='text-sm text-gray-300 w-full text-center'>New to IMDB?</span>
+          <span className='text-sm max-lg:text-lg text-gray-300 w-full text-center'>
+            New to IMDB?
+          </span>
           <button
-            className='bg-white hover:bg-gray-200 py-1 px-2 font-medium border-2 border-gray-250 rounded'
+            className='bg-white max-lg:text-lg-xl hover:bg-gray-200 py-1 px-2 font-medium border-2 border-gray-250 rounded'
             onClick={handleCreate}
           >
             Create your IMDB account

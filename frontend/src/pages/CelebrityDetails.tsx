@@ -322,7 +322,7 @@ const CelebrityDetails = () => {
             </div>
           </div>
         </div>
-        <div className='flex gap-8 p-4 max-md:gap-6 max-md:p-3'>
+        <div className='container flex gap-8 p-4 max-md:gap-6 max-md:p-3'>
           <div
             className='flex-2 text-white text-lg max-md:text-base text-justify cursor-pointer'
             onClick={() => setIsDetails((prev) => !prev)}
@@ -466,7 +466,7 @@ const CelebrityDetails = () => {
             <div className='flex flex-1 flex-col gap-2 cursor-pointer' key={index}>
               <div className='flex items-center'>
                 <div className='flex flex-1  flex-row items-center gap-3 max-md:gap-2'>
-                  <div className='group relative w-24 h-32 max-md:w-20 max-md:h-28 overflow-hidden rounded-xl cursor-pointer'>
+                  <div className='group relative w-24 h-32 max-md:w-20 max-md:h-28 max-lg:w-32 max-lg:h-48 overflow-hidden rounded-xl cursor-pointer'>
                     <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                     <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                     <LazyLoadImage
@@ -477,13 +477,13 @@ const CelebrityDetails = () => {
                     />
                   </div>
                   <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                    <h1 className='flex-2 text-lg max-md:text-base font-bold'>
+                    <h1 className='flex-2 text-lg max-md:text-base max-lg:text-2xl font-bold'>
                       {m?.title || m?.name}
                     </h1>
-                    <div className='flex-1 text-black-100'>
+                    <div className='flex-1 text-black-100 max-lg:text-xl'>
                       <span>{m?.release_date || m.first_air_date}</span>
                     </div>
-                    <div className='flex text-black-100 max-md:tex-sm'>
+                    <div className='flex text-black-100 max-md:tex-sm max-lg:text-xl'>
                       <StarIcon className='text-primary' />
                       <p className='flex-1'>
                         {Number(m?.vote_average ?? 0).toFixed(2)}
@@ -498,9 +498,9 @@ const CelebrityDetails = () => {
                 </div>
                 <ErrorOutlineIcon className='text-secondary' />
               </div>
-              <p className='font-semibold text-sm'>{m?.overview}</p>
+              <p className='font-semibold text-sm max-lg:text-lg'>{m?.overview}</p>
 
-              <div className='flex items-center gap-5 text-base max-md:gap-3 max-md:text-sm font-medium'>
+              <div className='flex items-center gap-5 text-base max-md:gap-3 max-md:text-sm max-lg:text-xl font-medium'>
                 {hasDirector(sortedCast, index) && (
                   <div key={index} className='flex gap-3'>
                     <span>Director</span>

@@ -685,57 +685,66 @@ const ListDetails = () => {
           </div>
         </div>
       )}
-      <div className=' flex items-center justify-between gap-4 bg-gray-400 py-12'>
-        <div className='container flex flex-4 flex-col gap-3'>
-          {listTitle ? (
-            <input
-              type='text'
-              value={listTitle}
-              className='text-white text-5xl p-2 font-medium bg-gray-400 focus-within:outline-none border-2 border-gray-400 hover:border-primary transition duration-500 ease-in'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'title')}
-            />
-          ) : (
-            <h1 className='text-white text-5xl max-md:text-3xl font-medium'>
-              {title || 'Your Watchlist'}
-            </h1>
-          )}
-          {listTitle ? (
-            <input
-              type='text'
-              value={description}
-              placeholder='Enter a description for your list'
-              className='text-gray-200 placeholder:text-gray-200  p-2 bg-gray-400 focus-within:outline-none border-2 hover:border-primary border-gray-400 order-primary transition duration-500 ease-in'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'description')}
-            />
-          ) : (
-            <p className='text-gray-200 max-md:text-sm'>
-              Your Watchlist is the place to track the titles you want to watch. You can sort your
-              Watchlist by the IMDb rating, popularity score and arrange your titles in the order
-              you want to see them.
-            </p>
-          )}
-        </div>
-        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
-          {checkStates?.length !== 0 && (
-            <div className='cursor-pointer' onClick={() => setIsEdit((prev) => !prev)}>
-              <EditIcon style={{ fontSize: '1.5rem' }} className='text-white hover:text-gray-250' />
-              <span className='text-white text-lg ml-2 hover:underline'>Edit</span>
+      <div className=' bg-gray-400 py-12'>
+        <div className='container flex items-center justify-between gap-4'>
+          <div className='flex flex-2 flex-col gap-3'>
+            {listTitle ? (
+              <input
+                type='text'
+                value={listTitle}
+                className='text-white text-5xl p-2 font-medium bg-gray-400 focus-within:outline-none border-2 border-gray-400 hover:border-primary transition duration-500 ease-in'
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'title')}
+              />
+            ) : (
+              <h1 className='text-white text-5xl max-md:text-3xl font-medium'>
+                {title || 'Your Watchlist'}
+              </h1>
+            )}
+            {listTitle ? (
+              <input
+                type='text'
+                value={description}
+                placeholder='Enter a description for your list'
+                className='text-gray-200 placeholder:text-gray-200  p-2 bg-gray-400 focus-within:outline-none border-2 hover:border-primary border-gray-400 order-primary transition duration-500 ease-in'
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'description')}
+              />
+            ) : (
+              <p className='text-gray-200 max-md:text-sm'>
+                Your Watchlist is the place to track the titles you want to watch. You can sort your
+                Watchlist by the IMDb rating, popularity score and arrange your titles in the order
+                you want to see them.
+              </p>
+            )}
+          </div>
+          {!title && (
+            <div className='flex flex-1 flex-col gap-4'>
+              {checkStates?.length !== 0 && (
+                <div className='cursor-pointer' onClick={() => setIsEdit((prev) => !prev)}>
+                  <EditIcon
+                    style={{ fontSize: '1.5rem' }}
+                    className='text-white hover:text-gray-250'
+                  />
+                  <span className='text-white text-lg max-lg:text-xl ml-2 hover:underline'>
+                    Edit
+                  </span>
+                </div>
+              )}
+              <div className='relative group flex items-center gap-1 bg-primary p-3 font-medium rounded-3xl cursor-pointer'>
+                <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
+                <AddIcon />
+                <span className='relative z-30' onClick={handleCreate}>
+                  Create a new list
+                </span>
+              </div>
             </div>
           )}
-          <div className='relative group flex items-center gap-1 bg-primary p-3 font-medium rounded-3xl cursor-pointer'>
-            <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
-            <AddIcon />
-            <span className='relative z-30' onClick={handleCreate}>
-              Create a new list
-            </span>
-          </div>
         </div>
       </div>
 
       <div className='container bg-white pt-6'>
         <div className='flex gap-20'>
           <div className='flex flex-3 flex-col gap-10'>
-            <div className='flex items-center justify-between'>
+            <div className='flex items-center justify-between max-lg:text-xl'>
               <div className='flex items-center gap-6'>
                 <span className='flex-1 text-black-100'>
                   {listData?.length >= 100 ? listData?.length.toString().slice() : listData?.length}{' '}
@@ -751,7 +760,7 @@ const ListDetails = () => {
                       />
                       <div className='flex flex-col'>
                         <span>Select all</span>
-                        <span className='text-gray-300 text-sm'>{} selected</span>
+                        <span className='text-gray-300 text-sm max-lg:text-lg'>{} selected</span>
                       </div>
                     </div>
                     <div
@@ -761,7 +770,7 @@ const ListDetails = () => {
                           : 'bg-gray-200'
                       } ${
                         checkboxStates.some((m) => m.isChecked) ? 'text-secondary' : 'text-gray-350'
-                      } text-sm font-semibold cursor-pointer`}
+                      } text-sm max-lg:text-lg font-semibold cursor-pointer`}
                       onClick={() => checkboxStates.some((m) => m.isChecked) && setIsCopy(true)}
                     >
                       <ContentCopyIcon style={{ fontSize: '1.4rem' }} />
@@ -774,7 +783,7 @@ const ListDetails = () => {
                           : 'bg-gray-200'
                       } ${
                         checkboxStates.some((m) => m.isChecked) ? 'text-secondary' : 'text-gray-350'
-                      } text-sm font-semibold cursor-pointer`}
+                      } text-sm max-lg:text-lg font-semibold cursor-pointer`}
                       onClick={() => checkboxStates.some((m) => m.isChecked) && setIsMove(true)}
                     >
                       <DriveFileMoveIcon style={{ fontSize: '1.4rem' }} />
@@ -787,7 +796,7 @@ const ListDetails = () => {
                           : 'bg-gray-200'
                       } ${
                         checkboxStates.some((m) => m.isChecked) ? 'text-secondary' : 'text-gray-350'
-                      } text-sm font-semibold cursor-pointer`}
+                      } text-sm max-lg:text-lg font-semibold cursor-pointer`}
                       onClick={() => handleDelete(listTitle)}
                     >
                       <DeleteIcon style={{ fontSize: '1.4rem' }} />
@@ -910,8 +919,8 @@ const ListDetails = () => {
                                       <div
                                         className={`group relative ${
                                           view.grid
-                                            ? 'w-48 h-72 max-md:w-40 max-md:h-60'
-                                            : 'w-24 h-32 max-md:w-20 max-md:h-28'
+                                            ? 'w-48 h-72 max-md:w-40 max-md:h-60 max-lg:w-48 max-lg:h-72'
+                                            : 'w-24 h-32 max-md:w-20 max-md:h-28 max-lg:w-36 max-lg:h-48'
                                         } overflow-hidden rounded-xl cursor-pointer`}
                                         onClick={(): void => handleDetails(el)}
                                       >
@@ -932,9 +941,7 @@ const ListDetails = () => {
                                           className='object-cover w-full h-full'
                                         />
                                       </div>
-                                      <div
-                                        className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}
-                                      >
+                                      <div className='flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-xl'>
                                         <h1
                                           className='flex-2 font-bold cursor-pointer hover:underline'
                                           onClick={(): void => handleDetails(el)}
@@ -971,7 +978,7 @@ const ListDetails = () => {
                                     <p
                                       className={`${
                                         view.details ? 'block' : 'hidden'
-                                      } font-semibold`}
+                                      } font-semibold max-lg:text-lg`}
                                     >
                                       {el?.overview}
                                     </p>
@@ -1055,8 +1062,8 @@ const ListDetails = () => {
                             <div
                               className={`group relative ${
                                 view.grid
-                                  ? 'w-48 h-72 max-md:w-40 max-md:h-60'
-                                  : 'w-24 h-32 max-md:w-20 max-md:h-28'
+                                  ? 'w-48 h-72 max-md:w-40 max-md:h-60 max-lg:w-48 max-lg:h-72'
+                                  : 'w-24 h-32 max-md:w-20 max-md:h-28 max-lg:w-36 max-lg:h-48'
                               } overflow-hidden rounded-xl cursor-pointer`}
                               onClick={(): void => handleDetails(el)}
                             >
@@ -1077,7 +1084,7 @@ const ListDetails = () => {
                                 className='object-cover w-full h-full'
                               />
                             </div>
-                            <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
+                            <div className='flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-xl'>
                               <h1
                                 className='flex-2 font-bold cursor-pointer hover:underline'
                                 onClick={(): void => handleDetails(el)}
@@ -1111,7 +1118,11 @@ const ListDetails = () => {
                           />
                         </div>
                         {!isEdit && (
-                          <p className={`${view.details ? 'block' : 'hidden'} font-semibold`}>
+                          <p
+                            className={`${
+                              view.details ? 'block' : 'hidden'
+                            } font-semibold max-lg:text-lg`}
+                          >
                             {el?.overview}
                           </p>
                         )}

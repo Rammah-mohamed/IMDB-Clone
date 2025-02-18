@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState<string>('');
-  const [mediaLength, setmediaLength] = useState<number | null>(null);
+  const [mediaLength, setmediaLength] = useState<number>(0);
   const [focus, setFocus] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
@@ -65,17 +65,17 @@ const Navbar: React.FC = () => {
   }, [focus, query, searchText]);
 
   return (
-    <div className='bg-black-100 max-lg:hidden h-16'>
+    <div className='bg-black-100 h-16'>
       <Suspense
         fallback={
           <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
         }
       >
-        <div className='container relative flex items-center justify-between gap-2 w-full h-full py-4 font-bold'>
+        <div className='container relative flex items-center justify-between max-lg:justify-center gap-2 w-full h-full py-4 font-bold'>
           <Link to={'/'} className='group relative'>
             <h1
               data-testid='imdb-logo'
-              className=' bg-primary py-0.5 px-1.5 text-xl font-black rounded'
+              className=' bg-primary py-0.5 px-1.5 max-lg:py-2 max-lg:px-3  text-xl max-lg:text-3xl font-black rounded'
             >
               IMDB
             </h1>
@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
           </Link>
           <div
             data-testid='menuBtn'
-            className='flex items-center gap-1 w-max h-full py-1 px-3 text-white text-sm cursor-pointer rounded hover:bg-gray'
+            className='max-lg:hidden flex items-center gap-1 w-max h-full py-1 px-3 text-white text-sm cursor-pointer rounded hover:bg-gray'
             onClick={(): void => setShowMenu(true)}
           >
             <MenuIcon />
@@ -91,7 +91,7 @@ const Navbar: React.FC = () => {
             <Menu showMenu={showMenu} setShowMenu={setShowMenu} />
           </div>
           <div
-            className='relative flex items-center w-3/5 h-full'
+            className='max-lg:hidden relative flex items-center w-3/5 h-full'
             onFocus={() => setFocus(true)}
             onBlur={() => setFocus(false)}
           >
@@ -120,12 +120,12 @@ const Navbar: React.FC = () => {
               <SearchIcon className='cursor-pointer' />
             </span>
           </div>
-          <p className='py-1 px-3 text-white text-sm rounded hover:bg-gray border-r-2 border-gray-300 cursor-pointer'>
+          <p className='max-lg:hidden py-1 px-3 text-white text-sm rounded hover:bg-gray border-r-2 border-gray-300 cursor-pointer'>
             IMDB<span className='text-md text-secondary'>Pro</span>
           </p>
           <Link
             to={user ? '/listDetails' : '/sign'}
-            className='flex items-center gap-1 w-max h-full py-1 px-3 text-white text-sm rounded hover:bg-gray'
+            className='max-lg:hidden flex items-center gap-1 w-max h-full py-1 px-3 text-white text-sm rounded hover:bg-gray'
           >
             <LibraryAddIcon />
             <div className='flex items-center gap-2'>
@@ -139,7 +139,7 @@ const Navbar: React.FC = () => {
           </Link>
           <button
             data-testid='btn'
-            className='relative py-1 px-3 text-white text-sm rounded hover:bg-gray'
+            className='max-lg:hidden relative py-1 px-3 text-white text-sm rounded hover:bg-gray'
             style={{ marginLeft: '-0.5rem' }}
             onClick={handleLog}
           >
@@ -153,7 +153,7 @@ const Navbar: React.FC = () => {
               'Sign In'
             )}
           </button>
-          <span className='py-1 px-3 text-white text-sm rounded hover:bg-gray cursor-pointer'>
+          <span className='max-lg:hidden py-1 px-3 text-white text-sm rounded hover:bg-gray cursor-pointer'>
             EN
           </span>
         </div>

@@ -169,7 +169,7 @@ const Videos = () => {
   if (genresError) return <div className='text-black text-sm'>Error: {genresError?.message}</div>;
 
   return (
-    <div className='bg-black'>
+    <div className='bg-black min-h-screen'>
       <Navbar />
       <div
         className='container flex gap-2 pt-8 mb-10 text-white'

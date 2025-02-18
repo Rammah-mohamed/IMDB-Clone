@@ -11,6 +11,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
 
 //Types for each query's return value
 interface QueryResult {
@@ -47,6 +48,19 @@ const Search = () => {
   const [movies, setMovies] = useState<Movie[] | null>(null);
   const [tv, setTv] = useState<TV[] | null>(null);
   const [celebrity, setCelebrity] = useState<Celebrity[] | null>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Custom hook to Handle GraphQl Queries
   const useSearchQueries = useCallback(() => {
@@ -283,7 +297,7 @@ const Search = () => {
             )}
           </div>
         </div>
-        <div className='flex flex-1 flex-col gap-4'>
+        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
           <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
           <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
             <h2 className='text-2xl font-medium'>Feedback</h2>
@@ -293,6 +307,7 @@ const Search = () => {
             <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
           </div>
         </div>
+        {containerWidth <= 1024 && <MobileNavbar />}
       </div>
     </div>
   );

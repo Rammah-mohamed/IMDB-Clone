@@ -5,9 +5,8 @@ export default {
     container: {
       center: true,
       padding: {
-        DEFAULT: '1rem',
-        lg: '2rem',
-        xl: '3rem',
+        DEFAULT: '0.5rem',
+        xl: '1rem',
       },
       screens: {
         sm: '640px',
@@ -34,8 +33,10 @@ export default {
         200: '#eee',
         250: '#dedede',
         300: '#777',
+        light300: '#77777787',
         350: '#373737',
         400: '#1F1F1F',
+        500: '#080808',
       },
       overlay: { DEFAULT: '#11111130', 50: '#11111150', 60: '#11111160', 70: '#11111170' },
       green: '#66AB58',

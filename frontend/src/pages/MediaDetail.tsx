@@ -212,12 +212,12 @@ const MediaDetail = () => {
   // Handle media trailer
   const handleTrailer = (mediaType: string): void => {
     let trailer: Trailer | undefined;
-    const movieType = mediaType || data.__typename.slice(0, 5).toLocaleLowerCase();
-    const tvType = mediaType || data.__typename.slice(0, 2).toLocaleLowerCase();
-    if (movieType === 'movie' && movieVideos.length !== 0) {
-      trailer = movieVideos.find((t: Trailer) => t.type === 'Trailer');
-    } else if (tvType === 'tv' && tvVideos.length !== 0) {
-      trailer = tvVideos.find((t: Trailer) => t.type === 'Trailer');
+    const movieType = mediaType || data?.__typename?.slice(0, 5).toLocaleLowerCase();
+    const tvType = mediaType || data?.__typename?.slice(0, 2).toLocaleLowerCase();
+    if (movieType === 'movie' && movieVideos?.length !== 0) {
+      trailer = movieVideos?.find((t: Trailer) => t?.type === 'Trailer');
+    } else if (tvType === 'tv' && tvVideos?.length !== 0) {
+      trailer = tvVideos?.find((t: Trailer) => t?.type === 'Trailer');
     }
 
     if (trailer) {
@@ -1109,7 +1109,7 @@ const MediaDetail = () => {
                 className='flex items-center gap-4 cursor-pointer'
                 onClick={(): void => handleCelebrity(c?.name, c?.id)}
               >
-                <div className='w-32 h-32 rounded-full overflow-hidden'>
+                <div className='w-32 h-32 max-lg:w-28 max-lg:h-28   rounded-full overflow-hidden'>
                   <LazyLoadImage
                     src={getImageUrl(c?.profile_path, 'w154')}
                     loading='lazy'
@@ -1118,8 +1118,8 @@ const MediaDetail = () => {
                   />
                 </div>
                 <div className='flex flex-col items-center gap-2'>
-                  <span className='text-lg font-medium'>{c?.name}</span>
-                  <span className='text font-medium text-gray-300'>{c?.character}</span>
+                  <span className='text-lg max-lg:text-base font-medium'>{c?.name}</span>
+                  <span className='max-lg:text-sm font-medium text-gray-300'>{c?.character}</span>
                 </div>
               </div>
             ))}
@@ -1136,8 +1136,12 @@ const MediaDetail = () => {
           </div>
         </div>
       </div>
-      <MediaList title='Similar' mediaType={data?.media_type} id={data?.id} />
-      <MediaList title='Recommend' mediaType={data?.media_type} id={data?.id} />
+      {data && (
+        <>
+          <MediaList title='Similar' mediaType={data?.media_type} id={data?.id} />
+          <MediaList title='Recommend' mediaType={data?.media_type} id={data?.id} />
+        </>
+      )}
     </div>
   );
 };

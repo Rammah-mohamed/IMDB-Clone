@@ -14,6 +14,8 @@ const CelebrityDetails = React.lazy(() => import('./pages/CelebrityDetails'));
 const Media = React.lazy(() => import('./pages/Media'));
 const MediaDetail = React.lazy(() => import('./pages/MediaDetail'));
 const Critics = React.lazy(() => import('./pages/Critics'));
+const MobileSearch = React.lazy(() => import('./pages/MobileSearch'));
+const User = React.lazy(() => import('./pages/User'));
 
 const App = () => {
   const { login } = useAuth();
@@ -68,6 +70,8 @@ const App = () => {
           <Route path='/media' element={<Media />} />
           <Route path='/mediaDetail' element={<MediaDetail />} />
           <Route path='/critics' element={<Critics />} />
+          <Route path='/mobileSearch' element={<MobileSearch />} />
+          <Route path='/user' element={<User />} />
         </Routes>
       </Suspense>
     </div>
