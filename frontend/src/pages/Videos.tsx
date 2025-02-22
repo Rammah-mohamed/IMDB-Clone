@@ -14,6 +14,7 @@ import { LazyLoadImage } from 'react-lazy-load-image-component';
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
 const Lists = React.lazy(() => import('../components/Lists'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
 
 // YouTube video URL
 const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
@@ -172,7 +173,7 @@ const Videos = () => {
     <div className='bg-black min-h-screen'>
       <Navbar />
       <div
-        className='container flex gap-2 pt-8 mb-10 text-white'
+        className='container flex gap-2 pt-8 mb-10 max-lg:mb-2 max-lg:pt-2 text-white'
         style={{ height: containerWidth >= 1024 ? '85vh' : '50vh' }}
       >
         <div className='group relative flex-2 mb-4 rounded-2xl overflow-hidden'>
@@ -244,6 +245,7 @@ const Videos = () => {
       ) : (
         <Lists title={'Related Videos'} relatedVideos={videos} poster={data.backdrop_path} />
       )}
+      {containerWidth <= 1024 && <MobileNavbar />}
     </div>
   );
 };

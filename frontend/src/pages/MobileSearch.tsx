@@ -27,16 +27,16 @@ const MobileSearch = () => {
   return (
     <div className='bg-black min-h-screen'>
       <div className='container'>
-        <div className='flex gap-6 py-6'>
+        <div className='flex gap-6 max-md:gap-3 py-6'>
           <div
-            className='relative flex flex-1 items-center w-3/5 h-14'
+            className='relative flex flex-1 items-center w-3/5 h-14 max-md:h-10'
             onFocus={() => setFocus(true)}
           >
             <input
               type='text'
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className='flex-1 h-full p-3 bg-white text-2xl font-medium rounded outline-none'
+              className='flex-1 h-full p-3 max-md:p-1.5 bg-white text-2xl max-md:text-base font-medium rounded outline-none'
               placeholder='Search IMDB'
               style={{ borderTopLeftRadius: '0', borderBottomLeftRadius: '0' }}
             />
@@ -44,7 +44,10 @@ const MobileSearch = () => {
               <SearchIcon className='cursor-pointer' style={{ fontSize: '2rem' }} />
             </span>
           </div>
-          <button className='text-2xl text-secondary' onClick={() => setFocus(false)}>
+          <button
+            className='text-2xl max-md:text-base text-secondary'
+            onClick={() => setFocus(false)}
+          >
             Cancel
           </button>
         </div>

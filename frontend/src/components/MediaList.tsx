@@ -58,6 +58,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
   const [index, setIndex] = useState<number>(0);
   const [width, setWidth] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
 
   // Initialize Ref hooks
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,6 +94,18 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
 
   const { recommendMovies, similarMovies, tvRecommend, tvSimilar } =
     useRecommendAndSimilarQueries();
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch user Watchlist
   const fetchWatchlist = useCallback(async () => {
@@ -301,14 +314,16 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
     data &&
     data?.length !== 0 && (
       <div
-        className={`container flex flex-col gap-6 py-3 ${
-          title === 'Popular TV Shows' && 'pb-36'
-        } overflow-hidden`}
-        style={{ height: '38rem' }}
+        className={`container flex flex-col gap-6 py-3 max-md:py-1 ${
+          title === 'Popular TV Shows' ? 'max-lg:mb-20' : ''
+        }  ${title === 'Popular TV Shows' && 'pb-36'}`}
+        style={{ height: containerWidth > 768 ? '38rem' : '34rem' }}
       >
         <h1
           className={`${
-            mediaType ? 'text-4xl max-md:text-3xl text-black' : 'text-2xl max-md:text-xl text-white'
+            mediaType
+              ? 'text-4xl max-lg:text-3xl max-md:text-2xl text-black'
+              : 'text-2xl max-lg:text-xl max-md:text-lg text-white'
           } w-full h-10 font-semibold pl-3 mt-10 border-l-4 border-primary`}
         >
           {title}
@@ -317,18 +332,18 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
           {height !== 0 && (
             <>
               <button
-                className={`absolute top-1/2 left-4 p-3 ${
+                className={`absolute top-1/2 left-4 p-3  max-md:p-1.5 ${
                   mediaType ? 'text-gray-200' : 'text-white'
-                } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
+                } hover:text-primary z-30 border-2 border-solid rounded-md hidden max-md:block group-hover:block`}
                 style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
                 onClick={() => handleLeft(data)}
               >
                 <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
               </button>
               <button
-                className={`absolute top-1/2 right-4 p-3 ${
+                className={`absolute top-1/2 right-4 p-3 max-md:p-1.5 ${
                   mediaType ? 'text-gray-200' : 'text-white'
-                } hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block`}
+                } hover:text-primary z-30 border-2 border-solid rounded-md hidden max-md:block group-hover:block`}
                 style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
                 onClick={() => handleRight(data)}
               >
@@ -337,9 +352,12 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
             </>
           )}
           <div
-            className='flex items-center gap-4 h-full transition-transform duration-500'
+            className='flex items-center gap-4 max-md:gap-2 h-full transition-transform duration-500'
             style={{
-              transform: `translateX(${-(width * index + 16 * index)}px)`,
+              transform: `translateX(${-(
+                width * index +
+                (containerWidth < 768 ? 8 : 16) * index
+              )}px)`,
             }}
           >
             {data?.length !== 0 &&
@@ -352,8 +370,8 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
                 >
                   <div
                     ref={heightRef}
-                    className='relative group/item h-72 rounded-xl rounded-b-none overflow-hidden'
-                    style={{ width: '12.16rem' }}
+                    className='relative group/item h-72 max-md:h-64 rounded-xl max-md:rounded-md rounded-b-none overflow-hidden'
+                    style={{ width: containerWidth > 768 ? '12.16rem' : '11.5rem' }}
                   >
                     <span className='group-hover/item:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                     <AddIcon

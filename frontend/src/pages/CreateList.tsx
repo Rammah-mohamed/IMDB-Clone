@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import axios from 'axios';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
 
 // Type for list
 type List = {
@@ -26,6 +27,19 @@ const CreateList = () => {
   const [count, setCount] = useState<Count>({ listNameChars: 0, descriptionChars: 0 });
   const [list, setList] = useState<List>({ listName: '', description: '' });
   const [validate, setValidate] = useState<string>('');
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle list name
   const handleName = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,6 +171,7 @@ const CreateList = () => {
           </div>
         </div>
       </div>
+      {containerWidth <= 1024 && <MobileNavbar />}
     </div>
   );
 };

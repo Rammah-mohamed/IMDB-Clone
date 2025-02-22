@@ -29,6 +29,7 @@ import getImageUrl from '../utils/getImages';
 
 // Lazy load the component
 const Navbar = React.lazy(() => import('../components/Navbar'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
 
 //Types for each query's return value
 interface QueryResult {
@@ -67,6 +68,7 @@ const CelebrityDetails = () => {
   const [isDetails, setIsDetails] = useState<boolean>(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
 
   // Celebrity Details Query
   const {
@@ -88,6 +90,18 @@ const CelebrityDetails = () => {
   }, []);
 
   const { movieTrailer, movieCast, movieCrew, tvTrailer, tvCast, tvCrew } = useLazyQueries();
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch media trailers
   useEffect(() => {
@@ -255,10 +269,12 @@ const CelebrityDetails = () => {
   return (
     <div>
       <Navbar />
-      <div className='flex flex-col gap-3 bg-gray-400 pt-10 max-md:p-4'>
+      <div className='max-md:min-h-screen flex flex-col gap-3 bg-gray-400 pt-10 max-md:p-4'>
         <div className='container flex justify-between'>
           <div className='flex flex-col gap-2'>
-            <h1 className='text-5xl max-md:text-3xl text-white'>{celebrityInfo?.name}</h1>
+            <h1 className='text-5xl max-lg:text-3xl max-md:text-2xl text-white'>
+              {celebrityInfo?.name}
+            </h1>
             <span className='text text-gray-200'>{celebrityInfo?.known_for_department}</span>
           </div>
           <div className='flex items-center gap-2'>
@@ -271,10 +287,10 @@ const CelebrityDetails = () => {
           </div>
         </div>
         <div
-          className='container flex gap-2'
+          className='container flex max-md:flex-col gap-2'
           style={{ height: window.innerWidth <= 1024 ? '30rem' : '20rem' }}
         >
-          <div className='relative group flex-1 rounded-lg cursor-pointer overflow-hidden'>
+          <div className='relative group flex-1 max-md:flex-initial max-md:w-60 max-md:h-60 max-md:self-center gap-2 rounded-lg max-md:rounded-full cursor-pointer overflow-hidden'>
             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
             <LazyLoadImage
               src={getImageUrl(celebrityInfo?.profile_path, 'w342')}
@@ -284,7 +300,7 @@ const CelebrityDetails = () => {
             />
           </div>
           <div
-            className='group/trailer relative flex-2.5 max-md:flex-2 rounded-lg cursor-pointer overflow-hidden'
+            className='group/trailer relative flex-2.5 max-lg:flex-2 max-md:flex-1 rounded-lg cursor-pointer overflow-hidden'
             onClick={(): void => handleVideo(trailers[0])}
           >
             <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
@@ -303,7 +319,7 @@ const CelebrityDetails = () => {
               playing={false}
             />
           </div>
-          <div className='flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
+          <div className='max-md:hidden flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
             <div
               className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg max-md:text-base font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
               onClick={() => handelPhoto(celebrityImages)}
@@ -334,7 +350,7 @@ const CelebrityDetails = () => {
               <KeyboardArrowDownIcon className='cursor-pointer' style={{ fontSize: '1.8rem' }} />
             )}
           </div>
-          <div className='flex flex-1 flex-col gap-2 text-white text-base font-medium'>
+          <div className='max-md:hidden flex flex-1 flex-col gap-2 text-white text-base font-medium'>
             <p>
               Birthday <span className='pl-2 text-gray-250'>{celebrityData?.birthday}</span>
             </p>
@@ -348,7 +364,7 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
-      <div className='container flex gap-6 pt-20 max-md:gap-4 max-md:p-14 bg-white'>
+      <div className='container flex gap-6 pt-20 max-md:gap-4 max-lg:p-14 max-md:p-6 bg-white'>
         <div className='flex flex-3 flex-col gap-4 max-md:gap-3'>
           <div
             className='group/icon flex items-center max-md:justify-center gap-2 w-fit text-4xl font-semibold pl-3 max-md:pl-2 border-l-4 border-primary cursor-pointer'
@@ -360,7 +376,7 @@ const CelebrityDetails = () => {
               {celebrityImages?.length}
             </span>
           </div>
-          <div className='flex flex-wrap max-md:justify-center gap-3 max-md:gap-2'>
+          <div className='flex flex-wrap max-lg:justify-center gap-3 max-md:gap-2'>
             {celebrityImages?.map((p: Photo, index: number) => (
               <div
                 key={index}
@@ -370,13 +386,13 @@ const CelebrityDetails = () => {
                     : index < 8
                     ? 'block'
                     : 'hidden'
-                } group relative w-52 h-64 max-md:w-44 max-md:h-52 rounded-lg cursor-pointer overflow-hidden`}
+                } group relative w-52 h-64 max-lg:w-44 max-lg:h-52 max-md:w-40 max-md:h-64 rounded-lg cursor-pointer overflow-hidden`}
                 onClick={(): void => handleImageModal(index)}
               >
                 <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-30'></span>
 
                 {showImageModal && currentImage && currentImageIndex === index && (
-                  <div className='flex flex-col items-center gap-4 max-md:gap-3 fixed left-0 top-0 w-screen h-screen p-6 max-md:p-4 bg-black z-30'>
+                  <div className='flex flex-col items-center max-md:justify-between gap-4 max-lg:gap-3 max-md:gap-6 fixed left-0 top-0 w-screen h-screen p-6 max-md:p-4 bg-black z-30 overflow-hidden'>
                     <button
                       className='absolute top-1/2 left-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
                       onClick={handlePrevImage}
@@ -389,7 +405,7 @@ const CelebrityDetails = () => {
                     >
                       <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
                     </button>
-                    <div className='flex w-full px-28 max-md:px-20 items-center justify-between text-white'>
+                    <div className='flex w-full px-28 max-md:px-6 items-center justify-between text-white'>
                       <div
                         className='flex items-center gap-2 cursor-pointer'
                         onClick={closeImageModal}
@@ -408,12 +424,14 @@ const CelebrityDetails = () => {
                       </div>
                     </div>
                     <div
+                      className='max-md:flex-1'
                       style={{
                         width:
-                          currentImage?.width >= 1000
+                          containerWidth <= 768
+                            ? currentImage?.width / 3
+                            : currentImage?.width >= 1000
                             ? currentImage?.width / 2
                             : currentImage?.width,
-                        height: '85vh',
                       }}
                     >
                       <LazyLoadImage
@@ -455,18 +473,18 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
-      <div className='container pt-10 max-md:p-6'>
+      <div className='container pt-10 max-lg:p-10 max-md:p-0 max-md:pl-6'>
         <h1 className='text-4xl max-md:text-2xl font-semibold pl-3 border-l-4 border-primary'>
           Known For
         </h1>
       </div>
       <div className='container flex gap-6 max-md:gap-4 bg-white'>
-        <div className='flex flex-3 flex-col gap-10 p-6 max-md:gap-6 max-md:p-5 mt-4 border-2 border-gray-100 shadow-md'>
+        <div className='flex flex-3 flex-col gap-10 p-6  max-lg:gap-6 max-md:gap-2 max-lg:p-5 mt-4 border-2 border-gray-100 shadow-md'>
           {celebrityInfo?.known_for?.map((m, index) => (
             <div className='flex flex-1 flex-col gap-2 cursor-pointer' key={index}>
               <div className='flex items-center'>
                 <div className='flex flex-1  flex-row items-center gap-3 max-md:gap-2'>
-                  <div className='group relative w-24 h-32 max-md:w-20 max-md:h-28 max-lg:w-32 max-lg:h-48 overflow-hidden rounded-xl cursor-pointer'>
+                  <div className='group relative w-24 h-32 max-md:w-28 max-md:h-44 max-lg:w-32 max-lg:h-48 overflow-hidden rounded-xl cursor-pointer'>
                     <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                     <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                     <LazyLoadImage
@@ -476,14 +494,14 @@ const CelebrityDetails = () => {
                       className='object-cover w-full h-full'
                     />
                   </div>
-                  <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
+                  <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-lg`}>
                     <h1 className='flex-2 text-lg max-md:text-base max-lg:text-2xl font-bold'>
                       {m?.title || m?.name}
                     </h1>
-                    <div className='flex-1 text-black-100 max-lg:text-xl'>
+                    <div className='flex-1 text-black-100 max-lg:text-xl max-md:text-base'>
                       <span>{m?.release_date || m.first_air_date}</span>
                     </div>
-                    <div className='flex text-black-100 max-md:tex-sm max-lg:text-xl'>
+                    <div className='flex text-black-100 max-md:text-sm max-lg:text-xl '>
                       <StarIcon className='text-primary' />
                       <p className='flex-1'>
                         {Number(m?.vote_average ?? 0).toFixed(2)}
@@ -498,9 +516,9 @@ const CelebrityDetails = () => {
                 </div>
                 <ErrorOutlineIcon className='text-secondary' />
               </div>
-              <p className='font-semibold text-sm max-lg:text-lg'>{m?.overview}</p>
+              <p className='max-md:hidden font-semibold text-sm max-lg:text-lg'>{m?.overview}</p>
 
-              <div className='flex items-center gap-5 text-base max-md:gap-3 max-md:text-sm max-lg:text-xl font-medium'>
+              <div className='max-md:hidden flex items-center gap-5 text-base max-md:gap-3 max-md:text-sm max-lg:text-xl font-medium'>
                 {hasDirector(sortedCast, index) && (
                   <div key={index} className='flex gap-3'>
                     <span>Director</span>
@@ -537,7 +555,7 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
-      <div className='container flex gap-6 pt-20 pb-10 max-md:gap-4 max-md:pt-14 px-14 max-md:pb-6 bg-white'>
+      <div className='container flex max-md:justify-center gap-6 pt-20 pb-10 max-lg:gap-4 max-lg:pt-14 max-md:gap-2 max-md:pt-8 px-14 max-md:pb-20  bg-white'>
         <div className='flex flex-col gap-4 flex-3 max-md:gap-3 max-md:flex-2'>
           <div
             className='group/icon flex items-center gap-2 w-fit text-4xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
@@ -552,7 +570,7 @@ const CelebrityDetails = () => {
               <div
                 key={index}
                 className='group/trailer relative h-64 max-md:h-52 rounded-lg cursor-pointer overflow-hidden'
-                style={{ width: '27rem' }}
+                style={{ width: containerWidth > 768 ? '27rem' : '20rem' }}
                 onClick={(): void => handleVideo(v)}
               >
                 <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
@@ -587,6 +605,7 @@ const CelebrityDetails = () => {
           </div>
         </div>
       </div>
+      {containerWidth <= 1024 && <MobileNavbar />}
     </div>
   );
 };

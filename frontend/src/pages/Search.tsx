@@ -160,13 +160,15 @@ const Search = () => {
   return (
     <div className='flex flex-col'>
       <Navbar />
-      <div className='container flex gap-20 bg-white py-10'>
+      <div className='container flex gap-20 bg-white py-10 pb-20'>
         <div className='flex flex-3 flex-col'>
-          <h1 className='text-5xl'>Search {query}</h1>
+          <h1 className='text-5xl max-lg:text-2xl'>Search {query}</h1>
           <div className='flex flex-3 flex-col gap-8'>
             {(isMovies() || movies) && (
               <div className='flex flex-col gap-4 mt-4 p-3 border-2 border-gray-100 shadow-md'>
-                <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>Movies</h1>
+                <h1 className='text-3xl max-lg:text-xl font-semibold pl-3 border-l-4 border-primary'>
+                  Movies
+                </h1>
                 {(multi?.filter((m) => m?.media_type === 'movie') || movies)
                   ?.slice(0, 4)
                   ?.map((m) => (
@@ -177,10 +179,7 @@ const Search = () => {
                     >
                       <div className='flex items-center'>
                         <div className='flex flex-1  flex-row items-center gap-3'>
-                          <div
-                            className='group relative w-16 h-24
-                overflow-hidden rounded-xl cursor-pointer'
-                          >
+                          <div className='group relative w-16 h-24 max-lg:w-20 max-lg:h-28 overflow-hidden rounded-xl cursor-pointer'>
                             <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                             <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                             <LazyLoadImage
@@ -189,12 +188,14 @@ const Search = () => {
                               className='object-cover w-full h-full'
                             />
                           </div>
-                          <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                            <h1 className='flex-2 text font-bold'>{m?.title}</h1>
-                            <div className='flex-1 text-sm text-black-100'>
+                          <div className={`flex flex-2 flex-col gap-2 p-2 w-full max-lg:text-sm`}>
+                            <h1 className='flex-2 text-xl max-lg:text-base font-bold'>
+                              {m?.title}
+                            </h1>
+                            <div className='flex-1 max-lg:text-sm text-black-100'>
                               <span>{m?.release_date}</span>
                             </div>
-                            <div className='flex text-black-100 text-sm'>
+                            <div className='flex text-black-100 max-lg:text-sm'>
                               <StarIcon className='text-primary' />
                               <p className='flex-1'>
                                 {Number(m?.vote_average ?? 0).toFixed(2)}
@@ -216,7 +217,9 @@ const Search = () => {
             )}
             {(isTv() || tv) && (
               <div className='flex flex-col gap-4 mt-4 p-3 border-2 border-gray-100 shadow-md'>
-                <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>TV Shows</h1>
+                <h1 className='text-3xl max-lg:text-xl font-semibold pl-3 border-l-4 border-primary'>
+                  TV Shows
+                </h1>
                 {(multi?.filter((s) => s?.media_type === 'tv') || tv)?.slice(0, 4)?.map((m) => (
                   <div
                     className='flex flex-1 flex-col gap-2 cursor-pointer'
@@ -225,10 +228,7 @@ const Search = () => {
                   >
                     <div className='flex items-center'>
                       <div className='flex flex-1  flex-row items-center gap-3'>
-                        <div
-                          className='group relative w-16 h-24
-                overflow-hidden rounded-xl cursor-pointer'
-                        >
+                        <div className='group relative w-16 h-24 max-lg:w-20 max-lg:h-28 overflow-hidden rounded-xl cursor-pointer'>
                           <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
                           <AddIcon className='absolute top-0 left-0 bg-black-transparent text-white' />
                           <LazyLoadImage
@@ -237,12 +237,12 @@ const Search = () => {
                             className='object-cover w-full h-full'
                           />
                         </div>
-                        <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                          <h1 className='flex-2 text font-bold'>{m?.name}</h1>
-                          <div className='flex-1 text-sm text-black-100'>
+                        <div className={`flex flex-2 flex-col gap-2 p-2 w-full max-lg:text-sm`}>
+                          <h1 className='flex-2 text-xl max-lg:text-base font-bold'>{m?.name}</h1>
+                          <div className='flex-1 max-lg:text-sm text-black-100'>
                             <span>{m?.first_air_date}</span>
                           </div>
-                          <div className='flex text-black-100 text-sm'>
+                          <div className='flex text-black-100 max-lg:text-sm'>
                             <StarIcon className='text-primary' />
                             <p className='flex-1'>
                               {Number(m?.vote_average ?? 0).toFixed(2)}
@@ -264,7 +264,7 @@ const Search = () => {
             )}
             {(isClebs() || celebrity) && (
               <div className='flex flex-col gap-4 mt-4 p-3 border-2 border-gray-100 shadow-md'>
-                <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
+                <h1 className='text-3xl max-lg:text-xl font-semibold pl-3 border-l-4 border-primary'>
                   Celebrities
                 </h1>
                 {(multi?.filter((c) => c?.media_type === 'person') || celebrity)
@@ -286,7 +286,7 @@ const Search = () => {
                             />
                           </div>
                           <div className={`flex flex-2 flex-col gap-2 p-2 w-full text-sm`}>
-                            <h1 className='flex-2 text font-bold'>{m?.name}</h1>
+                            <h1 className='flex-2 text-lg max-lg:text-base font-bold'>{m?.name}</h1>
                           </div>
                         </div>
                         <ErrorOutlineIcon className='text-secondary' />

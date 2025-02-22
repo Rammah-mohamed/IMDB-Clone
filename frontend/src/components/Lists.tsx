@@ -40,31 +40,45 @@ const Lists: React.FC<ListsProps> = React.memo(
       if (containerRef.current) {
         const firstChild = containerRef.current.firstElementChild as HTMLElement;
         if (firstChild) {
-          setItemWidth(firstChild.offsetWidth + 4); // Adding a 4px gap
+          setItemWidth(firstChild.offsetWidth);
         }
       }
     }, [data, relatedVideos]);
 
     // Handlers to update the index
     const handleRight = useCallback((length: number) => {
-      setIndex((prev) => (prev + 3) % length);
+      if (containerRef.current) {
+        const firstChild = containerRef.current.firstElementChild as HTMLElement;
+        if (firstChild.offsetWidth <= 768) {
+          setIndex((prev) => (prev + 2) % length);
+        }
+      } else {
+        setIndex((prev) => (prev + 3) % length);
+      }
     }, []);
 
     const handleLeft = useCallback((length: number) => {
-      setIndex((prev) => (prev - 3 + length) % length);
+      if (containerRef.current) {
+        const firstChild = containerRef.current.firstElementChild as HTMLElement;
+        if (firstChild.offsetWidth <= 768) {
+          setIndex((prev) => (prev - 2 + length) % length);
+        }
+      } else {
+        setIndex((prev) => (prev - 3 + length) % length);
+      }
     }, []);
 
     // Data source (prioritize in order: relatedVideos -> data -> titles)
     const content = relatedVideos || data || titles;
 
     return (
-      <div className='container pb-6 h-90'>
-        <h1 className='text-3xl max-md:text-2xl text-primary pl-5 mb-6'>{title}</h1>
+      <div className={`container ${title === 'Related Videos' ? 'pb-20' : ''} pb-8 h-90`}>
+        <h1 className='text-3xl max-lg:text-2xl max-md:text-xl text-primary pl-5 mb-6'>{title}</h1>
         <div className='group relative w-full h-full overflow-hidden'>
           {/* Left Arrow */}
           <button
             data-testid='prevBtn'
-            className='absolute top-1/2 left-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
+            className='absolute top-1/2 left-3 p-3 max-lg:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden max-lg:block group-hover:block'
             style={{ transform: 'translateY(-50%)' }}
             onClick={() => handleLeft(content.length)}
           >
@@ -74,7 +88,7 @@ const Lists: React.FC<ListsProps> = React.memo(
           {/* Right Arrow */}
           <button
             data-testid='nextBtn'
-            className='absolute top-1/2 right-3 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden group-hover:block'
+            className='absolute top-1/2 right-3 p-3 max-lg:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden max-lg:block group-hover:block'
             style={{ transform: 'translateY(-50%)' }}
             onClick={() => handleRight(content.length)}
           >
@@ -84,7 +98,7 @@ const Lists: React.FC<ListsProps> = React.memo(
           {/* List container */}
           <div
             ref={containerRef}
-            className='flex gap-1 h-full transition-transform duration-1000 ease-in-out'
+            className='flex h-full transition-transform duration-1000 ease-in-out'
             style={{
               transform: `translateX(${-index * itemWidth}px)`,
             }}
@@ -95,7 +109,6 @@ const Lists: React.FC<ListsProps> = React.memo(
                   <List
                     key={idx}
                     trending={data}
-                    containerRef={containerRef}
                     setWidth={setItemWidth}
                     title={item.name}
                     videoID={item.key}
@@ -109,7 +122,6 @@ const Lists: React.FC<ListsProps> = React.memo(
                   <List
                     key={item.id}
                     trending={data}
-                    containerRef={containerRef}
                     setWidth={setItemWidth}
                     title={item.title || item.name}
                     info={item}
@@ -122,7 +134,6 @@ const Lists: React.FC<ListsProps> = React.memo(
                 return (
                   <List
                     key={idx}
-                    containerRef={containerRef}
                     setWidth={setItemWidth}
                     title={item as string}
                     listFor={listFor}

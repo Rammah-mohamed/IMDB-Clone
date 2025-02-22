@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
   }, [focus, query, searchText]);
 
   return (
-    <div className='bg-black-100 h-16'>
+    <div className='bg-black-100 h-16 max-md:h-14'>
       <Suspense
         fallback={
           <div className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></div>
@@ -75,7 +75,7 @@ const Navbar: React.FC = () => {
           <Link to={'/'} className='group relative'>
             <h1
               data-testid='imdb-logo'
-              className=' bg-primary py-0.5 px-1.5 max-lg:py-2 max-lg:px-3  text-xl max-lg:text-3xl font-black rounded'
+              className=' bg-primary py-0.5 px-1.5 max-lg:py-2 max-lg:px-0.5 max-md:py-1.5 max-md:px-3 text-xl max-lg:text-3xl max-md:text-base font-black rounded'
             >
               IMDB
             </h1>

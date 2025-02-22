@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Media, Movie, TV } from '../types/media';
 import { useQuery } from '@apollo/client';
@@ -15,16 +15,38 @@ type ListProps = {
   listFor?: string;
   info?: Media;
   trending?: Media[];
-  containerRef: React.RefObject<HTMLDivElement>;
   setWidth: React.Dispatch<React.SetStateAction<number>>;
 };
 
 // TMDB API base image URL (static)
 const TMDB_URL = 'https://image.tmdb.org/t/p/';
 
+// Debounce utility to avoid excessive re-renders
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 const List: React.FC<ListProps> = React.memo(
-  ({ title, listFor, containerRef, setWidth, info, trending, videoID, poster }) => {
+  ({ title, listFor, setWidth, info, trending, videoID, poster }) => {
     const navigate = useNavigate();
+    const childContainerRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+
+    // Responsive container
+    useEffect(() => {
+      const handleResize = () => {
+        setContainerWidth(window.innerWidth);
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      // Cleanup listener on unmount
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // GraphQL Query
     const {
@@ -71,30 +93,24 @@ const List: React.FC<ListProps> = React.memo(
 
     // Handle container resizing
     const handleResize = useCallback(() => {
-      if (containerRef.current) {
-        setWidth(containerRef.current.getBoundingClientRect().width);
+      if (childContainerRef.current) {
+        console.log('T');
+        setWidth(childContainerRef.current.getBoundingClientRect().width);
       }
-    }, [containerRef, setWidth]);
+    }, []);
 
     useEffect(() => {
-      if (containerRef.current) {
-        setWidth(containerRef.current.getBoundingClientRect().width);
-      }
-      const debouncedResize = debounce(handleResize, 100); // Debounce the resize event
+      // Set initial width
+      handleResize();
+
+      // Debounced resize function
+      const debouncedResize = debounce(handleResize, 100);
       window.addEventListener('resize', debouncedResize);
+
       return () => {
         window.removeEventListener('resize', debouncedResize);
       };
-    }, [handleResize, containerRef, setWidth]);
-
-    // Debounce utility
-    const debounce = (func: Function, wait: number) => {
-      let timeout: NodeJS.Timeout;
-      return (...args: any[]) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-      };
-    };
+    }, [handleResize]); // Only depends on handleResize
 
     // Handlers for navigation
     const handleTrailer = () => {
@@ -124,12 +140,12 @@ const List: React.FC<ListProps> = React.memo(
 
     return (
       <div
-        ref={containerRef}
-        className='h-full pl-4 cursor-pointer'
-        style={{ flex: '0 0 33%' }}
+        ref={childContainerRef}
+        className='h-full pl-4 max-md:pl-3 cursor-pointer'
+        style={{ flex: containerWidth <= 768 ? '0 0 50%' : '0 0 33%' }}
         onClick={handleClick}
       >
-        <div className='group/icon relative w-full h-full mb-3 rounded-2xl overflow-hidden'>
+        <div className='group/icon relative w-full h-full mb-3 rounded-2xl max-md:rounded-lg overflow-hidden'>
           <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
           <LazyLoadImage
             src={getImageUrl(imageURL)}
@@ -150,8 +166,10 @@ const List: React.FC<ListProps> = React.memo(
           )}
         </div>
         <div>
-          <h1 className='text-2xl max-md:text-xl text-white mb-3 hover:underline'>{title}</h1>
-          {info && <p className='text-gray-300'>{info.overview?.slice(0, 70)}...</p>}
+          <h1 className='text-2xl max-lg:text-lg max-md:text-base text-white mb-3 hover:underline'>
+            {title}
+          </h1>
+          {info && <p className='text-gray-300 max-md:text-sm'>{info.overview?.slice(0, 40)}...</p>}
         </div>
       </div>
     );

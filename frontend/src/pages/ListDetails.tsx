@@ -27,6 +27,7 @@ import getImageUrl from '../utils/getImages';
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
 const SearchMenu = React.lazy(() => import('../components/SearchMenu'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
 
 //Types for each query's return value
 interface QueryResult {
@@ -82,6 +83,19 @@ const ListDetails = () => {
   const [isMove, setIsMove] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isCheckAll, setIsCheckAll] = useState<boolean>(false);
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Conditional state initialization based on lists and data
   const [checkboxStates, setCheckboxStates] = useState<Check[]>(
@@ -615,7 +629,7 @@ const ListDetails = () => {
   }
 
   return (
-    <div className='relative w-full min-h-screen'>
+    <div className='relative w-full min-h-screen pb-20'>
       <Navbar />
       {(isCopy || isMove) && (
         <div className='fixed top-0 left-0 w-screen h-screen bg-black-transparent flex items-center justify-center z-50'>
@@ -696,7 +710,7 @@ const ListDetails = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => handleListName(e, 'title')}
               />
             ) : (
-              <h1 className='text-white text-5xl max-md:text-3xl font-medium'>
+              <h1 className='text-white text-5xl max-lg:text-3xl max-md:text-xl font-medium'>
                 {title || 'Your Watchlist'}
               </h1>
             )}
@@ -744,8 +758,8 @@ const ListDetails = () => {
       <div className='container bg-white pt-6'>
         <div className='flex gap-20'>
           <div className='flex flex-3 flex-col gap-10'>
-            <div className='flex items-center justify-between max-lg:text-xl'>
-              <div className='flex items-center gap-6'>
+            <div className='flex items-center justify-between max-md:justify-between max-md:gap-3 max-lg:text-xl max-md:text-base'>
+              <div className='flex items-center gap-6 max-md:gap-2'>
                 <span className='flex-1 text-black-100'>
                   {listData?.length >= 100 ? listData?.length.toString().slice() : listData?.length}{' '}
                   titles
@@ -805,8 +819,8 @@ const ListDetails = () => {
                   </>
                 )}
               </div>
-              <div className='flex flex-1 items-center justify-end gap-2'>
-                <div className='flex items-center gap-2'>
+              <div className='flex flex-1 items-center justify-end gap-2 max-md:gap-0 max-md:text-sm'>
+                <div className='flex items-center gap-2 max-md:gap-1'>
                   <span>Sort By</span>
                   <div
                     className='relative flex items-center w-fit text-secondary p-2 rounded-md cursor-pointer hover:bg-secondary-100'
@@ -837,7 +851,7 @@ const ListDetails = () => {
                 )}
 
                 {!isEdit && (
-                  <>
+                  <div className='max-md:hidden'>
                     <ListIcon
                       data-testid='details'
                       style={{ fontSize: '2.5rem' }}
@@ -862,7 +876,7 @@ const ListDetails = () => {
                       } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
                       onClick={(e) => handleView(e)}
                     />
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -919,8 +933,8 @@ const ListDetails = () => {
                                       <div
                                         className={`group relative ${
                                           view.grid
-                                            ? 'w-48 h-72 max-md:w-40 max-md:h-60 max-lg:w-48 max-lg:h-72'
-                                            : 'w-24 h-32 max-md:w-20 max-md:h-28 max-lg:w-36 max-lg:h-48'
+                                            ? 'w-48 h-72 max-md:w-48 max-md:h-72 max-lg:w-48 max-lg:h-72'
+                                            : 'w-24 h-32 max-md:w-36 max-md:h-44 max-lg:w-36 max-lg:h-48'
                                         } overflow-hidden rounded-xl cursor-pointer`}
                                         onClick={(): void => handleDetails(el)}
                                       >
@@ -941,7 +955,7 @@ const ListDetails = () => {
                                           className='object-cover w-full h-full'
                                         />
                                       </div>
-                                      <div className='flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-xl'>
+                                      <div className='flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-xl max-md:text-base '>
                                         <h1
                                           className='flex-2 font-bold cursor-pointer hover:underline'
                                           onClick={(): void => handleDetails(el)}
@@ -976,7 +990,7 @@ const ListDetails = () => {
                                   </div>
                                   {!isEdit && (
                                     <p
-                                      className={`${
+                                      className={`max-md:hidden ${
                                         view.details ? 'block' : 'hidden'
                                       } font-semibold max-lg:text-lg`}
                                     >
@@ -985,7 +999,7 @@ const ListDetails = () => {
                                   )}
 
                                   <div
-                                    className={`${
+                                    className={`max-md:hidden ${
                                       view.details ? 'flex' : 'hidden'
                                     } items-center gap-5 text-base font-medium`}
                                   >
@@ -1062,8 +1076,8 @@ const ListDetails = () => {
                             <div
                               className={`group relative ${
                                 view.grid
-                                  ? 'w-48 h-72 max-md:w-40 max-md:h-60 max-lg:w-48 max-lg:h-72'
-                                  : 'w-24 h-32 max-md:w-20 max-md:h-28 max-lg:w-36 max-lg:h-48'
+                                  ? 'w-48 h-72 max-md:w-48 max-md:h-72 max-lg:w-48 max-lg:h-72'
+                                  : 'w-24 h-32 max-md:w-28 max-md:h-40 max-lg:w-36 max-lg:h-48'
                               } overflow-hidden rounded-xl cursor-pointer`}
                               onClick={(): void => handleDetails(el)}
                             >
@@ -1084,7 +1098,7 @@ const ListDetails = () => {
                                 className='object-cover w-full h-full'
                               />
                             </div>
-                            <div className='flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-xl'>
+                            <div className='flex flex-2 flex-col gap-2 p-2 w-full text-sm max-lg:text-xl max-md:text-base'>
                               <h1
                                 className='flex-2 font-bold cursor-pointer hover:underline'
                                 onClick={(): void => handleDetails(el)}
@@ -1119,16 +1133,16 @@ const ListDetails = () => {
                         </div>
                         {!isEdit && (
                           <p
-                            className={`${
+                            className={`max-md:hidden ${
                               view.details ? 'block' : 'hidden'
-                            } font-semibold max-lg:text-lg`}
+                            } font-semibold max-lg:text-lg max-md:text-sm max-md:max-w-80`}
                           >
                             {el?.overview}
                           </p>
                         )}
 
                         <div
-                          className={`${
+                          className={`max-md:hidden ${
                             view.details ? 'flex' : 'hidden'
                           } items-center gap-5 text-base font-medium`}
                         >
@@ -1179,6 +1193,7 @@ const ListDetails = () => {
           </div>
         </div>
       </div>
+      {containerWidth <= 1024 && <MobileNavbar />}
     </div>
   );
 };

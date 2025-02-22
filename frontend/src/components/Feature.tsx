@@ -134,19 +134,19 @@ const Feature = () => {
 
   return (
     <div
-      className='container flex gap-2 pt-8'
+      className='container flex gap-2 pt-8 max-md:pt-2'
       style={{
         height: containerWidth >= 1024 ? 'calc(98vh - 72px)' : '50vh',
       }}
     >
       <div
         ref={heightRef}
-        className='relative flex-2 basis-96 rounded-2xl overflow-hidden'
+        className='relative flex-2 basis-96 max-md:basis-56 rounded-2xl max-md:rounded-lg overflow-hidden'
         style={{ height: '90%' }}
       >
         <button
           data-testid='prevBtn'
-          className='absolute top-1/2 left-0 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
+          className='absolute top-1/2 left-0 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
           style={{ top: height !== 0 ? `${height / 2}px` : '50%', transform: 'translateY(-100%)' }}
           onClick={handleLeft}
         >
@@ -155,7 +155,7 @@ const Feature = () => {
         <button
           data-testid='nextBtn'
           ref={iconRef}
-          className='absolute top-1/2 right-0 p-3 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
+          className='absolute top-1/2 right-0 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
           style={{ top: height !== 0 ? `${height / 2}px` : '50%', transform: 'translateY(-100%)' }}
           onClick={handleRight}
         >
@@ -168,7 +168,7 @@ const Feature = () => {
           {trending?.map((e: Media, index: number) => (
             <div
               key={index}
-              className='group relative flex items-end justify-start w-full h-full p-4 bg-cover bg-no-repeat bg-center cursor-pointer'
+              className='group relative flex items-end justify-start w-full h-full p-4 max-md:p-1 bg-cover bg-no-repeat bg-center cursor-pointer'
               style={{
                 backgroundImage: `linear-gradient(to top, #000 15%, transparent 100%)`,
                 flex: '0 0 100%',
@@ -197,11 +197,11 @@ const Feature = () => {
                 }}
               ></span>
               <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-              <div className='flex flex-1 shrink-0 basis-60 items-center justify-center gap-2'>
-                <div className='relative max-lg:w-36 max-lg:h-56 w-40 h-60 rounded-xl overflow-hidden'>
+              <div className='flex flex-1 shrink-0 basis-60 max-md:basis-20 items-center justify-center gap-4'>
+                <div className='relative w-40 h-60 max-lg:w-36 max-lg:h-56 max-md:w-20 max-md:h-28 rounded-xl overflow-hidden'>
                   <AddIcon
                     className='absolute max-lg:text-2xl top-0 left-0 bg-black-transparent text-white'
-                    style={{ fontSize: containerWidth ? '2.5rem' : '1rem' }}
+                    style={{ fontSize: containerWidth > 1024 ? '2.5rem' : '1.5rem' }}
                   />
                   {index === 0 ? (
                     <img
@@ -219,13 +219,14 @@ const Feature = () => {
                     />
                   )}
                 </div>
-                <PlayCircleOutlineIcon
-                  className='text-white group-hover:text-primary z-10'
-                  style={{ fontSize: '6rem' }}
-                />
+                <span className='text-white max-md:hidden group-hover:text-primary z-10'>
+                  <PlayCircleOutlineIcon style={{ fontSize: '6rem' }} />
+                </span>
                 <div className='flex-1 shrink-0 basis-40 flex flex-col justify-end gap-1 text-white z-10'>
-                  <span className='text-3xl'>{e.name || e.title}</span>
-                  <p className='text-lg text-gray-300 '>{e.overview.slice(0, 130) + '...'}</p>
+                  <span className='text-3xl max-md:text-lg'>{e.name || e.title}</span>
+                  <p className='text-lg max-md:text-sm text-gray-300 '>
+                    {e.overview.slice(0, 70) + '...'}
+                  </p>
                 </div>
               </div>
             </div>

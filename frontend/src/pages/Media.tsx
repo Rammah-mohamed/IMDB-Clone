@@ -14,6 +14,8 @@ import getImageUrl from '../utils/getImages';
 
 // Lazy load the components
 const Navbar = React.lazy(() => import('../components/Navbar'));
+const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
+
 // active seasontype
 type Active = {
   season: number;
@@ -159,9 +161,12 @@ const Media = () => {
   return (
     <div>
       <Navbar />
-      <div className='flex flex-col gap-3'>
+      <div className='flex flex-col gap-3 pb-20'>
         <div className='flex flex-col gap-4 bg-gray-400 py-10'>
-          <div className='container flex gap-1 items-center text-white'>
+          <div
+            className='container flex gap-1 items-center text-white'
+            onClick={() => history.back()}
+          >
             <ArrowBackIosIcon />
             <span>Back</span>
           </div>
@@ -196,7 +201,7 @@ const Media = () => {
             (season?.length !== 0 && (
               <>
                 <div className='flex flex-wrap items-center gap-5'>
-                  {topRatedEpisodes?.slice(0, 2)?.map((e) => (
+                  {topRatedEpisodes?.slice(0, containerWidth > 768 ? 2 : 1)?.map((e) => (
                     <div key={e.id} className='flex flex-col flex-1 gap-4 p-3 shadow-xl rounded-lg'>
                       <div className='flex flex-1 items-center gap-3'>
                         <AddIcon className='bg-gray-250 text-black' style={{ fontSize: '2rem' }} />
@@ -321,18 +326,18 @@ const Media = () => {
               </>
             ))}
 
-          <div className='flex flex-3 max-lg:flex-1 flex-wrap gap-3 '>
+          <div className='flex flex-3 max-lg:flex-1 flex-wrap gap-3 justify-center '>
             {photos &&
               photos?.map((p: Photo, index: number) => (
                 <div
                   data-testid='image'
                   key={index}
-                  className='group relative w-52 h-64 rounded-lg cursor-pointer overflow-hidden'
+                  className='group relative w-52 h-64 max-md:w-44 max-md:h-52 rounded-lg cursor-pointer overflow-hidden'
                   onClick={(): void => handleClickImage(index)}
                 >
                   <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-30'></span>
                   {show && currentImage && currentIndex === index && (
-                    <div className='flex flex-col items-center gap-4 fixed left-0 top-0 w-screen h-screen p-6 bg-black z-30'>
+                    <div className='flex flex-col items-center gap-4 max-md:gap-20 fixed left-0 top-0 w-screen h-screen p-6 bg-black z-30'>
                       <button
                         data-testid='prevBtn'
                         className='absolute top-1/2 left-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
@@ -347,7 +352,7 @@ const Media = () => {
                       >
                         <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
                       </button>
-                      <div className='flex w-full px-28 items-center justify-between text-white'>
+                      <div className='flex w-full px-28 max-lg:px-2 items-center justify-between text-white'>
                         <div
                           className='flex items-center gap-2 cursor-pointer'
                           onClick={(e): void => handleShow(e)}
@@ -368,7 +373,7 @@ const Media = () => {
                             currentImage?.width >= 900
                               ? currentImage?.width / 4
                               : currentImage?.width,
-                          height: '85vh',
+                          height: containerWidth > 768 ? '85vh' : '70vh',
                         }}
                       >
                         <LazyLoadImage
@@ -429,6 +434,7 @@ const Media = () => {
           </div>
         </div>
       </div>
+      {containerWidth <= 1024 && <MobileNavbar />}
     </div>
   );
 };

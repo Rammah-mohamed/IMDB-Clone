@@ -4,12 +4,6 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const icons = [
-  { key: 'home', icon: <HomeIcon style={{ fontSize: '3.5rem' }} /> },
-  { key: 'search', icon: <SearchIcon style={{ fontSize: '3.5rem' }} /> },
-  { key: 'user', icon: <AccountCircleIcon style={{ fontSize: '3.5rem' }} /> },
-];
-
 type Props = {
   activeNow?: string;
 };
@@ -17,6 +11,34 @@ type Props = {
 const MobileNavbar: React.FC<Props> = React.memo(({ activeNow }) => {
   const navigate = useNavigate();
   const [active, setActive] = useState<string>('home');
+  const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+
+  const icons = [
+    {
+      key: 'home',
+      icon: <HomeIcon style={{ fontSize: containerWidth > 768 ? '3.5rem' : '2rem' }} />,
+    },
+    {
+      key: 'search',
+      icon: <SearchIcon style={{ fontSize: containerWidth > 768 ? '3.5rem' : '2rem' }} />,
+    },
+    {
+      key: 'user',
+      icon: <AccountCircleIcon style={{ fontSize: containerWidth > 768 ? '3.5rem' : '2rem' }} />,
+    },
+  ];
+
+  // Responsive container
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Set the acive page Icon
   useEffect(() => {
@@ -44,7 +66,7 @@ const MobileNavbar: React.FC<Props> = React.memo(({ activeNow }) => {
   };
 
   return (
-    <div className='fixed bottom-0 left-0 w-screen bg-black-100 mt-10 py-6 px-20'>
+    <div className='fixed bottom-0 left-0 w-screen bg-black-100  py-6 max-md:py-3 px-20 z-50'>
       <div className='container'>
         <div className='flex  items-center justify-between'>
           {icons.map(({ key, icon }) => (

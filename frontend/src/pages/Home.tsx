@@ -29,7 +29,7 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className='bg-black'>
+    <div className='bg-black overflow-hidden'>
       <Suspense
         fallback={
           <div className='flex items-center justify-center w-full min-h-screen'>
@@ -41,7 +41,7 @@ const Home: React.FC = () => {
         <Feature />
         <Lists title={'Featured today'} listFor='Feature' />
         <PopularCelebrity />
-        <h1 className='container text-4xl max-lg:text-3xl max-md:text-2xl text-primary font-semibold'>
+        <h1 className='container text-4xl max-lg:text-3xl max-md:text-xl text-primary font-semibold'>
           What to Watch
         </h1>
         <MediaList title='Trendings' />
