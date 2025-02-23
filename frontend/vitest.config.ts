@@ -15,6 +15,7 @@ export default defineConfig({
         'src/pages/Critics.tsx',
         'src/pages/Home.tsx',
         'src/components/Watchlist.tsx',
+        'src/main.tsx',
       ], // Exclude specific folders
     },
   },

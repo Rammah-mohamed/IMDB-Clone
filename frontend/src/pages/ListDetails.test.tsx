@@ -1,5 +1,5 @@
 // ListDetails.test.tsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../context/authContext';
 import { GET_MOVIE_CAST, GET_MOVIE_CREW, GET_TV_CAST, GET_TV_CREW } from '../graphql/queries';
@@ -152,6 +152,12 @@ const mockState = {
   edit: true,
 };
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: () => mockNavigate,
+}));
+
 // Create a wrapper to mock the AuthContext provider and Router
 const renderListDetails = () =>
   render(
@@ -166,9 +172,14 @@ const renderListDetails = () =>
 
 describe('ListDetails', () => {
   beforeEach(() => {
+    document.body.innerHTML = '';
     vi.clearAllMocks();
     mockAxios.reset();
     vi.spyOn(console, 'error');
+  });
+
+  afterAll(() => {
+    cleanup();
   });
 
   it('should render the ListDetails component', async () => {
@@ -256,6 +267,134 @@ describe('ListDetails', () => {
 
     await waitFor(() => {
       expect(mockAxios.history.get.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('should navigates to mediaDetail when media gets clicked', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <AuthContext.Provider
+          value={{ user: mockState.user.name, login: vi.fn(), logout: vi.fn() }}
+        >
+          <MemoryRouter
+            initialEntries={[{ pathname: '/ListDetails', state: { data: mockState.data.movies } }]}
+          >
+            <ListDetails />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      const mediaName = screen.getAllByTestId('mediaName');
+      fireEvent.click(mediaName[1]);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/mediaDetail',
+        expect.objectContaining({ state: expect.any(Object) })
+      );
+    });
+  });
+
+  it('should navigates to createList when create button gets clicked', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <AuthContext.Provider
+          value={{ user: mockState.user.name, login: vi.fn(), logout: vi.fn() }}
+        >
+          <MemoryRouter
+            initialEntries={[{ pathname: '/ListDetails', state: { data: mockState.data.movies } }]}
+          >
+            <ListDetails />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      const createBtn = screen.getByTestId('create');
+      fireEvent.click(createBtn);
+      expect(mockNavigate).toHaveBeenCalledWith('/createList');
+    });
+  });
+
+  it('should be checked after change the checked value', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <AuthContext.Provider
+          value={{ user: mockState.user.name, login: vi.fn(), logout: vi.fn() }}
+        >
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/ListDetails',
+                state: { data: mockState.data.movies, edit: mockState.edit },
+              },
+            ]}
+          >
+            <ListDetails />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      const checkbox = screen.getAllByTestId('checkbox');
+      expect(checkbox[1]).not.toBeChecked();
+
+      fireEvent.change(checkbox[1], { target: { checked: true } });
+      expect(checkbox[1]).toBeChecked();
+
+      fireEvent.change(checkbox[1], { target: { checked: false } });
+      expect(checkbox[1]).not.toBeChecked();
+    });
+  });
+
+  it("should check all inputs when 'check all' button is clicked", async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <AuthContext.Provider
+          value={{ user: mockState.user.name, login: vi.fn(), logout: vi.fn() }}
+        >
+          <MemoryRouter
+            initialEntries={[
+              {
+                pathname: '/ListDetails',
+                state: { data: mockState.data.movies, edit: mockState.edit },
+              },
+            ]}
+          >
+            <ListDetails />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('checkAll')).toHaveLength(1);
+      expect(screen.getAllByTestId('checkbox')).toHaveLength(3);
+    });
+
+    const checkAll = screen.getByTestId('checkAll');
+    const checkboxes = screen.getAllByTestId('checkbox');
+
+    expect(checkAll).not.toBeChecked();
+    expect(checkboxes[0]).not.toBeChecked();
+    expect(checkboxes[1]).not.toBeChecked();
+
+    fireEvent.click(checkAll);
+
+    await waitFor(() => {
+      expect(checkAll).toBeChecked();
+      expect(checkboxes[0]).toBeChecked();
+      expect(checkboxes[1]).toBeChecked();
+    });
+
+    fireEvent.click(checkAll);
+
+    await waitFor(() => {
+      expect(checkAll).not.toBeChecked();
+      expect(checkboxes[0]).not.toBeChecked();
+      expect(checkboxes[1]).not.toBeChecked();
     });
   });
 

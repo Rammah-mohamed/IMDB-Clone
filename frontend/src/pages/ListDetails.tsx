@@ -746,7 +746,7 @@ const ListDetails = () => {
               <div className='relative group flex items-center gap-1 bg-primary p-3 font-medium rounded-3xl cursor-pointer'>
                 <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
                 <AddIcon />
-                <span className='relative z-30' onClick={handleCreate}>
+                <span data-testid='create' className='relative z-30' onClick={handleCreate}>
                   Create a new list
                 </span>
               </div>
@@ -768,6 +768,7 @@ const ListDetails = () => {
                   <>
                     <div className='flex items-center gap-3'>
                       <input
+                        data-testid='checkAll'
                         type='checkbox'
                         checked={isCheckAll}
                         onChange={() => toggleSelectAll()}
@@ -909,6 +910,7 @@ const ListDetails = () => {
                                 </div>
                                 {isEdit && (
                                   <input
+                                    data-testid='checkbox'
                                     type='checkbox'
                                     name='checkBox'
                                     id={index.toString()}
@@ -931,6 +933,7 @@ const ListDetails = () => {
                                       style={{ height: view.grid ? '28rem' : '' }}
                                     >
                                       <div
+                                        data-testid='mediaName'
                                         className={`group relative ${
                                           view.grid
                                             ? 'w-48 h-72 max-md:w-48 max-md:h-72 max-lg:w-48 max-lg:h-72'
@@ -1054,6 +1057,7 @@ const ListDetails = () => {
                     <div key={index} className='flex items-center gap-5 max-md:gap-3'>
                       {isEdit && (
                         <input
+                          data-testid='checkbox'
                           type='checkbox'
                           name='checkBox'
                           id={index.toString()}
@@ -1074,6 +1078,7 @@ const ListDetails = () => {
                             style={{ height: view.grid ? '28rem' : '' }}
                           >
                             <div
+                              data-testid='mediaName'
                               className={`group relative ${
                                 view.grid
                                   ? 'w-48 h-72 max-md:w-48 max-md:h-72 max-lg:w-48 max-lg:h-72'

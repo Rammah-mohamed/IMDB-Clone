@@ -71,6 +71,7 @@ const MobileNavbar: React.FC<Props> = React.memo(({ activeNow }) => {
         <div className='flex  items-center justify-between'>
           {icons.map(({ key, icon }) => (
             <button
+              data-testid={key + '-icon'}
               key={key}
               className={`text-gray-300 ${active === key ? 'text-white' : ''}`}
               onClick={() => handleActive(key)}
