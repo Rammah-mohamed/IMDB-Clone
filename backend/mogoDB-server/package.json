@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node server.js",
     "server": "nodemon server.js"
   },
   "dependencies": {
