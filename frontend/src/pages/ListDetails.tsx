@@ -853,30 +853,33 @@ const ListDetails = () => {
 
                 {!isEdit && (
                   <div className='max-md:hidden'>
-                    <ListIcon
+                    <button
                       data-testid='details'
-                      style={{ fontSize: '2.5rem' }}
                       className={`detailsView ${
                         view.details && 'text-secondary'
                       } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
                       onClick={(e) => handleView(e)}
-                    />
-                    <AppsIcon
+                    >
+                      <ListIcon style={{ fontSize: '1.5rem' }} />
+                    </button>
+                    <button
                       data-testid='grid'
-                      style={{ fontSize: '2.5rem' }}
                       className={`gridView ${
                         view.grid && 'text-secondary'
                       } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
                       onClick={(e) => handleView(e)}
-                    />
-                    <MenuIcon
+                    >
+                      <AppsIcon style={{ fontSize: '1.5rem' }} />
+                    </button>
+                    <button
                       data-testid='compact'
-                      style={{ fontSize: '2.5rem' }}
                       className={`compactView ${
                         view.compact && 'text-secondary'
                       } p-2 rounded-full cursor-pointer hover:bg-secondary-100`}
                       onClick={(e) => handleView(e)}
-                    />
+                    >
+                      <MenuIcon style={{ fontSize: '1.5rem' }} />
+                    </button>
                   </div>
                 )}
               </div>

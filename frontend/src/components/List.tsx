@@ -94,7 +94,6 @@ const List: React.FC<ListProps> = React.memo(
     // Handle container resizing
     const handleResize = useCallback(() => {
       if (childContainerRef.current) {
-        console.log('T');
         setWidth(childContainerRef.current.getBoundingClientRect().width);
       }
     }, []);

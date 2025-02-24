@@ -47,7 +47,7 @@ const Sign: React.FC = () => {
         response.data.message === 'User registered successfully.'
       ) {
         // Save user data to localStorage for persistence
-        localStorage.setItem(
+        sessionStorage.setItem(
           'user',
           JSON.stringify({
             username: response.data.username,

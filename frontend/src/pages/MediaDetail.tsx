@@ -1059,9 +1059,9 @@ const MediaDetail = () => {
                         style={{
                           width:
                             containerWidth <= 768
-                              ? currentImage?.width / 3
+                              ? currentImage?.width / 3.5
                               : currentImage?.width >= 1000
-                              ? currentImage?.width / 3
+                              ? currentImage?.width / 3.5
                               : currentImage?.width,
                         }}
                       >

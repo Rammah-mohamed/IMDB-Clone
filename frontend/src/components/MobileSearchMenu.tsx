@@ -61,6 +61,7 @@ const MobileSearchMenu: React.FC<Props> = React.memo(({ setSearchText }) => {
         <div className='flex flex-col gap-10 max-md:gap-6'>
           {searchText?.map((text: string, index: number) => (
             <div
+              key={index}
               data-testid={text}
               className={`flex items-center gap-4 max-md:gap-2 ${
                 text === active ? 'text-primary' : ''

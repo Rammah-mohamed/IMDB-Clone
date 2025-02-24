@@ -84,7 +84,7 @@ const PopularCelebrity = () => {
       <div className='group relative p-4 overflow-hidden'>
         <button
           data-testid='prevBtn'
-          className='absolute top-1/2 left-3 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden max-md:block group-hover:block'
+          className='absolute top-1/2 left-3 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden max-lg:block group-hover:block'
           style={{ transform: 'translateY(-50%)' }}
           onClick={handlePrev}
         >
@@ -92,7 +92,7 @@ const PopularCelebrity = () => {
         </button>
         <button
           data-testid='nextBtn'
-          className='absolute top-1/2 right-3 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden max-md:block group-hover:block'
+          className='absolute top-1/2 right-3 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md hidden max-lg:block group-hover:block'
           style={{ transform: 'translateY(-50%)' }}
           onClick={handleNext}
         >

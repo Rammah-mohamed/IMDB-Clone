@@ -41,7 +41,7 @@ const App = () => {
 
   // Check if user is authenticated on page load (after refresh)
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       // set state or use storedUser for re-authentication

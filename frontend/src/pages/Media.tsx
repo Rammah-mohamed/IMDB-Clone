@@ -164,7 +164,7 @@ const Media = () => {
       <div className='flex flex-col gap-3 pb-20'>
         <div className='flex flex-col gap-4 bg-gray-400 py-10'>
           <div
-            className='container flex gap-1 items-center text-white'
+            className='container flex gap-1 items-center text-white cursor-pointer'
             onClick={() => history.back()}
           >
             <ArrowBackIosIcon />
@@ -372,8 +372,7 @@ const Media = () => {
                           width:
                             currentImage?.width >= 900
                               ? currentImage?.width / 4
-                              : currentImage?.width,
-                          height: containerWidth > 768 ? '85vh' : '70vh',
+                              : currentImage?.width / 2,
                         }}
                       >
                         <LazyLoadImage

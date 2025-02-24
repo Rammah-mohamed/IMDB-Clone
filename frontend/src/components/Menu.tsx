@@ -243,8 +243,8 @@ const Menu: React.FC<MenuProps> = React.memo(({ showMenu, setShowMenu }) => {
 
   return (
     <div
-      style={{ display: `${showMenu ? 'block' : 'none'}` }}
-      className='container flex flex-col gap-10 fixed top-0 left-0 w-screen px-72 bg-gray-400 z-40 overflow-hidden transition-all duration-300 ease-in-out'
+      style={{ display: `${showMenu ? 'flex' : 'none'}` }}
+      className='flex flex-col gap-20 fixed top-0 left-0 w-screen h-screen pt-16 px-72 bg-gray-400 z-40 overflow-hidden transition-all duration-300 ease-in-out'
     >
       <div className='flex items-center justify-between'>
         <Link to={'/'}>

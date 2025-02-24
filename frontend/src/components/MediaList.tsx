@@ -334,7 +334,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
               <button
                 className={`absolute top-1/2 left-4 p-3  max-md:p-1.5 ${
                   mediaType ? 'text-gray-200' : 'text-white'
-                } hover:text-primary z-30 border-2 border-solid rounded-md hidden max-md:block group-hover:block`}
+                } hover:text-primary z-30 border-2 border-solid rounded-md hidden max-lg:block group-hover:block`}
                 style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
                 onClick={() => handleLeft(data)}
               >
@@ -343,7 +343,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
               <button
                 className={`absolute top-1/2 right-4 p-3 max-md:p-1.5 ${
                   mediaType ? 'text-gray-200' : 'text-white'
-                } hover:text-primary z-30 border-2 border-solid rounded-md hidden max-md:block group-hover:block`}
+                } hover:text-primary z-30 border-2 border-solid rounded-md hidden max-lg:block group-hover:block`}
                 style={{ top: `${height / 2}px`, transform: 'translateY(-50%)' }}
                 onClick={() => handleRight(data)}
               >

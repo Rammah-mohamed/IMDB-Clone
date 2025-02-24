@@ -243,7 +243,7 @@ const Videos = () => {
           )}
         </>
       ) : (
-        <Lists title={'Related Videos'} relatedVideos={videos} poster={data.backdrop_path} />
+        <Lists title={'Related Videos'} relatedVideos={videos} poster={data?.backdrop_path} />
       )}
       {containerWidth <= 1024 && <MobileNavbar />}
     </div>

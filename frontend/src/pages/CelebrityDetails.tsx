@@ -176,14 +176,13 @@ const CelebrityDetails = () => {
 
   // Handle image modal
   const handleImageModal = (index: number) => {
-    console.log('T');
     setShowImageModal(true);
     setCurrentImageIndex(index);
   };
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('T');
+
     setCurrentImageIndex((prevIndex) =>
       prevIndex === celebrityImages.length - 1 ? 0 : (prevIndex ?? 0) + 1
     );
@@ -428,9 +427,9 @@ const CelebrityDetails = () => {
                       style={{
                         width:
                           containerWidth <= 768
-                            ? currentImage?.width / 3
+                            ? currentImage?.width / 3.5
                             : currentImage?.width >= 1000
-                            ? currentImage?.width / 2
+                            ? currentImage?.width / 2.5
                             : currentImage?.width,
                       }}
                     >
