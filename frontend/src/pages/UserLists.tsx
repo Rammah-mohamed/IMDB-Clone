@@ -41,7 +41,7 @@ const UserLists = () => {
   useEffect(() => {
     const getList = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:3000/lists`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
           withCredentials: true,
         });
 
@@ -57,7 +57,7 @@ const UserLists = () => {
   // Fetch list Media
   const handleMedia = async (list: List, edit?: boolean) => {
     try {
-      const { data } = await axios.get(`http://localhost:3000/lists/${list.name}`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/${list.name}`, {
         withCredentials: true,
       });
       const media = data?.movies;
@@ -80,12 +80,12 @@ const UserLists = () => {
   const handleDeleteList = async (listName: string) => {
     try {
       // Delete the list
-      await axios.delete(`http://localhost:3000/lists/${listName}`, {
+      await axios.delete(`${import.meta.env.VITE_MONGODB_API}/lists/${listName}`, {
         withCredentials: true,
       });
 
       // Fetch updated lists after deletion
-      const { data } = await axios.get(`http://localhost:3000/lists`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
         withCredentials: true,
       });
       setLists(data);

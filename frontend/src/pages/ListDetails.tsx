@@ -173,7 +173,7 @@ const ListDetails = () => {
     try {
       if (user && data.isAdded) {
         const deleteResponse = await axios.delete(
-          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist/${data?.id}`,
           {
             withCredentials: true,
           }
@@ -182,7 +182,7 @@ const ListDetails = () => {
         setListData((prev) => prev?.map((m) => (m.id === data.id ? { ...m, isAdded: false } : m)));
       } else if (user && !data.isAdded) {
         const updateResponse = await axios.put(
-          `http://localhost:3000/lists/Your_Watchlist/${data?.id}`,
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist/${data?.id}`,
           { ...data, isAdded: true },
           {
             withCredentials: true,
@@ -191,7 +191,7 @@ const ListDetails = () => {
         console.log(updateResponse.data);
 
         const getResponse = await axios.get(
-          'http://localhost:3000/lists',
+          `${import.meta.env.VITE_MONGODB_API}/lists`,
 
           {
             withCredentials: true,
@@ -218,9 +218,12 @@ const ListDetails = () => {
   useEffect(() => {
     const getUserMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`,
+          {
+            withCredentials: true,
+          }
+        );
         setListData(response?.data?.movies);
         setCheckboxStates(() => {
           let checkbox: Check[] = [];
@@ -246,7 +249,7 @@ const ListDetails = () => {
   useEffect(() => {
     const getWatchlistMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/lists/Watchlist', {
+        const response = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/Watchlist`, {
           withCredentials: true,
         });
 
@@ -411,7 +414,7 @@ const ListDetails = () => {
     // Helper function to handle the UPDATE request for user list title and description in the database
     const updateList = async (key: string, value: string) => {
       return axios.put(
-        `http://localhost:3000/lists/${listTitle}`,
+        `${import.meta.env.VITE_MONGODB_API}/lists/${listTitle}`,
         { [key]: value },
         { withCredentials: true }
       );
@@ -471,7 +474,9 @@ const ListDetails = () => {
 
     if (isCheckAll) {
       setListData([]);
-      const url = `http://localhost:3000/lists/${listName || 'Your_Watchlist'}/movies/all`;
+      const url = `${import.meta.env.VITE_MONGODB_API}/lists/${
+        listName || 'Your_Watchlist'
+      }/movies/all`;
       await deleteRequest(url);
     } else {
       const id = checkboxStates.find((b) => b.isChecked)?.id;
@@ -479,7 +484,7 @@ const ListDetails = () => {
 
       const newList = listData.filter((d) => d.id !== id);
       setListData(newList);
-      const url = `http://localhost:3000/lists/${listName || 'Your_Watchlist'}/${id}`;
+      const url = `${import.meta.env.VITE_MONGODB_API}/lists/${listName || 'Your_Watchlist'}/${id}`;
       await deleteRequest(url);
     }
   };
@@ -494,7 +499,7 @@ const ListDetails = () => {
   const updateListMovies = async (listName: string, newMovies: any[]) => {
     try {
       const response = await axios.put(
-        `http://localhost:3000/lists/${listName}`,
+        `${import.meta.env.VITE_MONGODB_API}/lists/${listName}`,
         { movies: newMovies },
         { withCredentials: true }
       );
@@ -540,7 +545,7 @@ const ListDetails = () => {
   const reOrederList = async (media: Media[], listName: string) => {
     try {
       const response = await axios.put(
-        `http://localhost:3000/lists/${
+        `${import.meta.env.VITE_MONGODB_API}/lists/${
           listName === 'Your Watchlist' ? 'Your_Watchlist' : listName
         }`,
         {

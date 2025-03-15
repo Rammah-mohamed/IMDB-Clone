@@ -40,9 +40,12 @@ const User = () => {
 
     const getUserMedia = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`,
+          {
+            withCredentials: true,
+          }
+        );
         setmediaLength(response.data?.movies?.length || null);
       } catch (error: any) {
         console.error(
@@ -58,7 +61,7 @@ const User = () => {
   useEffect(() => {
     const getList = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:3000/lists`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
           withCredentials: true,
         });
 
@@ -75,7 +78,7 @@ const User = () => {
   // Fetch list Media
   const handleMedia = async (list: List, edit?: boolean) => {
     try {
-      const { data } = await axios.get(`http://localhost:3000/lists/${list.name}`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/${list.name}`, {
         withCredentials: true,
       });
       const media = data?.movies;
@@ -98,7 +101,7 @@ const User = () => {
   const handleLogout = async () => {
     try {
       const response = await axios.post(
-        'http://localhost:3000/auth/logout',
+        `${import.meta.env.VITE_MONGODB_API}/auth/logout`,
         {},
         {
           withCredentials: true,

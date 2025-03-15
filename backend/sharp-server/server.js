@@ -44,7 +44,8 @@ app.get('/image', async (req, res) => {
     res.status(500).send('Error processing image.');
   }
 });
+const PORT = process.env.PORT || 3100;
 
-app.listen(3100, () => {
-  console.log('Image proxy server running on http://localhost:3100');
+app.listen(PORT, () => {
+  console.log(`Image proxy server running on http://localhost:${PORT}`);
 });

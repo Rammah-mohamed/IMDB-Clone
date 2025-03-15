@@ -496,13 +496,13 @@ const MediaDetail = () => {
 
     try {
       if (data.isAdded || isExist) {
-        await axios.delete(`http://localhost:3000/lists/${listName}/${data.id}`, {
+        await axios.delete(`${import.meta.env.VITE_MONGODB_API}/lists/${listName}/${data.id}`, {
           withCredentials: true,
         });
         console.log(`Removed ${data.id} from ${listName}`);
       } else {
         await axios.put(
-          `http://localhost:3000/lists/${listName}/${data.id}`,
+          `${import.meta.env.VITE_MONGODB_API}/lists/${listName}/${data.id}`,
           {
             ...data,
             isAdded: isDefaultWatchlist,
@@ -515,7 +515,7 @@ const MediaDetail = () => {
       }
 
       // Refresh lists
-      const response = await axios.get(`http://localhost:3000/lists`, {
+      const response = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
         withCredentials: true,
       });
       setLists(response.data);
@@ -534,7 +534,7 @@ const MediaDetail = () => {
     const listName = list.name === 'Your Watchlist' ? 'Your_Watchlist' : list.name;
 
     try {
-      const { data } = await axios.get(`http://localhost:3000/lists/${listName}`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/${listName}`, {
         withCredentials: true,
       });
       const media = data?.movies;
@@ -555,7 +555,7 @@ const MediaDetail = () => {
   // Navigate to watchlist
   const handleWatchlist = async (): Promise<void> => {
     try {
-      const { data } = await axios.get('http://localhost:3000/lists/Watchlist', {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/Watchlist`, {
         withCredentials: true,
       });
       const media = data?.movies;
@@ -582,7 +582,7 @@ const MediaDetail = () => {
   useEffect(() => {
     const getLists = async (): Promise<void> => {
       try {
-        const { data } = await axios.get('http://localhost:3000/lists', {
+        const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
           withCredentials: true,
         });
         setLists(data);
@@ -600,9 +600,12 @@ const MediaDetail = () => {
   useEffect(() => {
     const getWatchlist = async (): Promise<void> => {
       try {
-        const { data } = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`,
+          {
+            withCredentials: true,
+          }
+        );
         const isExist = data?.movies?.some((m: Media) => m.id === data.id);
         setData((prev) => ({
           ...prev,

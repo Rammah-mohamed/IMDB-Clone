@@ -26,14 +26,14 @@ const Sign: React.FC = () => {
       let response;
       // Register or login based on the 'create' flag
       if (create) {
-        response = await axios.post('http://localhost:3000/auth/register', {
+        response = await axios.post(`${import.meta.env.VITE_MONGODB_API}/auth/register`, {
           username: user.username,
           email: user.email,
           password: user.password,
         });
       } else {
         response = await axios.post(
-          'http://localhost:3000/auth/login',
+          `${import.meta.env.VITE_MONGODB_API}/auth/login`,
           {
             email: user.email,
             password: user.password,
@@ -58,7 +58,7 @@ const Sign: React.FC = () => {
         login(response.data.username);
 
         // Get user lists and ensure 'Your Watchlist' exists
-        const listResponse = await axios.get('http://localhost:3000/lists', {
+        const listResponse = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
           withCredentials: true,
         });
 
@@ -66,7 +66,7 @@ const Sign: React.FC = () => {
         const isExist = listResponse?.data?.some((l: List) => l.name === 'Your Watchlist');
         if (!isExist) {
           const createResponse = await axios.post(
-            'http://localhost:3000/lists',
+            `${import.meta.env.VITE_MONGODB_API}/lists`,
             {
               name: 'Your Watchlist',
             },
