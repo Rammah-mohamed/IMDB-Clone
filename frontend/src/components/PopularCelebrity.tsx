@@ -7,9 +7,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { debounce } from 'lodash';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-
-// TMDB API image URL
-const TMDB_URL: string = 'https://image.tmdb.org/t/p/';
+import getImageUrl from '../utils/getImages';
 
 const PopularCelebrity = () => {
   const navigate = useNavigate();
@@ -28,12 +26,6 @@ const PopularCelebrity = () => {
     data: celebrityData,
   } = useQuery(GET_POPULAR_CELEBRITY);
   const popularCelebrities: Celebrity[] = celebrityData?.popularCelebrity;
-
-  // Get the transformed Images (webp)
-  const getImageUrl = (path: string, quality: string) => {
-    const originalUrl = `${TMDB_URL}${quality}${path}`;
-    return `http://localhost:3100/image?url=${encodeURIComponent(originalUrl)}&format=webp`;
-  };
 
   // Handlers to update the index
   const handleNext = (): void => {

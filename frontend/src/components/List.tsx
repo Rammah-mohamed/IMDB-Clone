@@ -6,6 +6,7 @@ import { GET_LIST_MEDIA } from '../graphql/queries';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import ListIcon from '@mui/icons-material/List';
+import getImageUrl from '../utils/getImages';
 
 // Type for list props
 type ListProps = {
@@ -79,11 +80,6 @@ const List: React.FC<ListProps> = React.memo(
       }
     }, [title, upcomings, popularMovies, tvAirings, tvPopular]);
 
-    // Get the transformed Images (webp)
-    const getImageUrl = (path: string) => {
-      return `http://localhost:3100/image?url=${encodeURIComponent(path)}&format=webp`;
-    };
-
     // Memoize the image URL
     const imageURL = React.useMemo(() => {
       if (poster) return `${TMDB_URL + 'w780'}${poster}`;
@@ -147,7 +143,7 @@ const List: React.FC<ListProps> = React.memo(
         <div className='group/icon relative w-full h-full mb-3 rounded-2xl max-md:rounded-lg overflow-hidden'>
           <span className='group-hover/icon:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
           <LazyLoadImage
-            src={getImageUrl(imageURL)}
+            src={getImageUrl(imageURL, 'w780')}
             alt='List Image'
             loading='lazy'
             className='object-cover w-full h-full'
