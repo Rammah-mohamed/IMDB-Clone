@@ -33,7 +33,7 @@ const UserMenu: React.FC<menuProps> = React.memo(({ showUserMenu, setshowUserMen
     } else {
       try {
         const response = await axios.post(
-          'http://localhost:3000/auth/logout',
+          `${import.meta.env.VITE_MONGODB_API}/auth/logout`,
           {},
           {
             withCredentials: true,

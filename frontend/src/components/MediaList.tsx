@@ -110,7 +110,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
   // Fetch user Watchlist
   const fetchWatchlist = useCallback(async () => {
     try {
-      const { data } = await axios.get(`http://localhost:3000/lists/Your_Watchlist`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`, {
         withCredentials: true,
       });
       setData(data?.movies || []);
@@ -226,7 +226,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
     const getUserMovies = async () => {
       try {
         const { data } = await axios.get<{ movies: Media[] }>(
-          'http://localhost:3000/lists/Your_Watchlist',
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`,
           { withCredentials: true }
         );
 
@@ -262,7 +262,7 @@ const MediaList: React.FC<ListProps> = React.memo(({ id, title, mediaType }) => 
     }
 
     try {
-      const apiUrl = `http://localhost:3000/lists/Your_Watchlist/${media.id}`;
+      const apiUrl = `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist/${media.id}`;
       const config = { withCredentials: true };
 
       if (media.isAdded) {

@@ -93,7 +93,7 @@ const CreateList = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:3000/lists',
+        `${import.meta.env.VITE_MONGODB_API}/lists`,
         {
           name: listName.trim(),
           description: description.trim(),

@@ -38,9 +38,12 @@ const Navbar: React.FC = () => {
 
     const getUserMedia = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`,
+          {
+            withCredentials: true,
+          }
+        );
         setmediaLength(response.data?.movies?.length || null);
       } catch (error: any) {
         console.error(
