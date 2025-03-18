@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@apollo/client';
-import { GET_TRENDING } from '../graphql/queries.js';
-import { Media } from '../types/media.js';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import AddIcon from '@mui/icons-material/Add';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import getImageUrl from '../utils/getImages.js';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@apollo/client";
+import { GET_TRENDING } from "../graphql/queries.js";
+import { Media } from "../types/media.js";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import getImageUrl from "../utils/getImages.js";
 
 const Feature = () => {
   const navigate = useNavigate();
@@ -37,10 +36,10 @@ const Feature = () => {
       setContainerWidth(window.innerWidth);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup listener on unmount
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Preload critical images
@@ -48,9 +47,9 @@ const Feature = () => {
     if (!trending || trending.length === 0) return;
 
     const preloadLink = (href: string) => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
       link.href = href; // Add the generated URL here
       document.head.appendChild(link);
     };
@@ -58,10 +57,10 @@ const Feature = () => {
     // Preload backdrop and poster images for the first trending item
     const firstItem = trending[0];
     if (firstItem?.backdrop_path) {
-      preloadLink(getImageUrl(firstItem.backdrop_path, 'w1280'));
+      preloadLink(getImageUrl(firstItem.backdrop_path, "w1280"));
     }
     if (firstItem?.poster_path) {
-      preloadLink(getImageUrl(firstItem.poster_path, 'w342'));
+      preloadLink(getImageUrl(firstItem.poster_path, "w342"));
     }
   }, [trending]);
 
@@ -83,8 +82,8 @@ const Feature = () => {
 
   useEffect(() => {
     if (trending && heightRef.current) {
-      window.addEventListener('resize', handleResize);
-      return (): void => window.removeEventListener('resize', handleResize);
+      window.addEventListener("resize", handleResize);
+      return (): void => window.removeEventListener("resize", handleResize);
     }
   });
 
@@ -115,117 +114,113 @@ const Feature = () => {
 
   // Navigate to the trailer page
   const handleTrailer = (data: Media): void => {
-    navigate('/videos', { state: { data: data, trending: trending } });
+    navigate("/videos", { state: { data: data, trending: trending } });
   };
 
   if (trendingLoading)
     return (
       <div
-        data-testid='status'
-        className='container flex items-center justify-center'
+        data-testid="status"
+        className="container flex items-center justify-center"
         style={{
-          height: containerWidth >= 1024 ? 'calc(98vh - 72px)' : '50vh',
+          height: containerWidth >= 1024 ? "calc(98vh - 72px)" : "50vh",
         }}
       >
-        <span className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'></span>
+        <span className="animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100"></span>
       </div>
     );
-  if (trendingError) return <p className='text-white text-sm'>Error: {trendingError.message}</p>;
+  if (trendingError) return <p className="text-white text-sm">Error: {trendingError.message}</p>;
 
   return (
     <div
-      className='container flex gap-2 pt-8 max-md:pt-2'
+      className="container flex gap-2 pt-8 max-md:pt-2"
       style={{
-        height: containerWidth >= 1024 ? 'calc(98vh - 72px)' : '50vh',
+        height: containerWidth >= 1024 ? "calc(98vh - 72px)" : "50vh",
       }}
     >
       <div
         ref={heightRef}
-        className='relative flex-2 basis-96 max-md:basis-56 rounded-2xl max-md:rounded-lg overflow-hidden'
-        style={{ height: '90%' }}
+        className="relative flex-2 basis-96 max-md:basis-56 rounded-2xl max-md:rounded-lg overflow-hidden"
+        style={{ height: "90%" }}
       >
         <button
-          data-testid='prevBtn'
-          className='absolute top-1/2 left-0 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
-          style={{ top: height !== 0 ? `${height / 2}px` : '50%', transform: 'translateY(-100%)' }}
+          data-testid="prevBtn"
+          className="absolute top-1/2 left-0 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md"
+          style={{ top: height !== 0 ? `${height / 2}px` : "50%", transform: "translateY(-100%)" }}
           onClick={handleLeft}
         >
-          <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
+          <ArrowBackIosIcon style={{ fontSize: "1.5rem" }} />
         </button>
         <button
-          data-testid='nextBtn'
+          data-testid="nextBtn"
           ref={iconRef}
-          className='absolute top-1/2 right-0 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md'
-          style={{ top: height !== 0 ? `${height / 2}px` : '50%', transform: 'translateY(-100%)' }}
+          className="absolute top-1/2 right-0 p-3 max-md:p-1.5 text-white hover:text-primary z-30 border-2 border-solid rounded-md"
+          style={{ top: height !== 0 ? `${height / 2}px` : "50%", transform: "translateY(-100%)" }}
           onClick={handleRight}
         >
-          <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
+          <ArrowForwardIosIcon style={{ fontSize: "1.5rem" }} />
         </button>
         <div
-          className='relative flex h-full transition-transform ease-in-out duration-500'
-          style={{ transform: `translateX(-${index * 100}%)`, willChange: 'transform' }}
+          className="relative flex h-full transition-transform ease-in-out duration-500"
+          style={{ transform: `translateX(-${index * 100}%)`, willChange: "transform" }}
         >
           {trending?.map((e: Media, index: number) => (
             <div
               key={index}
-              className='group relative flex items-end justify-start w-full h-full p-4 max-md:p-1 bg-cover bg-no-repeat bg-center cursor-pointer'
+              className="group relative flex items-end justify-start w-full h-full p-4 max-md:p-1 bg-cover bg-no-repeat bg-center cursor-pointer"
               style={{
                 backgroundImage: `linear-gradient(to top, #000 15%, transparent 100%)`,
-                flex: '0 0 100%',
+                flex: "0 0 100%",
               }}
               onClick={(): void => handleTrailer(e)}
             >
               {index === 0 ? (
                 <img
-                  src={getImageUrl(e?.backdrop_path, 'w1280')}
+                  src={getImageUrl(e?.backdrop_path, "w1280")}
                   alt={e.name || e.title}
-                  loading='eager'
-                  className='absolute left-0 top-0  object-cover w-full h-full'
+                  loading="eager"
+                  className="absolute left-0 top-0  object-cover w-full h-full"
                 />
               ) : (
                 <LazyLoadImage
-                  src={getImageUrl(e?.backdrop_path, 'w1280')}
+                  src={getImageUrl(e?.backdrop_path, "w1280")}
                   alt={e.name || e.title}
-                  loading='lazy'
-                  className='absolute left-0 top-0  object-cover w-full h-full'
+                  loading="lazy"
+                  className="absolute left-0 top-0  object-cover w-full h-full"
                 />
               )}
               <span
-                className='absolute left-0 top-0 w-full h-full'
+                className="absolute left-0 top-0 w-full h-full"
                 style={{
-                  backgroundImage: 'linear-gradient(to top,#000 15%, transparent 100%)',
+                  backgroundImage: "linear-gradient(to top,#000 15%, transparent 100%)",
                 }}
               ></span>
-              <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-              <div className='flex flex-1 shrink-0 basis-60 max-md:basis-20 items-center justify-center gap-4'>
-                <div className='relative w-40 h-60 max-lg:w-36 max-lg:h-56 max-md:w-20 max-md:h-28 rounded-xl overflow-hidden'>
-                  <AddIcon
-                    className='absolute max-lg:text-2xl top-0 left-0 bg-black-transparent text-white'
-                    style={{ fontSize: containerWidth > 1024 ? '2.5rem' : '1.5rem' }}
-                  />
+              <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
+              <div className="flex flex-1 shrink-0 basis-60 max-md:basis-20 items-center justify-center gap-4">
+                <div className="relative w-40 h-60 max-lg:w-36 max-lg:h-56 max-md:w-20 max-md:h-28 rounded-xl overflow-hidden">
                   {index === 0 ? (
                     <img
-                      src={getImageUrl(e?.poster_path, 'w342')}
+                      src={getImageUrl(e?.poster_path, "w342")}
                       alt={e.name || e.title}
-                      loading='eager'
-                      className=' object-cover w-full h-full'
+                      loading="eager"
+                      className=" object-cover w-full h-full"
                     />
                   ) : (
                     <LazyLoadImage
-                      src={getImageUrl(e?.poster_path, 'w342')}
+                      src={getImageUrl(e?.poster_path, "w342")}
                       alt={e.name || e.title}
-                      loading='lazy'
-                      className=' object-cover w-full h-full'
+                      loading="lazy"
+                      className=" object-cover w-full h-full"
                     />
                   )}
                 </div>
-                <span className='text-white max-md:hidden group-hover:text-primary z-10'>
-                  <PlayCircleOutlineIcon style={{ fontSize: '6rem' }} />
+                <span className="text-white max-md:hidden group-hover:text-primary z-10">
+                  <PlayCircleOutlineIcon style={{ fontSize: "6rem" }} />
                 </span>
-                <div className='flex-1 shrink-0 basis-40 flex flex-col justify-end gap-1 text-white z-10'>
-                  <span className='text-3xl max-md:text-lg'>{e.name || e.title}</span>
-                  <p className='text-lg max-md:text-sm text-gray-300 '>
-                    {e.overview.slice(0, 70) + '...'}
+                <div className="flex-1 shrink-0 basis-40 flex flex-col justify-end gap-1 text-white z-10">
+                  <span className="text-3xl max-md:text-lg">{e.name || e.title}</span>
+                  <p className="text-lg max-md:text-sm text-gray-300 ">
+                    {e.overview.slice(0, 70) + "..."}
                   </p>
                 </div>
               </div>
@@ -235,18 +230,18 @@ const Feature = () => {
       </div>
 
       <div
-        className='max-lg:hidden flex-1 shrink-0 basis-60 flex flex-col gap-5 w-full py-5 px-3 cursor-pointer'
-        style={{ height: '90%' }}
+        className="max-lg:hidden flex-1 shrink-0 basis-60 flex flex-col gap-5 w-full py-5 px-3 cursor-pointer"
+        style={{ height: "90%" }}
       >
-        <h1 className='text-2xl font-bold text-primary'>Up Next</h1>
+        <h1 className="text-2xl font-bold text-primary">Up Next</h1>
         <div
-          className='flex-1 shrink-0 basis-40 w-full min-h-40 px-3 py-2 rounded-xl overflow-hidden'
+          className="flex-1 shrink-0 basis-40 w-full min-h-40 px-3 py-2 rounded-xl overflow-hidden"
           style={{
             backgroundImage: `linear-gradient(to top,#000 60%, #4a4a4a4e 100%)`,
           }}
         >
           <div
-            className='w-full h-full gap-2 transition-transform ease-in-out duration-500'
+            className="w-full h-full gap-2 transition-transform ease-in-out duration-500"
             style={{
               transform: `translateY(${-(144 * index + 8)}px)`,
             }}
@@ -254,32 +249,32 @@ const Feature = () => {
             {trending?.map((e: Media, index: number) => (
               <div
                 key={index}
-                className='group flex items-center justify-center gap-2 w-full h-36'
+                className="group flex items-center justify-center gap-2 w-full h-36"
                 onClick={(): void => handleTrailer(e)}
               >
                 {index <= 2 ? (
                   <img
-                    src={getImageUrl(e?.poster_path, 'w185')}
+                    src={getImageUrl(e?.poster_path, "w185")}
                     alt={e.name || e.title}
-                    loading='eager'
-                    className='object-cover w-20 h-32 rounded-lg'
+                    loading="eager"
+                    className="object-cover w-20 h-32 rounded-lg"
                   />
                 ) : (
                   <LazyLoadImage
-                    src={getImageUrl(e?.poster_path, 'w185')}
+                    src={getImageUrl(e?.poster_path, "w185")}
                     alt={e.name || e.title}
-                    loading='lazy'
-                    className='object-cover w-20 h-28 rounded-lg'
+                    loading="lazy"
+                    className="object-cover w-20 h-28 rounded-lg"
                   />
                 )}
-                <div className='flex flex-col pt-2 w-full h-full gap-1'>
+                <div className="flex flex-col pt-2 w-full h-full gap-1">
                   <PlayCircleOutlineIcon
-                    className='text-white group-hover:text-primary'
-                    style={{ fontSize: '2rem' }}
+                    className="text-white group-hover:text-primary"
+                    style={{ fontSize: "2rem" }}
                   />
-                  <div className='flex-1 shrink-0 basis-20 flex flex-col gap-1 text-white'>
-                    <span className='text-base'>{e.name || e.title}</span>
-                    <p className='text-sm text-gray-300'>{e.overview.slice(0, 120) + '...'}</p>
+                  <div className="flex-1 shrink-0 basis-20 flex flex-col gap-1 text-white">
+                    <span className="text-base">{e.name || e.title}</span>
+                    <p className="text-sm text-gray-300">{e.overview.slice(0, 120) + "..."}</p>
                   </div>
                 </div>
               </div>

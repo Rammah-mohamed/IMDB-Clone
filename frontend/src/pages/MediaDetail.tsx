@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
-import { useLazyQuery, useQuery } from '@apollo/client';
-import axios from 'axios';
-import ReactPlayer from 'react-player';
-import { Image, VideoLibrary } from '@mui/icons-material';
-import StarIcon from '@mui/icons-material/Star';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import CloseIcon from '@mui/icons-material/Close';
-import ViewCompactIcon from '@mui/icons-material/ViewCompact';
-import CheckIcon from '@mui/icons-material/Check';
-import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import React, { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
+import { useLazyQuery, useQuery } from "@apollo/client";
+import axios from "axios";
+import ReactPlayer from "react-player";
+import { Image, VideoLibrary } from "@mui/icons-material";
+import StarIcon from "@mui/icons-material/Star";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import CloseIcon from "@mui/icons-material/Close";
+import ViewCompactIcon from "@mui/icons-material/ViewCompact";
+import CheckIcon from "@mui/icons-material/Check";
+import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
 
 // Import types
 import {
@@ -33,7 +33,7 @@ import {
   Review,
   Season_Details,
   Trailer,
-} from '../types/media';
+} from "../types/media";
 
 // Import GraphQl queries
 import {
@@ -42,14 +42,15 @@ import {
   GET_SEASON_DETAILS,
   GET_TV_Details,
   SEARCH_CELEBRITY,
-} from '../graphql/queries';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import getImageUrl from '../utils/getImages';
+} from "../graphql/queries";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import getImageUrl from "../utils/getImages";
+import { useMediaLength } from "../context/mediaLengthContext";
 
 // Lazy load the components
-const Navbar = React.lazy(() => import('../components/Navbar'));
-const MediaList = React.lazy(() => import('../components/MediaList'));
-const MobileNavbar = React.lazy(() => import('../components/MobileNavbar'));
+const Navbar = React.lazy(() => import("../components/Navbar"));
+const MediaList = React.lazy(() => import("../components/MediaList"));
+const MobileNavbar = React.lazy(() => import("../components/MobileNavbar"));
 
 //Types for each query's return value
 interface QueryResult {
@@ -72,10 +73,11 @@ const QUERY_CONFIG = {
 };
 
 // Youtube video URL
-const YOUTUBE_URL: string = 'https://www.youtube.com/watch?v=';
+const YOUTUBE_URL: string = "https://www.youtube.com/watch?v=";
 
 const MediaDetail = () => {
   const { user } = useAuth();
+  const { fetchMediaLength } = useMediaLength();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -95,29 +97,35 @@ const MediaDetail = () => {
   // Persist the data across tab refreshed
   const [data, setData] = useState<Details>(() => {
     if (location.state) return location?.state;
-    const savedData = localStorage.getItem('details');
+    const savedData = localStorage.getItem("details");
     return savedData ? JSON.parse(savedData) : {};
   });
 
   useEffect(() => {
     if (data) {
-      localStorage.setItem('details', JSON.stringify(data));
+      localStorage.setItem("details", JSON.stringify(data));
     }
   }, [data]);
+
+  useEffect(() => {
+    if (location.state) {
+      setData(location.state);
+    }
+  }, [location.state]);
 
   // Handle GraphQL query
   const {
     data: mediaData,
     loading: mediaLoading,
     error: mediaError,
-  } = useQuery(GET_MEDIA, { variables: { id: data?.id }, fetchPolicy: 'cache-first' });
+  } = useQuery(GET_MEDIA, { variables: { id: data?.id }, fetchPolicy: "cache-first" });
 
   const {
     data: genresData,
     loading: genresLoading,
     error: genresError,
   } = useQuery(GET_GENRES, {
-    fetchPolicy: 'cache-first',
+    fetchPolicy: "cache-first",
   });
 
   // Query Data
@@ -164,23 +172,23 @@ const MediaDetail = () => {
       setContainerWidth(window.innerWidth);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup listener on unmount
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Fetch media data depending on it's type
   const handleMediaDetails = async (id: number, mediaType: string): Promise<void> => {
     try {
-      if (mediaType === 'tv') {
+      if (mediaType === "tv") {
         const response = await tvDetails.fetch({ id });
         const result: Details = response?.data?.tvDetail;
 
         // Fetch season details for all seasons
         if (result) {
           const seasonPromises = result.seasons.map((season) =>
-            seasonDetails.fetch({ id: result.id, number: season.season_number })
+            seasonDetails.fetch({ id: result.id, number: season.season_number }),
           );
 
           // Resolve all promises and update state
@@ -196,7 +204,7 @@ const MediaDetail = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching media details:', error);
+      console.error("Error fetching media details:", error);
     }
   };
 
@@ -205,7 +213,7 @@ const MediaDetail = () => {
   }, []);
 
   useEffect(() => {
-    if (data?.id && data.media_type === 'tv') {
+    if (data?.id && data.media_type === "tv") {
       memoizedHandleMediaDetails(data.id, data.media_type);
     }
   }, [data?.id, data?.media_type, memoizedHandleMediaDetails]);
@@ -215,10 +223,10 @@ const MediaDetail = () => {
     let trailer: Trailer | undefined;
     const movieType = mediaType || data?.__typename?.slice(0, 5).toLocaleLowerCase();
     const tvType = mediaType || data?.__typename?.slice(0, 2).toLocaleLowerCase();
-    if (movieType === 'movie' && movieVideos?.length !== 0) {
-      trailer = movieVideos?.find((t: Trailer) => t?.type === 'Trailer');
-    } else if (tvType === 'tv' && tvVideos?.length !== 0) {
-      trailer = tvVideos?.find((t: Trailer) => t?.type === 'Trailer');
+    if (movieType === "movie" && movieVideos?.length !== 0) {
+      trailer = movieVideos?.find((t: Trailer) => t?.type === "Trailer");
+    } else if (tvType === "tv" && tvVideos?.length !== 0) {
+      trailer = tvVideos?.find((t: Trailer) => t?.type === "Trailer");
     }
 
     if (trailer) {
@@ -237,7 +245,7 @@ const MediaDetail = () => {
     const { key: videoID, name } = videoData || {};
     const relatedVideos = movieVideos || tvVideos || [];
 
-    navigate('/videos', {
+    navigate("/videos", {
       state: {
         data,
         videoID: videoID,
@@ -247,7 +255,7 @@ const MediaDetail = () => {
     });
 
     // Smoothly scroll to the top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Handle media page (videos / photos)
@@ -256,7 +264,7 @@ const MediaDetail = () => {
 
     const { name, title, poster_path } = data;
 
-    navigate('/media', {
+    navigate("/media", {
       state: {
         photos,
         name: name || title,
@@ -265,7 +273,7 @@ const MediaDetail = () => {
     });
 
     // Smoothly scroll to the top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleVideoMedia = (): void => {
@@ -274,7 +282,7 @@ const MediaDetail = () => {
 
     const { name, title, poster_path } = data;
 
-    navigate('/media', {
+    navigate("/media", {
       state: {
         videos: movieVideos || tvVideos,
         mediaName: name || title,
@@ -283,7 +291,7 @@ const MediaDetail = () => {
     });
 
     // Smoothly scroll to the top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Handle media critics reviews page
@@ -293,7 +301,7 @@ const MediaDetail = () => {
     const poster = poster_path;
     const review = movieReview || tvReview;
 
-    navigate('/critics', {
+    navigate("/critics", {
       state: {
         mediaName,
         poster,
@@ -302,7 +310,7 @@ const MediaDetail = () => {
     });
 
     // Smoothly scroll to the top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Sort and filter seasons
@@ -343,18 +351,18 @@ const MediaDetail = () => {
 
     // Only update state if the new array is different
     setTopRatedEpisodes((prev) =>
-      JSON.stringify(prev) === JSON.stringify(topRated) ? prev : topRated
+      JSON.stringify(prev) === JSON.stringify(topRated) ? prev : topRated,
     );
   }, [episodes]);
 
   //Get media genre from genre IDs
   const getGenras = (mediaType: string, array: number[]): void => {
     for (let i = 0; i < array.length; i++) {
-      if (mediaType === 'movie') {
+      if (mediaType === "movie") {
         movieGenres?.map((g) => {
           g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null;
         });
-      } else if (mediaType === 'tv') {
+      } else if (mediaType === "tv") {
         tvGenres?.map((g) => (g.id === array[i] ? setGenres((prev) => [...prev, g.name]) : null));
       }
     }
@@ -373,7 +381,7 @@ const MediaDetail = () => {
 
     const { name, poster_path } = data;
 
-    navigate('/media', {
+    navigate("/media", {
       state: {
         mediaName: name,
         mediaImage: poster_path,
@@ -384,15 +392,15 @@ const MediaDetail = () => {
     });
 
     // Smoothly scroll to the top of the page
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // handle media cast
   const handleCast = (
     id: number,
-    type: 'Movie' | 'TV',
+    type: "Movie" | "TV",
     cast: any[] = [],
-    crew: any[] = []
+    crew: any[] = [],
   ): void => {
     setCast({
       id,
@@ -404,10 +412,10 @@ const MediaDetail = () => {
 
   useEffect(() => {
     if (castCount === 0 && data?.id && data?.media_type) {
-      if (data.media_type === 'movie') {
-        handleCast(data.id, 'Movie', movieCast, movieCrew);
-      } else if (data.media_type === 'tv') {
-        handleCast(data.id, 'TV', tvCast, tvCrew);
+      if (data.media_type === "movie") {
+        handleCast(data.id, "Movie", movieCast, movieCrew);
+      } else if (data.media_type === "tv") {
+        handleCast(data.id, "TV", tvCast, tvCrew);
       }
 
       castCount++; // Ensure this effect runs only once
@@ -416,23 +424,23 @@ const MediaDetail = () => {
 
   // Functions to get the name of the Director / Writer from the crew
   const getDirectorName = (crew: Crew[]): string | undefined =>
-    crew?.find((c) => c.job === 'Director')?.name;
+    crew?.find((c) => c.job === "Director")?.name;
 
   const getWriterName = (crew: Crew[]): string | undefined =>
-    crew?.find((c) => c.job === 'Writer')?.name;
+    crew?.find((c) => c.job === "Writer")?.name;
 
   // Check if a Director / Writer exists
   const hasDirector = (castState: CastState): boolean =>
-    castState?.crew?.some((c: Crew) => c.job === 'Director') ?? false;
+    castState?.crew?.some((c: Crew) => c.job === "Director") ?? false;
 
   const hasWriter = (castState: CastState): boolean =>
-    castState?.crew?.some((c: Crew) => c.job === 'Writer') ?? false;
+    castState?.crew?.some((c: Crew) => c.job === "Writer") ?? false;
 
   const handleCelebrity = (name: string, id: number): void => {
     searchCelebrity.fetch({ query: name }).then((response) => {
       const data: Celebrity[] = response?.data?.searchCelebrity;
       const celebrity: Celebrity | undefined = data?.find((c) => c?.id === id);
-      navigate('/celebrityDetails', { state: celebrity });
+      navigate("/celebrityDetails", { state: celebrity });
     });
   };
 
@@ -480,42 +488,44 @@ const MediaDetail = () => {
   const handleAddToList = async (
     e: React.MouseEvent,
     data: Media | Details,
-    list?: List
+    list?: List,
   ): Promise<void> => {
     e.stopPropagation();
 
     if (!user) {
-      navigate('/sign');
+      navigate("/sign");
       return;
     }
 
-    const listName = list?.name || 'Your_Watchlist';
+    const listName = list?.name || "Your_Watchlist";
     const currentList = lists?.find((l) => l?.name === listName);
     const isExist = currentList?.movies?.some((m) => m.id === data.id);
-    const isDefaultWatchlist = listName === 'Your Watchlist' || list?.name === undefined;
+    const isDefaultWatchlist = listName === "Your Watchlist" || list?.name === undefined;
 
     try {
       if (data.isAdded || isExist) {
-        await axios.delete(`http://localhost:3000/lists/${listName}/${data.id}`, {
+        await axios.delete(`${import.meta.env.VITE_MONGODB_API}/lists/${listName}/${data.id}`, {
           withCredentials: true,
         });
         console.log(`Removed ${data.id} from ${listName}`);
+        fetchMediaLength();
       } else {
         await axios.put(
-          `http://localhost:3000/lists/${listName}/${data.id}`,
+          `${import.meta.env.VITE_MONGODB_API}/lists/${listName}/${data.id}`,
           {
             ...data,
             isAdded: isDefaultWatchlist,
           },
           {
             withCredentials: true,
-          }
+          },
         );
         console.log(`Added ${data.id} to ${listName}`);
+        fetchMediaLength();
       }
 
       // Refresh lists
-      const response = await axios.get(`http://localhost:3000/lists`, {
+      const response = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
         withCredentials: true,
       });
       setLists(response.data);
@@ -525,22 +535,22 @@ const MediaDetail = () => {
         setData((prev) => ({ ...prev, isAdded: !(data.isAdded || isExist) }));
       }
     } catch (error: any) {
-      console.error(error.response?.data || 'An error occurred');
+      console.error(error.response?.data || "An error occurred");
     }
   };
 
   // Navigate to a certain list
   const handleList = async (list: List): Promise<void> => {
-    const listName = list.name === 'Your Watchlist' ? 'Your_Watchlist' : list.name;
+    const listName = list.name === "Your Watchlist" ? "Your_Watchlist" : list.name;
 
     try {
-      const { data } = await axios.get(`http://localhost:3000/lists/${listName}`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/${listName}`, {
         withCredentials: true,
       });
       const media = data?.movies;
 
       // Navigate to the list details page
-      navigate('/listDetails', {
+      navigate("/listDetails", {
         state: {
           title: list.name,
           description: list.description,
@@ -548,46 +558,46 @@ const MediaDetail = () => {
         },
       });
     } catch (error: any) {
-      console.error(error.response?.data || 'Failed to fetch the list details.');
+      console.error(error.response?.data || "Failed to fetch the list details.");
     }
   };
 
   // Navigate to watchlist
   const handleWatchlist = async (): Promise<void> => {
     try {
-      const { data } = await axios.get('http://localhost:3000/lists/Watchlist', {
+      const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists/Watchlist`, {
         withCredentials: true,
       });
       const media = data?.movies;
 
       // Navigate based on user's authentication status
       if (user) {
-        navigate('/listDetails', {
+        navigate("/listDetails", {
           state: { data: media },
         });
       } else {
-        navigate('/sign');
+        navigate("/sign");
       }
     } catch (error: any) {
-      console.error(error.response?.data || 'Failed to fetch the watchlist.');
+      console.error(error.response?.data || "Failed to fetch the watchlist.");
     }
   };
 
   // Create a new list
   const handleCreate = (): void => {
-    user ? navigate('/createList') : navigate('/sign');
+    user ? navigate("/createList") : navigate("/sign");
   };
 
   //Get user lists
   useEffect(() => {
     const getLists = async (): Promise<void> => {
       try {
-        const { data } = await axios.get('http://localhost:3000/lists', {
+        const { data } = await axios.get(`${import.meta.env.VITE_MONGODB_API}/lists`, {
           withCredentials: true,
         });
         setLists(data);
       } catch (error: any) {
-        console.error(error.response?.data || 'Failed to fetch lists.');
+        console.error(error.response?.data || "Failed to fetch lists.");
       }
     };
 
@@ -600,16 +610,19 @@ const MediaDetail = () => {
   useEffect(() => {
     const getWatchlist = async (): Promise<void> => {
       try {
-        const { data } = await axios.get('http://localhost:3000/lists/Your_Watchlist', {
-          withCredentials: true,
-        });
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_MONGODB_API}/lists/Your_Watchlist`,
+          {
+            withCredentials: true,
+          },
+        );
         const isExist = data?.movies?.some((m: Media) => m.id === data.id);
         setData((prev) => ({
           ...prev,
           isAdded: isExist,
         }));
       } catch (error: any) {
-        console.error(error.response?.data || 'Failed to fetch watchlist.');
+        console.error(error.response?.data || "Failed to fetch watchlist.");
       }
     };
 
@@ -622,8 +635,8 @@ const MediaDetail = () => {
   if (mediaLoading || genresLoading) {
     return (
       <div
-        role='status'
-        className='animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100'
+        role="status"
+        className="animate-spin w-6 h-6 border-4 border-secondary rounded-full border-l-secondary-100"
       ></div>
     );
   }
@@ -631,7 +644,7 @@ const MediaDetail = () => {
   // Query error handling
   if (mediaError || genresError) {
     return (
-      <p data-testid='error' className='text-white text-sm'>
+      <p data-testid="error" className="text-white text-sm">
         {mediaError?.message || genresError?.message}
       </p>
     );
@@ -639,62 +652,62 @@ const MediaDetail = () => {
   return (
     <div>
       {isShowList && (
-        <div className='fixed top-0 left-0 flex items-center justify-center w-screen h-screen bg-overlay-70 z-40'>
-          <div className='relative flex flex-col bg-black-100' style={{ width: '42rem' }}>
+        <div className="fixed top-0 left-0 flex items-center justify-center w-screen h-screen bg-overlay-70 z-40">
+          <div className="relative flex flex-col bg-black-100" style={{ width: "42rem" }}>
             <CloseIcon
-              className='absolute right-2 text-white cursor-pointer'
-              style={{ top: '-40px', fontSize: '2rem' }}
+              className="absolute right-2 text-white cursor-pointer"
+              style={{ top: "-40px", fontSize: "2rem" }}
               onClick={() => setIsShowList(false)}
             />
-            <div className='flex items-center gap-3 p-6'>
-              <div className='relative group w-16 h-20 rounded-lg overflow-hidden'>
-                <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+            <div className="flex items-center gap-3 p-6">
+              <div className="relative group w-16 h-20 rounded-lg overflow-hidden">
+                <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
                 <LazyLoadImage
-                  src={getImageUrl(data?.poster_path, 'w92')}
-                  alt='Celebrity poster'
-                  loading='eager'
-                  className='object-cover w-full h-full'
+                  src={getImageUrl(data?.poster_path, "w92")}
+                  alt="Celebrity poster"
+                  loading="eager"
+                  className="object-cover w-full h-full"
                 />
               </div>
-              <div className='flex flex-col gap-1'>
-                <h2 className='text-gray-200 font-medium'>{data?.title || data?.name}</h2>
-                <p className='text-white text-2xl font-semibold'>Add to list</p>
+              <div className="flex flex-col gap-1">
+                <h2 className="text-gray-200 font-medium">{data?.title || data?.name}</h2>
+                <p className="text-white text-2xl font-semibold">Add to list</p>
               </div>
             </div>
             <div
-              className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'
+              className="flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer"
               onClick={handleWatchlist}
             >
               <p>View Watchlist</p>
-              <KeyboardArrowRightIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+              <KeyboardArrowRightIcon className="text-gray-250" style={{ fontSize: "1.5rem" }} />
             </div>
             <div
-              className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer'
+              className="flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350  hover:bg-gray-350 cursor-pointer"
               onClick={handleCreate}
             >
               <p>Create a new list</p>
-              <KeyboardArrowRightIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+              <KeyboardArrowRightIcon className="text-gray-250" style={{ fontSize: "1.5rem" }} />
             </div>
             {lists?.length !== 0 &&
               lists?.map((l, index: number) => (
                 <div
                   key={index}
-                  className='flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350 cursor-pointer hover:bg-gray-350'
+                  className="flex items-center justify-between py-4 px-2 bg-gray-400 text-white border-b-2 border-gray-350 cursor-pointer hover:bg-gray-350"
                 >
                   <div
-                    className='flex items-center gap-2'
+                    className="flex items-center gap-2"
                     onClick={(e) => handleAddToList(e, data, l)}
                   >
                     {l?.movies?.some((m) => m.id === data.id) ? (
-                      <PlaylistAddCheckIcon className='text-green' style={{ fontSize: '1.5rem' }} />
+                      <PlaylistAddCheckIcon className="text-green" style={{ fontSize: "1.5rem" }} />
                     ) : (
-                      <AddIcon className='text-gray-250' style={{ fontSize: '1.5rem' }} />
+                      <AddIcon className="text-gray-250" style={{ fontSize: "1.5rem" }} />
                     )}
                     <p>{l?.name}</p>
                   </div>
                   <KeyboardArrowRightIcon
-                    className='text-gray-250'
-                    style={{ fontSize: '1.5rem' }}
+                    className="text-gray-250"
+                    style={{ fontSize: "1.5rem" }}
                     onClick={() => handleList(l)}
                   />
                 </div>
@@ -703,147 +716,147 @@ const MediaDetail = () => {
         </div>
       )}
       <Navbar />
-      <div className='max-md:min-h-screen flex flex-col gap-3 bg-gray-400 pt-10'>
-        <div className='container flex justify-between'>
-          <div className='flex flex-col gap-2'>
-            <h1 className='text-5xl max-lg:text-3xl max-md:text-2xl text-white'>
+      <div className="max-md:min-h-screen flex flex-col gap-3 bg-gray-400 pt-10">
+        <div className="container flex justify-between">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-5xl max-lg:text-3xl max-md:text-2xl text-white">
               {data?.name || data?.title}
             </h1>
-            <span className='text-lg max-md:text-base font-medium text-gray-200'>
+            <span className="text-lg max-md:text-base font-medium text-gray-200">
               {data?.media_type?.toUpperCase()}
             </span>
           </div>
-          <div className='flex items-center gap-16 max-lg:gap-10 max-md:gap-7'>
-            <div className='flex flex-col gap-2'>
-              <h3 className='text-gray-250 font-medium'>IMDB Rating</h3>
-              <div className='flex items-center gap-3 max-md:gap-2'>
-                <StarIcon style={{ fontSize: '1.5rem' }} className='text-primary' />
-                <span className='text-lg font-semibold text-gray-200'>
+          <div className="flex items-center gap-16 max-lg:gap-10 max-md:gap-7">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-gray-250 font-medium">IMDB Rating</h3>
+              <div className="flex items-center gap-3 max-md:gap-2">
+                <StarIcon style={{ fontSize: "1.5rem" }} className="text-primary" />
+                <span className="text-lg font-semibold text-gray-200">
                   {Number(data?.vote_average)?.toFixed(1)}/ 10
                 </span>
               </div>
             </div>
-            <div className='max-lg:hidden flex flex-col gap-2'>
-              <h3 className='text-gray-250 font-medium'>Popularity</h3>
-              <div className='flex items-center gap-3'>
-                <div className='p-1 border-2 border-green rounded-full'>
-                  <TrendingUpIcon className='text-green' style={{ fontSize: '1.5rem' }} />
+            <div className="max-lg:hidden flex flex-col gap-2">
+              <h3 className="text-gray-250 font-medium">Popularity</h3>
+              <div className="flex items-center gap-3">
+                <div className="p-1 border-2 border-green rounded-full">
+                  <TrendingUpIcon className="text-green" style={{ fontSize: "1.5rem" }} />
                 </div>
-                <span className='text-lg font-semibold text-gray-200'>
+                <span className="text-lg font-semibold text-gray-200">
                   {data?.popularity?.toFixed(0)}
                 </span>
               </div>
             </div>
           </div>
         </div>
-        <div className='container max-md:flex-col flex gap-2' style={{ height: '30rem' }}>
-          <div className='relative group flex-1 max-md:flex-initial max-md:w-40 max-md:h-60 max-md:self-center rounded-lg cursor-pointer overflow-hidden'>
-            <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
+        <div className="container max-md:flex-col flex gap-2" style={{ height: "30rem" }}>
+          <div className="relative group flex-1 max-md:flex-initial max-md:w-40 max-md:h-60 max-md:self-center rounded-lg cursor-pointer overflow-hidden">
+            <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
             <AddIcon
               className={`absolute top-0 left-0 ${
                 user && data?.isAdded
-                  ? 'bg-primary text-black-100'
-                  : 'bg-black-transparent text-white'
+                  ? "bg-primary text-black-100"
+                  : "bg-black-transparent text-white"
               } z-30`}
-              style={{ fontSize: '2.5rem' }}
+              style={{ fontSize: "2.5rem" }}
               onClick={(e) => handleAddToList(e, data)}
             />
             <LazyLoadImage
-              src={getImageUrl(data?.poster_path, 'w342')}
-              alt='Celebrity poster'
-              loading='lazy'
-              className='object-cover w-full h-full'
+              src={getImageUrl(data?.poster_path, "w342")}
+              alt="Celebrity poster"
+              loading="lazy"
+              className="object-cover w-full h-full"
             />
           </div>
           <div
-            className='group/trailer relative flex-2.5 max-md:flex-1 rounded-lg cursor-pointer overflow-hidden'
+            className="group/trailer relative flex-2.5 max-md:flex-1 rounded-lg cursor-pointer overflow-hidden"
             onClick={(): void => trailer && handleVideo(trailer)}
           >
-            <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-            <div className='flex items-end gap-3 max-md:gap-2 absolute top-0 left-0 w-full h-full p-4 max-md:p-3 bg-overlay z-20'>
-              <PlayCircleOutlineIcon style={{ fontSize: '4.5rem', color: 'white' }} />
-              <div className='flex flex-col gap-1'>
-                <span className='text-white text-3xl max-md:text-xl'>Play Trailer</span>
-                <span className='text-gray-200 text-xl max-md:text-lg'>{trailer?.name}</span>
+            <span className="group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
+            <div className="flex items-end gap-3 max-md:gap-2 absolute top-0 left-0 w-full h-full p-4 max-md:p-3 bg-overlay z-20">
+              <PlayCircleOutlineIcon style={{ fontSize: "4.5rem", color: "white" }} />
+              <div className="flex flex-col gap-1">
+                <span className="text-white text-3xl max-md:text-xl">Play Trailer</span>
+                <span className="text-gray-200 text-xl max-md:text-lg">{trailer?.name}</span>
               </div>
             </div>
             <ReactPlayer
               url={`${YOUTUBE_URL}${trailer?.key}`}
-              width={'100%'}
-              height={'100%'}
+              width={"100%"}
+              height={"100%"}
               muted={true}
               playing={false}
             />
           </div>
-          <div className='max-md:hidden flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden'>
+          <div className="max-md:hidden flex flex-1 flex-col gap-2 rounded-lg cursor-pointer overflow-hidden">
             <div
-              data-testid='photo'
-              className='group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
+              data-testid="photo"
+              className="group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer"
               onClick={() => handlePhoto(movieImages || tvImages)}
             >
-              <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-              <Image style={{ fontSize: '2.5rem' }} />
+              <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
+              <Image style={{ fontSize: "2.5rem" }} />
               <span>{movieImages?.length || tvImages?.length} Images</span>
             </div>
             <div
-              data-testid='video'
-              className='max-md:hidden group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer'
+              data-testid="video"
+              className="max-md:hidden group relative flex flex-1 flex-col items-center justify-center gap-2 text-lg font-medium text-white bg-gray-350 rounded-lg cursor-pointer"
               onClick={() => handleVideoMedia()}
             >
-              <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-              <VideoLibrary style={{ fontSize: '2.5rem' }} />
+              <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
+              <VideoLibrary style={{ fontSize: "2.5rem" }} />
               <span>{movieVideos?.length || tvVideos?.length} Videos</span>
             </div>
           </div>
         </div>
-        <div className='container flex items-center gap-10 pb-4'>
-          <div className='flex flex-2 flex-col gap-6 p-4'>
-            <div className='flex gap-3'>
+        <div className="container flex items-center gap-10 pb-4">
+          <div className="flex flex-2 flex-col gap-6 p-4">
+            <div className="flex gap-3">
               {genres?.map((g, index) => (
                 <button
                   key={index}
-                  className='py-1 px-3 text-gray-100 text-sm font-medium rounded-3xl border-2 border-gray-100 hover:bg-black-transparent'
+                  className="py-1 px-3 text-gray-100 text-sm font-medium rounded-3xl border-2 border-gray-100 hover:bg-black-transparent"
                 >
                   {g}
                 </button>
               ))}
             </div>
-            <p className='text-gray-250 text-lg max-md:text-base pt-3 font-medium border-t-2'>
+            <p className="text-gray-250 text-lg max-md:text-base pt-3 font-medium border-t-2">
               {data?.overview}
             </p>
-            <div className='flex flex-col gap-3 pt-3 border-t-2'>
+            <div className="flex flex-col gap-3 pt-3 border-t-2">
               {cast && hasDirector(cast) && (
-                <div className='flex max-md:flex-col items-center max-md:items-start gap-2'>
-                  <span className='text-2xl max-md:text-lg text-white font-semibold'>Director</span>
-                  <span className='text-lg max-md:text-base text-secondary'>
+                <div className="flex max-md:flex-col items-center max-md:items-start gap-2">
+                  <span className="text-2xl max-md:text-lg text-white font-semibold">Director</span>
+                  <span className="text-lg max-md:text-base text-secondary">
                     {cast?.crew && getDirectorName(cast?.crew)}
                   </span>
                 </div>
               )}
               {cast && hasWriter(cast) && (
-                <div className='flex max-md:flex-col items-center max-md:items-start gap-2'>
-                  <span className='text-2xl max-md:text-lg text-white font-semibold'>Director</span>
-                  <span className='text-lg max-md:text-base text-secondary'>
+                <div className="flex max-md:flex-col items-center max-md:items-start gap-2">
+                  <span className="text-2xl max-md:text-lg text-white font-semibold">Director</span>
+                  <span className="text-lg max-md:text-base text-secondary">
                     {cast?.crew && getWriterName(cast?.crew)}
                   </span>
                 </div>
               )}
-              <div className='flex max-md:flex-col gap-3 max-md:items-start'>
+              <div className="flex max-md:flex-col gap-3 max-md:items-start">
                 {cast && (
                   <>
-                    <span className='text-2xl max-md:text-lg text-white font-semibold'>Stars</span>
-                    <div className='flex gap-2 text-lg max-md:text-base text-secondary'>
+                    <span className="text-2xl max-md:text-lg text-white font-semibold">Stars</span>
+                    <div className="flex gap-2 text-lg max-md:text-base text-secondary">
                       {cast?.star?.map(
                         (s: Cast, index: number) =>
                           index < 4 && (
                             <span
                               key={index}
-                              className='cursor-pointer hover:underline'
+                              className="cursor-pointer hover:underline"
                               onClick={() => handleCelebrity(s?.name, s?.id)}
                             >
                               {s.name}
                             </span>
-                          )
+                          ),
                       )}
                     </div>
                   </>
@@ -851,127 +864,127 @@ const MediaDetail = () => {
               </div>
             </div>
           </div>
-          <div className='max-lg:hidden flex flex-1 flex-col gap-4 p-4'>
-            <div className='relative group flex items-center gap-3 bg-primary p-3 text-lg font-medium rounded-3xl cursor-pointer'>
-              <div className='items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex'></div>
-              <div className='relative z-30' onClick={(e) => handleAddToList(e, data)}>
+          <div className="max-lg:hidden flex flex-1 flex-col gap-4 p-4">
+            <div className="relative group flex items-center gap-3 bg-primary p-3 text-lg font-medium rounded-3xl cursor-pointer">
+              <div className="items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20 hidden group-hover:flex"></div>
+              <div className="relative z-30" onClick={(e) => handleAddToList(e, data)}>
                 {user && data.isAdded ? <CheckIcon /> : <AddIcon />}
                 <span>Add to Watchlist</span>
               </div>
               <KeyboardArrowDownIcon
-                style={{ fontSize: '2rem' }}
-                className='absolute right-4 top-3 pl-2 border-l-2 border-black z-30'
+                style={{ fontSize: "2rem" }}
+                className="absolute right-4 top-3 pl-2 border-l-2 border-black z-30"
                 onClick={() => setIsShowList(true)}
               />
             </div>
             <button
-              data-testid='critic'
-              className='text-secondary font-medium cursor-pointer hover:underline'
+              data-testid="critic"
+              className="text-secondary font-medium cursor-pointer hover:underline"
               onClick={handleCritics}
             >
               {movieReview?.length === 0 || tvReview?.length === 0
-                ? '0'
-                : movieReview?.length || tvReview?.length}{' '}
+                ? "0"
+                : movieReview?.length || tvReview?.length}{" "}
               Critic Reviews
             </button>
           </div>
         </div>
       </div>
       {season.length !== 0 && (
-        <div className='container flex gap-6 py-10 max-lg:p-6 bg-white'>
-          <div className='flex flex-col gap-4 max-md:gap-2 flex-3'>
+        <div className="container flex gap-6 py-10 max-lg:p-6 bg-white">
+          <div className="flex flex-col gap-4 max-md:gap-2 flex-3">
             <div
-              className='group/icon flex items-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4  border-primary cursor-pointer'
+              className="group/icon flex items-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4  border-primary cursor-pointer"
               onClick={() => handleSeason()}
             >
               <h1>Episodes</h1>
-              <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
-              <span className='text-gray-350 text-lg'>{data?.number_of_episodes}</span>
+              <ArrowForwardIosIcon className="group-hover/icon:text-primary" />
+              <span className="text-gray-350 text-lg">{data?.number_of_episodes}</span>
             </div>
-            <div className='flex flex-wrap items-center gap-5'>
+            <div className="flex flex-wrap items-center gap-5">
               {topRatedEpisodes?.slice(0, containerWidth > 768 ? 2 : 1)?.map((e) => (
-                <div key={e.id} className='flex flex-col flex-1 gap-4 p-3 shadow-xl rounded-lg'>
-                  <div className='flex flex-1 items-center gap-3'>
-                    <AddIcon className='bg-gray-250 text-black' style={{ fontSize: '2rem' }} />
-                    <div className='flex flex-1 flex-col gap-1 justify-between'>
+                <div key={e.id} className="flex flex-col flex-1 gap-4 p-3 shadow-xl rounded-lg">
+                  <div className="flex flex-1 items-center gap-3">
+                    <AddIcon className="bg-gray-250 text-black" style={{ fontSize: "2rem" }} />
+                    <div className="flex flex-1 flex-col gap-1 justify-between">
                       {Number(e.vote_average) >= 8.0 && (
                         <span
-                          className='text-black  uppercase font-medium bg-primary pl-2 w-2/5 rounded'
-                          style={{ fontSize: '0.8rem' }}
+                          className="text-black  uppercase font-medium bg-primary pl-2 w-2/5 rounded"
+                          style={{ fontSize: "0.8rem" }}
                         >
                           Top-rated
                         </span>
                       )}
-                      <span className=' text-gray-350 font-medium' style={{ fontSize: '0.8rem' }}>
+                      <span className=" text-gray-350 font-medium" style={{ fontSize: "0.8rem" }}>
                         {e?.air_date}
                       </span>
                     </div>
                   </div>
-                  <div className='flex-1'>
-                    <h1 className='text-base font-bold mb-1 w-fit hover:text-gray-300 cursor-pointer'>
+                  <div className="flex-1">
+                    <h1 className="text-base font-bold mb-1 w-fit hover:text-gray-300 cursor-pointer">
                       S{e?.season_number}.E{e?.episode_number} - {e.name}
                     </h1>
-                    <p className='text-gray-350'>{e?.overview}</p>
+                    <p className="text-gray-350">{e?.overview}</p>
                   </div>
-                  <div className='flex items-center gap-2'>
-                    <StarIcon className='text-primary' />
-                    <span className='text-gray-350'>{Number(e.vote_average).toFixed(1)}/10</span>
+                  <div className="flex items-center gap-2">
+                    <StarIcon className="text-primary" />
+                    <span className="text-gray-350">{Number(e.vote_average).toFixed(1)}/10</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
-            <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
+          <div className="max-lg:hidden flex flex-1 flex-col gap-4">
+            <h1 className="text-3xl font-semibold pl-3 border-l-4 border-primary">
               More to explore
             </h1>
-            <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
-              <h2 className='text-2xl font-medium'>Feedback</h2>
-              <p className='text-secondary hover:underline cursor-pointer'>
+            <div className="flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm">
+              <h2 className="text-2xl font-medium">Feedback</h2>
+              <p className="text-secondary hover:underline cursor-pointer">
                 Tell us what you think about this feature.
               </p>
-              <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
+              <p className="text-secondary hover:underline cursor-pointer">Report this list.</p>
             </div>
           </div>
         </div>
       )}
       {((movieVideos && movieVideos?.length !== 0) || (tvVideos && tvVideos?.length !== 0)) && (
-        <div className='container max-md:justify-center flex gap-6 py-10 max-lg:p-6 bg-white'>
-          <div className='flex flex-col gap-4 flex-3 max-md:gap-3 max-md:flex-2'>
+        <div className="container max-md:justify-center flex gap-6 py-10 max-lg:p-6 bg-white">
+          <div className="flex flex-col gap-4 flex-3 max-md:gap-3 max-md:flex-2">
             <div
-              className='group/icon flex items-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'
+              className="group/icon flex items-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4 border-primary cursor-pointer"
               onClick={() => handleVideoMedia()}
             >
               <h1>Videos</h1>
-              <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
-              <span className='text-gray-350 text-lg max-md:text-bas'>
+              <ArrowForwardIosIcon className="group-hover/icon:text-primary" />
+              <span className="text-gray-350 text-lg max-md:text-bas">
                 {movieVideos?.length || tvVideos?.length}
               </span>
             </div>
-            <div className='flex flex-wrap  max-md:justify-center items-center gap-6 max-md:gap-4'>
+            <div className="flex flex-wrap  max-md:justify-center items-center gap-6 max-md:gap-4">
               {(movieVideos?.slice(0, 4) || tvVideos?.slice(0, 4))?.map((v) => (
                 <div
                   key={v?.key}
-                  className='group/trailer relative h-64 max-md:h-52 rounded-lg cursor-pointer overflow-hidden'
+                  className="group/trailer relative h-64 max-md:h-52 rounded-lg cursor-pointer overflow-hidden"
                   style={{
                     width:
-                      containerWidth > 1024 ? '27rem' : containerWidth > 768 ? '22rem' : '20rem',
+                      containerWidth > 1024 ? "27rem" : containerWidth > 768 ? "22rem" : "20rem",
                   }}
                   onClick={(): void => handleVideo(v)}
                 >
-                  <span className='group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20'></span>
-                  <div className='flex items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20'>
-                    <PlayCircleOutlineIcon style={{ fontSize: '4rem', color: 'white' }} />
-                    <div className='flex flex-col gap-1'>
-                      <span className='text-white text-2xl max-md:text-xl'>Play Trailer</span>
-                      <span className='text-gray-200 text-xl max-md:text-lg'>{v?.name}</span>
+                  <span className="group-hover/trailer:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-20"></span>
+                  <div className="flex items-end gap-3 absolute top-0 left-0 w-full h-full p-4 bg-overlay z-20">
+                    <PlayCircleOutlineIcon style={{ fontSize: "4rem", color: "white" }} />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-white text-2xl max-md:text-xl">Play Trailer</span>
+                      <span className="text-gray-200 text-xl max-md:text-lg">{v?.name}</span>
                     </div>
                   </div>
                   <ReactPlayer
                     url={`${YOUTUBE_URL}${v?.key}`}
-                    width={'100%'}
-                    height={'100%'}
+                    width={"100%"}
+                    height={"100%"}
                     muted={true}
                     playing={false}
                   />
@@ -980,82 +993,82 @@ const MediaDetail = () => {
             </div>
           </div>
 
-          <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
-            <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>
+          <div className="max-lg:hidden flex flex-1 flex-col gap-4">
+            <h1 className="text-3xl font-semibold pl-3 border-l-4 border-primary">
               More to explore
             </h1>
-            <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
-              <h2 className='text-2xl font-medium'>Feedback</h2>
-              <p className='text-secondary hover:underline cursor-pointer'>
+            <div className="flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm">
+              <h2 className="text-2xl font-medium">Feedback</h2>
+              <p className="text-secondary hover:underline cursor-pointer">
                 Tell us what you think about this feature.
               </p>
-              <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
+              <p className="text-secondary hover:underline cursor-pointer">Report this list.</p>
             </div>
           </div>
         </div>
       )}
-      <div className='container flex gap-6 max-md:gap-4 py-10 max-lg:p-6 bg-white'>
+      <div className="container flex gap-6 max-md:gap-4 py-10 max-lg:p-6 bg-white">
         {(movieImages?.length !== 0 || tvImages?.length !== 0) && (
-          <div className='flex flex-3 flex-col gap-4 max-md:gap-3'>
+          <div className="flex flex-3 flex-col gap-4 max-md:gap-3">
             <div
-              className='group/icon flex items-center max-md:justify-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 max-md:pl-2 border-l-4 border-primary cursor-pointer'
+              className="group/icon flex items-center max-md:justify-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 max-md:pl-2 border-l-4 border-primary cursor-pointer"
               onClick={() => handlePhoto(movieImages || tvImages)}
             >
               <h1>Photos</h1>
-              <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
-              <span className='text-gray-350 text-lg max-md:text-base'>
+              <ArrowForwardIosIcon className="group-hover/icon:text-primary" />
+              <span className="text-gray-350 text-lg max-md:text-base">
                 {movieImages?.length || tvImages?.length}
               </span>
             </div>
-            <div className='flex flex-wrap max-lg:justify-center gap-3 max-md:gap-2'>
+            <div className="flex flex-wrap max-lg:justify-center gap-3 max-md:gap-2">
               {(movieImages || tvImages)?.map((p: Photo, index: number) => (
                 <div
                   key={index}
                   className={`${
                     show && currentImage && currentIndex === index
-                      ? 'block'
+                      ? "block"
                       : index < 8
-                      ? 'block'
-                      : 'hidden'
+                      ? "block"
+                      : "hidden"
                   } group relative w-52 h-64 max-lg:w-44 max-lg:h-52 max-md:w-40 max-md:h-64 rounded-lg cursor-pointer overflow-hidden`}
                   onClick={(): void => handleClickImage(index)}
                 >
-                  <span className='group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-30'></span>
+                  <span className="group-hover:block absolute top-0 left-0 w-full h-full bg-overlay hidden z-30"></span>
 
                   {show && currentImage && currentIndex === index && (
-                    <div className='flex flex-col items-center max-md:justify-between gap-4 max-lg:gap-3 max-md:gap-6 fixed left-0 top-0 w-screen h-screen p-6 bg-black z-30'>
+                    <div className="flex flex-col items-center max-md:justify-between gap-4 max-lg:gap-3 max-md:gap-6 fixed left-0 top-0 w-screen h-screen p-6 bg-black z-30">
                       <button
-                        className='absolute top-1/2 left-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
+                        className="absolute top-1/2 left-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40"
                         onClick={(e): void => handlePrev(e)}
                       >
-                        <ArrowBackIosIcon style={{ fontSize: '1.5rem' }} />
+                        <ArrowBackIosIcon style={{ fontSize: "1.5rem" }} />
                       </button>
                       <button
-                        className='absolute top-1/2 right-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40'
+                        className="absolute top-1/2 right-8 p-3 text-white hover:text-primary border-2 border-solid rounded-md z-40"
                         onClick={(e): void => handleNext(e)}
                       >
-                        <ArrowForwardIosIcon style={{ fontSize: '1.5rem' }} />
+                        <ArrowForwardIosIcon style={{ fontSize: "1.5rem" }} />
                       </button>
-                      <div className='flex w-full px-28 max-md:px-6 items-center justify-between text-white'>
+                      <div className="flex w-full px-28 max-md:px-6 items-center justify-between text-white">
                         <div
-                          className='flex items-center gap-2 cursor-pointer'
+                          className="flex items-center gap-2 cursor-pointer"
                           onClick={(e): void => handleShow(e)}
                         >
-                          <CloseIcon style={{ fontSize: '1.5rem' }} />
-                          <span className='text-lg max-md:text-base'>Close</span>
+                          <CloseIcon style={{ fontSize: "1.5rem" }} />
+                          <span className="text-lg max-md:text-base">Close</span>
                         </div>
                         <div
-                          className='flex items-center gap-2'
+                          className="flex items-center gap-2"
                           onClick={() => handlePhoto(movieImages || tvImages)}
                         >
-                          <p className='text-lg max-md:text-base text-primary'>
+                          <p className="text-lg max-md:text-base text-primary">
                             {index + 1} Of {movieImages?.length || tvImages?.length}
                           </p>
-                          <ViewCompactIcon style={{ fontSize: '2rem', color: 'white' }} />
+                          <ViewCompactIcon style={{ fontSize: "2rem", color: "white" }} />
                         </div>
                       </div>
                       <div
-                        className='max-md:flex-1'
+                        className="max-md:flex-1"
                         style={{
                           width:
                             containerWidth <= 768
@@ -1066,88 +1079,88 @@ const MediaDetail = () => {
                         }}
                       >
                         <LazyLoadImage
-                          src={getImageUrl(currentImage?.file_path, 'w780')}
-                          loading='lazy'
-                          alt='Celebrity Image'
-                          className='object-cover w-full h-full'
+                          src={getImageUrl(currentImage?.file_path, "w780")}
+                          loading="lazy"
+                          alt="Celebrity Image"
+                          className="object-cover w-full h-full"
                         />
                       </div>
                     </div>
                   )}
 
                   {index < 8 && (movieImages || tvImages)?.slice(0, 8).length - 1 === index && (
-                    <span className='flex items-center justify-center absolute top-0 left-0 w-full h-full text-lg text-white font-medium bg-overlay-60 z-10'>
+                    <span className="flex items-center justify-center absolute top-0 left-0 w-full h-full text-lg text-white font-medium bg-overlay-60 z-10">
                       + {(movieImages || tvImages)?.slice(8)?.length}
                     </span>
                   )}
 
                   <LazyLoadImage
-                    src={getImageUrl(p?.file_path, 'w342')}
-                    loading='lazy'
-                    alt='Celebrity Image'
-                    className='object-cover w-full h-full'
+                    src={getImageUrl(p?.file_path, "w342")}
+                    loading="lazy"
+                    alt="Celebrity Image"
+                    className="object-cover w-full h-full"
                   />
                 </div>
               ))}
             </div>
           </div>
         )}
-        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
-          <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
-          <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
-            <h2 className='text-2xl font-medium'>Feedback</h2>
-            <p className='text-secondary hover:underline cursor-pointer'>
+        <div className="max-lg:hidden flex flex-1 flex-col gap-4">
+          <h1 className="text-3xl font-semibold pl-3 border-l-4 border-primary">More to explore</h1>
+          <div className="flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm">
+            <h2 className="text-2xl font-medium">Feedback</h2>
+            <p className="text-secondary hover:underline cursor-pointer">
               Tell us what you think about this feature.
             </p>
-            <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
+            <p className="text-secondary hover:underline cursor-pointer">Report this list.</p>
           </div>
         </div>
       </div>
-      <div className='container flex gap-6 pt-10 max-lg:p-6 bg-white'>
-        <div className='flex flex-3 flex-col gap-4'>
-          <div className='group/icon flex items-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4 border-primary cursor-pointer'>
+      <div className="container flex gap-6 pt-10 max-lg:p-6 bg-white">
+        <div className="flex flex-3 flex-col gap-4">
+          <div className="group/icon flex items-center gap-2 w-fit text-4xl max-lg:text-2xl font-semibold pl-3 border-l-4 border-primary cursor-pointer">
             <h1>Top Cast</h1>
-            <ArrowForwardIosIcon className='group-hover/icon:text-primary' />
-            <span className='text-gray-350 text-lg'>{movieCast?.length || tvCast?.length}</span>
+            <ArrowForwardIosIcon className="group-hover/icon:text-primary" />
+            <span className="text-gray-350 text-lg">{movieCast?.length || tvCast?.length}</span>
           </div>
-          <div className='grid grid-cols-2 max-lg:grid-cols-1 gap-4 items-center'>
+          <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-4 items-center">
             {(movieCast || tvCast).slice(0, 20)?.map((c: Cast) => (
               <div
                 key={c?.id}
-                className='flex items-center gap-4 cursor-pointer'
+                className="flex items-center gap-4 cursor-pointer"
                 onClick={(): void => handleCelebrity(c?.name, c?.id)}
               >
-                <div className='w-32 h-32 max-lg:w-28 max-lg:h-28   rounded-full overflow-hidden'>
+                <div className="w-32 h-32 max-lg:w-28 max-lg:h-28   rounded-full overflow-hidden">
                   <LazyLoadImage
-                    src={getImageUrl(c?.profile_path, 'w154')}
-                    loading='lazy'
-                    alt='Celebrity Profile Image'
-                    className='object-cover w-full h-full'
+                    src={getImageUrl(c?.profile_path, "w154")}
+                    loading="lazy"
+                    alt="Celebrity Profile Image"
+                    className="object-cover w-full h-full"
                   />
                 </div>
-                <div className='flex flex-col items-center gap-2'>
-                  <span className='text-lg font-medium'>{c?.name}</span>
-                  <span className='font-medium text-gray-300'>{c?.character}</span>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-lg font-medium">{c?.name}</span>
+                  <span className="font-medium text-gray-300">{c?.character}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className='max-lg:hidden flex flex-1 flex-col gap-4'>
-          <h1 className='text-3xl font-semibold pl-3 border-l-4 border-primary'>More to explore</h1>
-          <div className='flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm'>
-            <h2 className='text-2xl font-medium'>Feedback</h2>
-            <p className='text-secondary hover:underline cursor-pointer'>
+        <div className="max-lg:hidden flex flex-1 flex-col gap-4">
+          <h1 className="text-3xl font-semibold pl-3 border-l-4 border-primary">More to explore</h1>
+          <div className="flex flex-col gap-3 p-4 border-2 border-gray-250 rounded-sm">
+            <h2 className="text-2xl font-medium">Feedback</h2>
+            <p className="text-secondary hover:underline cursor-pointer">
               Tell us what you think about this feature.
             </p>
-            <p className='text-secondary hover:underline cursor-pointer'>Report this list.</p>
+            <p className="text-secondary hover:underline cursor-pointer">Report this list.</p>
           </div>
         </div>
       </div>
       {data && (
-        <div className='pb-20'>
-          <MediaList title='Similar' mediaType={data?.media_type} id={data?.id} />
-          <MediaList title='Recommend' mediaType={data?.media_type} id={data?.id} />
+        <div className="pb-20">
+          <MediaList title="Similar" mediaType={data?.media_type} id={data?.id} />
+          <MediaList title="Recommend" mediaType={data?.media_type} id={data?.id} />
         </div>
       )}
       {containerWidth <= 1024 && <MobileNavbar />}

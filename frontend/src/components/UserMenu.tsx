@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import { useAuth } from '../context/authContext';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useEffect, useRef } from "react";
+import { useAuth } from "../context/authContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // Type of user menu
 type menuProps = {
@@ -10,7 +10,7 @@ type menuProps = {
 };
 
 // Menu text
-const text: string[] = ['your Watchlist', 'your Lists', 'Sign out'];
+const text: string[] = ["your Watchlist", "your Lists", "Sign out"];
 
 const UserMenu: React.FC<menuProps> = React.memo(({ showUserMenu, setshowUserMenu }) => {
   const { logout } = useAuth();
@@ -27,51 +27,51 @@ const UserMenu: React.FC<menuProps> = React.memo(({ showUserMenu, setshowUserMen
   // Navigate to a page depending on the text that has been clicked
   const handleClick = async (index: number) => {
     if (index === 0) {
-      navigate('/listDetails');
+      navigate("/listDetails");
     } else if (index === 1) {
-      navigate('/userLists');
+      navigate("/userLists");
     } else {
       try {
         const response = await axios.post(
-          'http://localhost:3000/auth/logout',
+          `${import.meta.env.VITE_MONGODB_API}/auth/logout`,
           {},
           {
             withCredentials: true,
-          }
+          },
         );
 
-        if (response.data === 'Logged out successfully.') {
-          localStorage.removeItem('user');
+        if (response.data === "Logged out successfully.") {
+          localStorage.removeItem("user");
           logout();
           navigate(location.pathname); // Redirect to the current page
         }
       } catch (error: any) {
-        console.error(error?.response?.data || 'An error occurred while logging out');
+        console.error(error?.response?.data || "An error occurred while logging out");
       }
     }
   };
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleMenu);
+    document.addEventListener("mousedown", handleMenu);
     return () => {
-      document.removeEventListener('mousedown', handleMenu);
+      document.removeEventListener("mousedown", handleMenu);
     };
   }, []);
 
   return (
     <div
       ref={dropDownRef}
-      style={{ display: showUserMenu ? 'block' : 'none' }}
-      className='absolute flex flex-col gap-2 left-0 bottom-0 bg-gray-400 translate-y-full z-40 overflow-hidden transition-all duration-300 ease-in-out'
+      style={{ display: showUserMenu ? "block" : "none" }}
+      className="absolute flex flex-col gap-2 left-0 bottom-0 bg-gray-400 translate-y-full z-40 overflow-hidden transition-all duration-300 ease-in-out"
     >
       {text.map((el: string, index: number) => (
         <div
-          role='button'
+          role="button"
           key={index}
-          className='group flex items-center gap-3 w-full h-full px-4 py-3 hover:bg-gray-300'
+          className="group flex items-center gap-3 w-full h-full px-4 py-3 hover:bg-gray-300"
           onClick={() => handleClick(index)}
         >
-          <span className='text-base text-gray-200 group-hover:text-white'>{el}</span>
+          <span className="text-base text-gray-200 group-hover:text-white">{el}</span>
         </div>
       ))}
     </div>
