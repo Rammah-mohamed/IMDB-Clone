@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 const BASE_URL = 'https://api.themoviedb.org/3/';
 const options = {
   method: 'GET',
@@ -507,4 +508,4 @@ const resolvers = {
   },
 };
 
-module.exports = resolvers;
+export default resolvers;

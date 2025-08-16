@@ -1,20 +1,16 @@
 {
   "name": "graphql-server",
   "version": "1.0.0",
-  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "dev": "vercel dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "apollo-server-express": "^3.13.0",
+    "apollo-server-micro": "^3.13.0",
     "axios": "^1.7.7",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.0",
-    "graphql": "^16.9.0"
+    "graphql": "^16.9.0",
+    "micro-cors": "^0.1.1",
+    "node-fetch": "^3.3.2"
   }
 }
